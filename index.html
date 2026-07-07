@@ -101,7 +101,8 @@
             transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
             position: relative; z-index: 2;
         }
-        .app-icon-wrap.rubricas { background: linear-gradient(135deg, #a78bfa, #7c3aed); --icon-glow: rgba(124,58,237,0.35); box-shadow: 0 8px 28px rgba(124,58,237,0.25); }
+        /* DEGRADADOS IGUALES PARA AMBAS APPS */
+        .app-icon-wrap.rubricas { background: linear-gradient(135deg, #c4b5fd, #8b5cf6); --icon-glow: rgba(139,92,246,0.35); box-shadow: 0 8px 28px rgba(139,92,246,0.25); }
         .app-icon-wrap.automail { background: linear-gradient(135deg, #c4b5fd, #8b5cf6); --icon-glow: rgba(139,92,246,0.35); box-shadow: 0 8px 28px rgba(139,92,246,0.25); }
 
         .app-title { font-weight: 700; font-size: 1.5rem; letter-spacing: -0.02em; color: var(--fg); position: relative; z-index: 2; }
@@ -270,7 +271,7 @@
 
     <!-- Contador de visitas -->
     <div class="visit-counter">
-        Han pasado ya por aquí <span id="counter-number">...</span> conejos.
+        Ya han pasado por aquí <span id="counter-number">...</span> conejos.
     </div>
 
     <div id="appView"><iframe id="appFrame" title="Aplicación embebida"></iframe></div>
@@ -372,11 +373,23 @@
             document.head.appendChild(style);
         })();
 
-        /* ===== CONTADOR DE VISITAS GLOBAL ===== */
-        fetch('https://api.counterapi.dev/v1/conejo-docentes-2024/visitas/up')
-            .then(res => res.json())
-            .then(data => { document.getElementById('counter-number').innerText = data.count; })
-            .catch(() => { document.getElementById('counter-number').innerText = "algunos"; });
+        /* ===== CONTADOR DE VISITAS GLOBAL (ÚNICAS) ===== */
+        var counterUrl = 'https://api.counterapi.dev/v1/conejo-docentes-2024/visitas';
+        
+        if (localStorage.getItem('conejo-visitado') === null) {
+            // Primera vez en este dispositivo: Sumamos 1
+            localStorage.setItem('conejo-visitado', 'true');
+            fetch(counterUrl + '/up')
+                .then(res => res.json())
+                .then(data => { document.getElementById('counter-number').innerText = data.count; })
+                .catch(() => { document.getElementById('counter-number').innerText = "algunos"; });
+        } else {
+            // Ya ha estado antes: Solo leemos el número sin sumar
+            fetch(counterUrl)
+                .then(res => res.json())
+                .then(data => { document.getElementById('counter-number').innerText = data; })
+                .catch(() => { document.getElementById('counter-number').innerText = "algunos"; });
+        }
     </script>
 </body>
 </html>
