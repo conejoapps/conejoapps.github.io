@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>CONEJO</title>
     
-    <!-- FAVICON: Conejo Emoji -->
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐰</text></svg>">
+    <!-- FAVICON: Conejo Saltando -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐇</text></svg>">
     
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -101,7 +101,6 @@
             transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
             position: relative; z-index: 2;
         }
-        /* DEGRADADOS IGUALES PARA AMBAS APPS */
         .app-icon-wrap.rubricas { background: linear-gradient(135deg, #c4b5fd, #8b5cf6); --icon-glow: rgba(139,92,246,0.35); box-shadow: 0 8px 28px rgba(139,92,246,0.25); }
         .app-icon-wrap.automail { background: linear-gradient(135deg, #c4b5fd, #8b5cf6); --icon-glow: rgba(139,92,246,0.35); box-shadow: 0 8px 28px rgba(139,92,246,0.25); }
 
@@ -373,12 +372,20 @@
             document.head.appendChild(style);
         })();
 
-/* ===== CONTADOR DE VISITAS GLOBAL (ÚNICAS) ===== */
+        /* ===== CONTADOR DE VISITAS GLOBAL (ÚNICAS Y A PRUEBA DE BLOQUEADORES) ===== */
         var counterUrl = 'https://api.counterapi.dev/v1/conejo-docentes-2024/visitas';
+        var counterController = new AbortController();
         
-        fetch(counterUrl + '/up')
-            .then(res => res.json())
-            .then(data => { 
+        // Si pasan 3 segundos y el navegador no ha respondido (por el bloqueador), cancelamos la petición
+        var counterTimeout = setTimeout(function() { counterController.abort(); }, 3000);
+
+        fetch(counterUrl + '/up', { signal: counterController.signal })
+            .then(function(res) { 
+                clearTimeout(counterTimeout);
+                if (!res.ok) throw new Error('Error de API');
+                return res.json();
+            })
+            .then(function(data) { 
                 var count = data.count;
                 
                 if (localStorage.getItem('conejo-visitado') !== null) {
@@ -392,8 +399,10 @@
                 
                 document.getElementById('counter-number').innerText = count;
             })
-            .catch(() => { document.getElementById('counter-number').innerText = "algunos"; });
-        }
+            .catch(function() { 
+                // Si falla por el bloqueador o por timeout, muestra esto sin romper la web
+                document.getElementById('counter-number').innerText = "algunos"; 
+            });
     </script>
 </body>
 </html>
