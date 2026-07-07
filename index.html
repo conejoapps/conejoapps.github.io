@@ -373,22 +373,26 @@
             document.head.appendChild(style);
         })();
 
-        /* ===== CONTADOR DE VISITAS GLOBAL (ÚNICAS) ===== */
+/* ===== CONTADOR DE VISITAS GLOBAL (ÚNICAS) ===== */
         var counterUrl = 'https://api.counterapi.dev/v1/conejo-docentes-2024/visitas';
         
-        if (localStorage.getItem('conejo-visitado') === null) {
-            // Primera vez en este dispositivo: Sumamos 1
-            localStorage.setItem('conejo-visitado', 'true');
-            fetch(counterUrl + '/up')
-                .then(res => res.json())
-                .then(data => { document.getElementById('counter-number').innerText = data.count; })
-                .catch(() => { document.getElementById('counter-number').innerText = "algunos"; });
-        } else {
-            // Ya ha estado antes: Solo leemos el número sin sumar
-            fetch(counterUrl)
-                .then(res => res.json())
-                .then(data => { document.getElementById('counter-number').innerText = data; })
-                .catch(() => { document.getElementById('counter-number').innerText = "algunos"; });
+        fetch(counterUrl + '/up')
+            .then(res => res.json())
+            .then(data => { 
+                var count = data.count;
+                
+                if (localStorage.getItem('conejo-visitado') !== null) {
+                    // Ya hemos estado antes: Como el /up nos ha sumado 1 a nosotros mismos, 
+                    // se lo restamos a la vista para no inflar el número al recargar.
+                    count = Math.max(0, count - 1); 
+                } else {
+                    // Primera vez en este dispositivo: Guardamos el ticket
+                    localStorage.setItem('conejo-visitado', 'true');
+                }
+                
+                document.getElementById('counter-number').innerText = count;
+            })
+            .catch(() => { document.getElementById('counter-number').innerText = "algunos"; });
         }
     </script>
 </body>
