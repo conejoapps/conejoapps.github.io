@@ -125,7 +125,7 @@
         .logo-area { text-align: center; margin-bottom: 56px; animation: fadeUp 0.9s cubic-bezier(0.23, 1, 0.32, 1) both; }
 
         .mascot-wrapper { margin: 0 auto 20px; width: 130px; height: 130px; position: relative; display: flex; align-items: flex-end; justify-content: center; }
-        .mascot-rabbit { width: 120px; height: auto; filter: drop-shadow(0 10px 15px rgba(124,58,237,0.25)); transform-origin: center bottom; animation: realisticJump 2.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite; }
+        .mascot-rabbit { width: 100%; height: auto; filter: drop-shadow(0 10px 15px rgba(124,58,237,0.25)); transform-origin: center bottom; animation: realisticJump 2.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite; }
         .mascot-shadow { position: absolute; bottom: 0; width: 70px; height: 12px; background: rgba(124,58,237,0.15); border-radius: 50%; filter: blur(5px); animation: realisticShadow 2.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite; }
 
         @keyframes realisticJump { 0%, 100% { transform: translateY(0) scale(1, 1); } 10% { transform: translateY(2px) scale(1.02, 0.95); } 40% { transform: translateY(-22px) scale(0.98, 1.04); } 60% { transform: translateY(-22px) scale(0.98, 1.04); } 85% { transform: translateY(0) scale(1.02, 0.95); } }
@@ -135,24 +135,52 @@
         .logo-sub { font-weight: 300; font-size: 0.95rem; color: var(--muted); margin-top: 12px; letter-spacing: 0.04em; }
         .cards-row { display: flex; gap: 36px; animation: fadeUp 0.9s 0.15s cubic-bezier(0.23, 1, 0.32, 1) both; }
 
-        /* ===== CONTADOR DE VISITAS ===== */
+        /* ===== CONTADOR Y TEXTO LEGAL ===== */
         .visit-counter {
             position: fixed;
             bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 5;
-            font-size: 0.75rem;
+            text-align: center;
             color: var(--muted);
             opacity: 0.6;
             display: flex;
+            flex-direction: column;
             align-items: center;
             gap: 6px;
             pointer-events: none;
             transition: opacity 0.4s ease;
+            max-width: 85%;
         }
         #homeView.hidden-view ~ .visit-counter { opacity: 0; }
-        #counter-number { font-weight: 600; color: var(--accent); }
+        
+        .counter-text { 
+            font-size: 0.85rem; 
+        }
+        #counter-number { 
+            font-weight: 700; 
+            font-size: 0.85rem; /* Corregido */
+            color: var(--accent); 
+        }
+        
+        .counter-legal {
+            font-size: 0.65rem;
+            opacity: 0.8;
+            line-height: 1.4;
+        }
+        .hidden-link { 
+            color: var(--muted); 
+            text-decoration: none; 
+            pointer-events: auto; 
+            cursor: pointer; 
+            transition: color 0.2s ease; 
+            position: relative; /* Corregido */
+            z-index: 10;      /* Corregido */
+        }
+        .hidden-link:hover { 
+            color: var(--accent); 
+        }
 
         /* ===== FULLSCREEN APP VIEW ===== */
         #appView { position: fixed; inset: 0; z-index: 20; display: none; opacity: 0; transition: opacity 0.45s ease; }
@@ -197,7 +225,7 @@
             #homeView { justify-content: center; }
             .logo-area { margin-bottom: 40px; }
             .mascot-wrapper { width: 100px; height: 100px; margin-bottom: 14px; }
-            .mascot-rabbit { width: 90px; }
+            .mascot-rabbit { width: 100%; }
             .mascot-shadow { width: 55px; height: 8px; }
             .logo-text { font-size: 2.4rem; letter-spacing: 0.12em; }
             .logo-sub { font-size: 0.85rem; margin-top: 8px; }
@@ -210,7 +238,7 @@
         }
         @media (max-width: 380px) {
             .mascot-wrapper { width: 85px; height: 85px; }
-            .mascot-rabbit { width: 75px; }
+            .mascot-rabbit { width: 100%; }
             .logo-text { font-size: 2rem; }
             .cards-row { gap: 12px; width: 95%; }
             .app-card { padding: 20px 10px 16px; gap: 10px; }
@@ -234,6 +262,7 @@
     <main id="homeView">
         <div class="logo-area">
             <div class="mascot-wrapper">
+                <!-- SVG ACTUALIZADO: Con los colores violeta/morados de la web -->
                 <svg class="mascot-rabbit" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
                     <defs>
                         <linearGradient id="rabbitDark" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#7c3aed"/><stop offset="100%" stop-color="#4c1d95"/></linearGradient>
@@ -268,9 +297,10 @@
         </nav>
     </main>
 
-    <!-- Contador de visitas -->
+    <!-- Info legal y Contador -->
     <div class="visit-counter">
-        Ya han pasado por aquí <span id="counter-number">...</span> conejos.
+        <div class="counter-text">Ya han pasado por aquí <span id="counter-number">...</span> conejos.</div>
+        <div class="counter-legal">Conejo no almacena datos de usuario y es totalmente libre. Descárgalo desde <a href="https://github.com/conejoapps/conejoapps.github.io" target="_blank" class="hidden-link">github</a> para usarlo de forma local.</div>
     </div>
 
     <div id="appView"><iframe id="appFrame" title="Aplicación embebida"></iframe></div>
@@ -372,11 +402,10 @@
             document.head.appendChild(style);
         })();
 
-        /* ===== CONTADOR DE VISITAS GLOBAL (ÚNICAS Y A PRUEBA DE BLOQUEADORES) ===== */
+        /* ===== CONTADOR DE VISITAS (Versión final) ===== */
         var counterUrl = 'https://api.counterapi.dev/v1/conejo-docentes-2024/visitas';
         var counterController = new AbortController();
         
-        // Si pasan 3 segundos y el navegador no ha respondido (por el bloqueador), cancelamos la petición
         var counterTimeout = setTimeout(function() { counterController.abort(); }, 3000);
 
         fetch(counterUrl + '/up', { signal: counterController.signal })
@@ -387,20 +416,14 @@
             })
             .then(function(data) { 
                 var count = data.count;
-                
-                if (localStorage.getItem('conejo-visitado') !== null) {
-                    // Ya hemos estado antes: Como el /up nos ha sumado 1 a nosotros mismos, 
-                    // se lo restamos a la vista para no inflar el número al recargar.
+                if (sessionStorage.getItem('conejo-visitado') !== null) {
                     count = Math.max(0, count - 1); 
                 } else {
-                    // Primera vez en este dispositivo: Guardamos el ticket
-                    localStorage.setItem('conejo-visitado', 'true');
+                    sessionStorage.setItem('conejo-visitado', 'true');
                 }
-                
                 document.getElementById('counter-number').innerText = count;
             })
             .catch(function() { 
-                // Si falla por el bloqueador o por timeout, muestra esto sin romper la web
                 document.getElementById('counter-number').innerText = "algunos"; 
             });
     </script>
