@@ -141,7 +141,7 @@
             bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
-            z-index: 5;
+            z-index: 15; /* SOLUCIÓN: Subido de 5 a 15 para estar por encima de #homeView (10) */
             text-align: center;
             color: var(--muted);
             opacity: 0.6;
@@ -160,7 +160,7 @@
         }
         #counter-number { 
             font-weight: 700; 
-            font-size: 0.85rem; /* Corregido */
+            font-size: 0.85rem; 
             color: var(--accent); 
         }
         
@@ -175,8 +175,8 @@
             pointer-events: auto; 
             cursor: pointer; 
             transition: color 0.2s ease; 
-            position: relative; /* Corregido */
-            z-index: 10;      /* Corregido */
+            position: relative; 
+            z-index: 10;      
         }
         .hidden-link:hover { 
             color: var(--accent); 
@@ -262,7 +262,6 @@
     <main id="homeView">
         <div class="logo-area">
             <div class="mascot-wrapper">
-                <!-- SVG ACTUALIZADO: Con los colores violeta/morados de la web -->
                 <svg class="mascot-rabbit" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
                     <defs>
                         <linearGradient id="rabbitDark" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#7c3aed"/><stop offset="100%" stop-color="#4c1d95"/></linearGradient>
