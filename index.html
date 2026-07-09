@@ -77,10 +77,10 @@
 
         .app-card {
             cursor: pointer; 
-            flex: 1 1 260px; /* Escritorio: tarjetas elásticas */
+            flex: 1 1 260px; 
             min-width: 200px; 
             max-width: 320px; 
-            aspect-ratio: 1; /* Escritorio: cuadradas perfectas */
+            aspect-ratio: 1; 
             padding: 24px;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             text-align: center; gap: 14px;
@@ -114,11 +114,19 @@
             width: 100%; height: 100%; 
             filter: drop-shadow(0 4px 8px rgba(124,58,237,0.15));
             transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+            transform-origin: center;
         }
+        
+        /* Ajuste de tamaño visual SIN tocar el código SVG original */
+        .app-icon-wrap.brand-svg-wrap svg.brand-rubrica { transform: scale(0.8); }
+        .app-icon-wrap.brand-svg-wrap svg.brand-autoemilio { transform: scale(0.85); }
+
         .app-card:hover .brand-svg-wrap svg { 
             filter: drop-shadow(0 6px 16px rgba(124,58,237,0.3)); 
             transform: scale(1.1); 
         }
+        .app-card:hover .brand-svg-wrap svg.brand-rubrica { transform: scale(0.88); } /* 0.8 * 1.1 */
+        .app-card:hover .brand-svg-wrap svg.brand-autoemilio { transform: scale(0.935); } /* 0.85 * 1.1 */
 
         .app-title { font-weight: 700; font-size: 1.2rem; letter-spacing: -0.02em; color: var(--fg); position: relative; z-index: 2; }
         .app-desc { font-weight: 300; font-size: 0.8rem; color: var(--muted); line-height: 1.55; position: relative; z-index: 2; max-width: 200px; }
@@ -129,8 +137,8 @@
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             transition: all 0.55s cubic-bezier(0.23, 1, 0.32, 1);
             padding-top: 20px;
-            padding-bottom: 110px; /* Espacio inferior fijado para evitar que el botón solape el contador */
-            overflow-y: auto; /* Permite scroll vertical si la ventana es muy baja */
+            padding-bottom: 110px; 
+            overflow-y: auto; 
         }
         #homeView.hidden-view { opacity: 0; transform: scale(0.94); pointer-events: none; }
 
@@ -150,15 +158,15 @@
         .cards-container {
             display: flex; flex-direction: column; align-items: center;
             animation: fadeUp 0.9s 0.15s cubic-bezier(0.23, 1, 0.32, 1) both;
-            width: 100%; /* Ocupa todo el ancho disponible para centrar correctamente */
+            width: 100%; 
             max-width: 1000px;
             padding: 0 20px;
         }
         .cards-row { 
             display: flex; 
             gap: 24px;
-            flex-wrap: wrap; /* Permite que las apps bajen de línea si reduces el ancho */
-            justify-content: center; /* Siempre centradas */
+            flex-wrap: wrap; 
+            justify-content: center; 
             width: 100%;
         }
 
@@ -178,7 +186,7 @@
             box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3);
             transition: transform 0.2s ease, box-shadow 0.2s ease;
             z-index: 10;
-            align-self: center; /* Asegura el centrado exacto en el eje horizontal en escritorio */
+            align-self: center; 
         }
         .about-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4); }
 
@@ -278,7 +286,7 @@
                 gap: 16px;
                 width: 90%;
                 padding: 0;
-                justify-items: stretch; /* Ocupa todo el ancho de la columna */
+                justify-items: stretch; 
                 animation: fadeUp 0.9s 0.15s cubic-bezier(0.23, 1, 0.32, 1) both;
             }
             .cards-row {
@@ -291,6 +299,7 @@
                 min-width: 0;
                 aspect-ratio: auto;
                 max-width: none;
+                min-height: 160px; /* Fuerza que todas las tarjetas tengan la misma altura */
                 padding: 20px 10px 18px;
                 gap: 10px;
                 border-radius: 24px;
@@ -300,11 +309,11 @@
                 justify-content: center;
             }
             
-            /* El botón se convierte en un círculo morado compacto en móvil */
+            /* Botón circular ligeramente más grande */
             .about-btn {
                 margin: 0;
-                width: 64px;
-                height: 64px;
+                width: 72px;
+                height: 72px;
                 min-width: 0;
                 max-width: none;
                 padding: 5px;
@@ -315,14 +324,14 @@
                 background: linear-gradient(135deg, #7c3aed, #4c1d95);
                 color: #fff;
                 border: none;
-                border-radius: 50%; /* Círculo perfecto */
-                font-size: 0.65rem;
+                border-radius: 50%; 
+                font-size: 0.7rem;
                 font-weight: 700;
                 line-height: 1.1;
                 box-shadow: 0 4px 10px rgba(124, 58, 237, 0.3);
                 align-self: center;
-                justify-self: center; /* Centrado en su celda del grid */
-                white-space: normal; /* Permite el salto de línea 'Acerca' / 'de' */
+                justify-self: center; 
+                white-space: normal; 
             }
 
             .app-icon-wrap { width: 56px; height: 56px; font-size: 1.8rem; border-radius: 16px; }
@@ -336,13 +345,13 @@
             .mascot-shadow { width: 50px; height: 8px; }
             .logo-text { font-size: 1.7rem; }
             .cards-container { gap: 12px; width: 95%; }
-            .app-card { padding: 16px 8px 14px; gap: 8px; border-radius: 20px; }
+            .app-card { padding: 16px 8px 14px; gap: 8px; border-radius: 20px; min-height: 140px; }
             .app-icon-wrap { width: 46px; height: 46px; font-size: 1.6rem; border-radius: 14px; }
             .app-icon-wrap.brand-svg-wrap { width: 46px; height: 46px; }
             .app-title { font-size: 0.85rem; }
             .app-desc { font-size: 0.65rem; }
             .visit-counter { width: 95%; }
-            .about-btn { width: 56px; height: 56px; font-size: 0.6rem; } /* Ligeramente más pequeño para pantallas muy estrechas */
+            .about-btn { width: 64px; height: 64px; font-size: 0.65rem; } 
         }
         @media (prefers-reduced-motion: reduce) {
             .blob,.particle { animation: none !important; }
@@ -411,10 +420,10 @@
 
         <div class="cards-container">
             <nav class="cards-row" aria-label="Aplicaciones disponibles">
-                <!-- RUBRICAT (ViewBox ajustado para centrar el trazo) -->
+                <!-- RUBRICAT (SVG Original restaurado) -->
                 <div class="liquid-glass app-card" role="button" tabindex="0" aria-label="Abrir Rubricat" onclick="openApp('rubricat.html','Rubricat')">
                     <div class="app-icon-wrap brand-svg-wrap">
-                        <svg viewBox="40 10 330 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <svg class="brand-rubrica" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <defs>
                                 <linearGradient id="rubricaGrad" x1="0%" y1="0%" x2="100%" y2="100%">
                                     <stop offset="0%" stop-color="#7c3aed"/>
@@ -429,10 +438,10 @@
                     <div class="app-arrow"><i class="fa-solid fa-arrow-right"></i></div>
                 </div>
 
-                <!-- AUTOEMILIO (ViewBox ajustado para centrar el trazo) -->
+                <!-- AUTOEMILIO (SVG Original restaurado) -->
                 <div class="liquid-glass app-card" role="button" tabindex="0" aria-label="Abrir Autoemilio" onclick="openApp('autoemilio.html','Autoemilio')">
                     <div class="app-icon-wrap brand-svg-wrap">
-                        <svg viewBox="30 0 340 360" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <svg class="brand-autoemilio" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <defs>
                                 <linearGradient id="autoemilioGrad" x1="0%" y1="0%" x2="100%" y2="100%">
                                     <stop offset="0%" stop-color="#7c3aed"/>
