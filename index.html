@@ -77,7 +77,7 @@
 
         .app-card {
             cursor: pointer; 
-            width: 260px; 
+            width: clamp(220px, 26vw, 280px); /* Tamaño fluido: se adapta al ancho de la pantalla */
             aspect-ratio: 1; /* Mantiene proporciones cuadradas perfectas */
             padding: 24px;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -126,6 +126,9 @@
             position: fixed; inset: 0; z-index: 10;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             transition: all 0.55s cubic-bezier(0.23, 1, 0.32, 1);
+            padding-top: 20px;
+            padding-bottom: 110px; /* Espacio inferior fijado para evitar que el botón solape el contador */
+            overflow-y: auto; /* Permite scroll vertical si la ventana es muy baja */
         }
         #homeView.hidden-view { opacity: 0; transform: scale(0.94); pointer-events: none; }
 
@@ -145,13 +148,20 @@
         .cards-container {
             display: flex; flex-direction: column; align-items: center;
             animation: fadeUp 0.9s 0.15s cubic-bezier(0.23, 1, 0.32, 1) both;
+            width: 100%; /* Ocupa todo el ancho disponible para centrar correctamente */
+            max-width: 900px;
         }
-        .cards-row { display: flex; gap: 24px; }
+        .cards-row { 
+            display: flex; 
+            gap: 24px;
+            flex-wrap: wrap; /* Permite que las apps bajen de línea si reduces el ancho */
+            justify-content: center; /* Siempre centradas */
+        }
 
         /* ===== BOTÓN ACERCA DE (Escritorio) ===== */
         .about-btn {
             margin-top: 36px;
-            margin-bottom: 60px;
+            margin-bottom: 0; /* El padding de #homeView ya gestiona este espacio */
             padding: 10px 24px;
             background: linear-gradient(135deg, #7c3aed, #4c1d95);
             color: #fff;
@@ -250,7 +260,7 @@
 
         /* ===== MÓVIL ===== */
         @media (max-width: 820px) {
-            #homeView { justify-content: center; padding-top: 20px; padding-bottom: 50px; overflow-y: auto; }
+            #homeView { justify-content: center; padding-top: 20px; padding-bottom: 80px; overflow-y: auto; }
             .logo-area { margin-bottom: 20px; flex-shrink: 0; }
             .mascot-wrapper { width: 130px; height: 130px; margin-bottom: 8px; }
             .mascot-shadow { width: 65px; height: 10px; }
