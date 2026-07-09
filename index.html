@@ -278,24 +278,25 @@
                 justify-content: center;
             }
             
-            /* El botón se convierte en un pequeño cuadro morado en móvil */
+            /* El botón se convierte en un pequeño cuadro morado redondo en móvil */
             .about-btn {
                 margin: 0;
-                width: 100%;
+                width: auto; /* Se ajusta al contenido */
                 max-width: 140px; /* Más pequeño que las apps */
                 height: 45px; /* Altura fija reducida */
-                padding: 0;
+                padding: 0 24px; /* Padding horizontal para la forma de píldora */
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 background: linear-gradient(135deg, #7c3aed, #4c1d95);
                 color: #fff;
                 border: none;
-                border-radius: 14px;
+                border-radius: 50px; /* Borde completamente redondo (elipse) */
                 font-size: 0.85rem;
                 font-weight: 600;
                 box-shadow: 0 4px 10px rgba(124, 58, 237, 0.3);
                 align-self: center; /* Evita que se estire si la app de al lado es más alta */
+                white-space: nowrap; /* Evita que el texto se rompa en dos líneas */
             }
 
             .app-icon-wrap { width: 60px; height: 60px; font-size: 1.8rem; border-radius: 16px; }
@@ -310,10 +311,10 @@
             .logo-text { font-size: 1.7rem; }
             .cards-container { gap: 12px; width: 95%; }
             .app-card { padding: 16px 8px 14px; gap: 8px; border-radius: 20px; }
-            .app-icon-wrap, .about-btn .app-icon-wrap { width: 46px; height: 46px; font-size: 1.6rem; border-radius: 14px; }
+            .app-icon-wrap { width: 46px; height: 46px; font-size: 1.6rem; border-radius: 14px; }
             .app-icon-wrap.brand-svg-wrap { width: 46px; height: 46px; }
-            .app-title, .about-btn .app-title { font-size: 0.85rem; }
-            .app-desc, .about-btn .app-desc { font-size: 0.65rem; }
+            .app-title { font-size: 0.85rem; }
+            .app-desc { font-size: 0.65rem; }
             .visit-counter { width: 95%; }
         }
         @media (prefers-reduced-motion: reduce) {
