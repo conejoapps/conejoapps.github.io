@@ -77,7 +77,9 @@
 
         .app-card {
             cursor: pointer; 
-            width: clamp(220px, 26vw, 280px); /* Tamaño fluido: se adapta al ancho de la pantalla */
+            flex: 1 1 260px; /* Las tarjetas crecen y se encogen para rellenar el espacio */
+            min-width: 200px; /* Tamaño mínimo antes de saltar de línea */
+            max-width: 320px; /* Tamaño máximo para que no sean gigantes */
             aspect-ratio: 1; /* Mantiene proporciones cuadradas perfectas */
             padding: 24px;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -149,13 +151,15 @@
             display: flex; flex-direction: column; align-items: center;
             animation: fadeUp 0.9s 0.15s cubic-bezier(0.23, 1, 0.32, 1) both;
             width: 100%; /* Ocupa todo el ancho disponible para centrar correctamente */
-            max-width: 900px;
+            max-width: 1000px; /* Un poco más de máximo para que respiren mejor */
+            padding: 0 20px;
         }
         .cards-row { 
             display: flex; 
             gap: 24px;
             flex-wrap: wrap; /* Permite que las apps bajen de línea si reduces el ancho */
             justify-content: center; /* Siempre centradas */
+            width: 100%;
         }
 
         /* ===== BOTÓN ACERCA DE (Escritorio) ===== */
@@ -272,6 +276,7 @@
                 grid-template-columns: 1fr 1fr;
                 gap: 16px;
                 width: 90%;
+                padding: 0;
                 justify-items: center;
                 animation: fadeUp 0.9s 0.15s cubic-bezier(0.23, 1, 0.32, 1) both;
             }
@@ -280,6 +285,7 @@
                 animation: none;
             }
             .app-card {
+                flex: none; /* Desactiva el flex de escritorio */
                 width: 100%;
                 max-width: 180px;
                 padding: 16px 10px;
