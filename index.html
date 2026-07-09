@@ -77,9 +77,9 @@
 
         .app-card {
             cursor: pointer; 
-            flex: 1 1 260px; /* Las tarjetas crecen y se encogen para rellenar el espacio */
-            min-width: 200px; /* Tamaño mínimo antes de saltar de línea */
-            max-width: 320px; /* Tamaño máximo para que no sean gigantes */
+            flex: 1 1 260px; /* Las tarjetas crecen y se encogen para rellenar el espacio en escritorio */
+            min-width: 200px; 
+            max-width: 320px; 
             aspect-ratio: 1; /* Mantiene proporciones cuadradas perfectas */
             padding: 24px;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -151,7 +151,7 @@
             display: flex; flex-direction: column; align-items: center;
             animation: fadeUp 0.9s 0.15s cubic-bezier(0.23, 1, 0.32, 1) both;
             width: 100%; /* Ocupa todo el ancho disponible para centrar correctamente */
-            max-width: 1000px; /* Un poco más de máximo para que respiren mejor */
+            max-width: 1000px;
             padding: 0 20px;
         }
         .cards-row { 
@@ -165,7 +165,7 @@
         /* ===== BOTÓN ACERCA DE (Escritorio) ===== */
         .about-btn {
             margin-top: 36px;
-            margin-bottom: 0; /* El padding de #homeView ya gestiona este espacio */
+            margin-bottom: 0;
             padding: 10px 24px;
             background: linear-gradient(135deg, #7c3aed, #4c1d95);
             color: #fff;
@@ -281,13 +281,14 @@
                 animation: fadeUp 0.9s 0.15s cubic-bezier(0.23, 1, 0.32, 1) both;
             }
             .cards-row {
-                display: contents; /* Permite que las tarjetas se integren en el grid del padre */
+                display: contents;
                 animation: none;
             }
             .app-card {
-                flex: none; /* Desactiva el flex de escritorio */
+                flex: none;
                 width: 100%;
                 max-width: 180px;
+                min-width: 0; /* RESET CLAVE: Permite que encojan en el grid de móvil */
                 padding: 16px 10px;
                 gap: 8px;
                 border-radius: 24px;
@@ -297,11 +298,11 @@
                 justify-content: center;
             }
             
-            /* El botón se convierte en un pequeño cuadro morado redondo en móvil */
             .about-btn {
                 margin: 0;
                 width: auto;
                 max-width: 140px;
+                min-width: 0; /* RESET CLAVE */
                 height: 45px;
                 padding: 0 24px;
                 display: flex;
@@ -329,7 +330,7 @@
             .mascot-shadow { width: 50px; height: 8px; }
             .logo-text { font-size: 1.7rem; }
             .cards-container { gap: 12px; width: 95%; }
-            .app-card { padding: 16px 8px 14px; gap: 8px; border-radius: 20px; }
+            .app-card { padding: 16px 8px 14px; gap: 8px; border-radius: 20px; min-width: 0; }
             .app-icon-wrap { width: 46px; height: 46px; font-size: 1.6rem; border-radius: 14px; }
             .app-icon-wrap.brand-svg-wrap { width: 46px; height: 46px; }
             .app-title { font-size: 0.85rem; }
