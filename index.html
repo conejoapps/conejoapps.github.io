@@ -178,7 +178,7 @@
             box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3);
             transition: transform 0.2s ease, box-shadow 0.2s ease;
             z-index: 10;
-            align-self: center; /* Asegura el centrado exacto en el eje horizontal */
+            align-self: center; /* Asegura el centrado exacto en el eje horizontal en escritorio */
         }
         .about-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4); }
 
@@ -289,8 +289,8 @@
                 flex: none;
                 width: 100%;
                 min-width: 0;
-                aspect-ratio: auto; /* Desactiva el cuadrado estricto para adaptarse al contenido */
-                max-width: none; /* Permite que ocupe toda la columna */
+                aspect-ratio: auto;
+                max-width: none;
                 padding: 20px 10px 18px;
                 gap: 10px;
                 border-radius: 24px;
@@ -300,27 +300,29 @@
                 justify-content: center;
             }
             
-            /* El botón se convierte en un pequeño cuadro morado redondo en móvil */
+            /* El botón se convierte en un círculo morado compacto en móvil */
             .about-btn {
-                margin: 16px auto 0; /* auto centrar horizontalmente */
-                width: auto;
+                margin: 0;
+                width: 64px;
+                height: 64px;
                 min-width: 0;
-                max-width: 200px;
-                height: 45px;
-                padding: 0 24px;
+                max-width: none;
+                padding: 5px;
                 display: flex;
+                flex-direction: column;
                 align-items: center;
                 justify-content: center;
                 background: linear-gradient(135deg, #7c3aed, #4c1d95);
                 color: #fff;
                 border: none;
-                border-radius: 50px;
-                font-size: 0.85rem;
-                font-weight: 600;
+                border-radius: 50%; /* Círculo perfecto */
+                font-size: 0.65rem;
+                font-weight: 700;
+                line-height: 1.1;
                 box-shadow: 0 4px 10px rgba(124, 58, 237, 0.3);
-                grid-column: 1 / -1; /* Ocupa todo el ancho del grid para centrarse perfectamente */
-                justify-self: center; /* Centrado en el grid */
-                white-space: nowrap;
+                align-self: center;
+                justify-self: center; /* Centrado en su celda del grid */
+                white-space: normal; /* Permite el salto de línea 'Acerca' / 'de' */
             }
 
             .app-icon-wrap { width: 56px; height: 56px; font-size: 1.8rem; border-radius: 16px; }
@@ -340,7 +342,7 @@
             .app-title { font-size: 0.85rem; }
             .app-desc { font-size: 0.65rem; }
             .visit-counter { width: 95%; }
-            .about-btn { max-width: 180px; }
+            .about-btn { width: 56px; height: 56px; font-size: 0.6rem; } /* Ligeramente más pequeño para pantallas muy estrechas */
         }
         @media (prefers-reduced-motion: reduce) {
             .blob,.particle { animation: none !important; }
