@@ -1,0 +1,3153 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#7c3aed">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+<title>Autoemilio</title>
+<style>
+/* ── Reset & Variables (liquid glass — mismo sistema que Rubricat) ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+:root {
+  --glass-bg: rgba(255,255,255,0.45);
+  --glass-bg-strong: rgba(255,255,255,0.6);
+  --glass-border: rgba(255,255,255,0.75);
+  --glass-shine: rgba(255,255,255,0.8);
+  --glass-shadow: 0 8px 32px rgba(124,58,237,0.14), 0 2px 8px rgba(124,58,237,0.08), inset 0 1px 0 rgba(255,255,255,0.6);
+  --glass-blur: blur(40px) saturate(1.6);
+  --accent: #7c3aed;
+  --accent2: #a78bfa;
+  --accent3: #38bdf8;
+
+  /* Verde = correos a empresas, Azul(accent3) = correos a alumnos */
+  --green: #10b981;
+  --green-dark: #047857;
+  --green-light: rgba(16,185,129,0.14);
+  --green-border: rgba(16,185,129,0.35);
+  --green-bg: rgba(16,185,129,0.10);
+
+  --text: #1a1a2e;
+  --text-2: #4b5070;
+  --text-3: #8a8698;
+  --text-4: #a8afc9;
+  --danger: #f43f5e;
+  --success: #10b981;
+  --warning: #f59e0b;
+
+  --bg: #f0ece6;
+  --card: rgba(255,255,255,0.45);
+  --border: rgba(255,255,255,0.75);
+  --border-2: rgba(255,255,255,0.55);
+
+  --radius: 28px;
+  --radius-sm: 14px;
+  --radius-xs: 9px;
+  --topbar-h: auto;
+  --navbar-h: 58px;
+  --transition: .15s ease;
+  --shadow: 0 8px 32px rgba(124,58,237,0.14), 0 2px 8px rgba(124,58,237,0.08);
+  --shadow-btn: 0 3px 12px rgba(124,58,237,0.35);
+  --font: 'Outfit', -apple-system, 'SF Pro Display', BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+button { -webkit-tap-highlight-color: transparent; outline: none; }
+button:focus, button:focus-visible { outline: none; }
+
+html, body { height: 100%; overflow: hidden; }
+body {
+  font-family: var(--font);
+  color: var(--text);
+  background: linear-gradient(160deg, #f5f1eb 0%, #ede7f0 40%, #e8e0f0 70%, #f0ece6 100%);
+  background-attachment: fixed;
+  display: flex;
+  flex-direction: column;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Fondo decorativo estilo CONEJO: manchas de color, rejilla sutil y partículas */
+.bg-scene { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+.blob { position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0.45; will-change: transform; }
+.blob-1 { width: 480px; height: 480px; background: radial-gradient(circle, rgba(124,58,237,0.35), transparent 70%); top: -15%; left: -8%; animation: f1 20s ease-in-out infinite; }
+.blob-2 { width: 420px; height: 420px; background: radial-gradient(circle, rgba(192,132,252,0.3), transparent 70%); bottom: -20%; right: -8%; animation: f2 24s ease-in-out infinite; }
+.blob-3 { width: 340px; height: 340px; background: radial-gradient(circle, rgba(167,139,250,0.25), transparent 70%); top: 40%; left: 55%; animation: f3 22s ease-in-out infinite; }
+.blob-4 { width: 300px; height: 300px; background: radial-gradient(circle, rgba(56,189,248,0.12), transparent 70%); top: 15%; right: 25%; animation: f4 26s ease-in-out infinite; }
+.blob-5 { width: 260px; height: 260px; background: radial-gradient(circle, rgba(124,58,237,0.18), transparent 70%); bottom: 10%; left: 20%; animation: f1 18s ease-in-out infinite reverse; }
+@keyframes f1 { 0%,100%{transform:translate(0,0) scale(1)} 25%{transform:translate(60px,40px) scale(1.08)} 50%{transform:translate(25px,80px) scale(.95)} 75%{transform:translate(-15px,30px) scale(1.04)} }
+@keyframes f2 { 0%,100%{transform:translate(0,0) scale(1)} 30%{transform:translate(-50px,-60px) scale(1.12)} 60%{transform:translate(-25px,-25px) scale(.92)} }
+@keyframes f3 { 0%,100%{transform:translate(0,0) scale(1)} 33%{transform:translate(-70px,35px) scale(1.08)} 66%{transform:translate(35px,-40px) scale(.96)} }
+@keyframes f4 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-50px,60px)} }
+
+.bg-grid {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image: linear-gradient(rgba(124,58,237,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(124,58,237,0.03) 1px, transparent 1px);
+  background-size: 44px 44px;
+}
+.particles { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.particle { position: absolute; border-radius: 50%; background: rgba(124,58,237,0.15); animation: drift linear infinite; }
+@keyframes drift { 0%{transform:translateY(100vh) translateX(0);opacity:0} 10%{opacity:1} 90%{opacity:1} 100%{transform:translateY(-10vh) translateX(20px);opacity:0} }
+
+@media (prefers-reduced-motion: reduce) {
+  .blob, .particle { animation: none !important; }
+}
+
+/* ══ PÍLDORA SUPERIOR (header unificado, idéntico a Rubricat) ══ */
+.app-pill-header { position: relative; z-index: 200; padding: 16px 20px 8px; display: flex; justify-content: center; flex-shrink: 0; }
+.app-pill {
+  width: 100%; max-width: 1100px; min-height: 50px; box-sizing: border-box;
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  backdrop-filter: blur(28px) saturate(1.8);
+  -webkit-backdrop-filter: blur(28px) saturate(1.8);
+  background: rgba(255,255,255,0.55);
+  border: 1px solid rgba(255,255,255,0.6);
+  border-radius: 100px;
+  padding: 6px;
+  box-shadow: 0 8px 32px rgba(124,58,237,0.18), 0 1px 0 rgba(255,255,255,0.8) inset;
+  position: relative;
+  z-index: 1;
+}
+.topbar-left, .app-pill-left { display: flex; align-items: center; flex-shrink: 0; height: 38px; }
+.app-logo { display: flex; align-items: center; gap: 6px; flex-shrink: 0; padding: 0 6px 0 12px; height: 100%; }
+.topbar-logo-mark {
+  width: 36px; height: 36px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--accent);
+}
+.topbar-logo-mark svg { width: 34px; height: 34px; }
+.app-logo h1 { font-size: 0.88rem; font-weight: 800; letter-spacing: 0.06em; color: var(--text); white-space: nowrap; text-transform: uppercase; line-height: 1; }
+.nav-tabs { display: flex; gap: 2px; flex-shrink: 0; height: 38px; }
+.topbar p { font-size: 0.6rem; color: var(--text-3); margin-top: 2px; }
+
+.nav-item {
+  display: flex; align-items: center; gap: 7px; box-sizing: border-box;
+  padding: 0 16px; height: 100%; border-radius: 80px; border: 1px solid transparent;
+  background: transparent; color: var(--text-3); font-size: 0.84rem;
+  font-weight: 600; cursor: pointer; transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+  font-family: var(--font); white-space: nowrap; position: relative;
+  -webkit-tap-highlight-color: transparent; outline: none; -webkit-touch-callout: none; user-select: none;
+}
+.nav-item svg { width: 17px; height: 17px; flex-shrink: 0; transition: none; }
+.nav-item:hover { color: var(--text-2); }
+.nav-item:active { background: transparent; }
+.nav-item.active { background: #fff; color: var(--text); box-shadow: 0 2px 8px rgba(124,58,237,0.14), 0 1px 2px rgba(0,0,0,0.04); }
+.nav-item.active svg { color: var(--accent); transform: none; }
+.nav-dot { position: absolute; top: 4px; right: 8px; width: 6px; height: 6px; background: var(--accent3); border-radius: 50%; display: none; box-shadow: 0 0 0 2px #fff; }
+.nav-dot.show { display: block; }
+
+.bottom-nav { display: none; }
+
+/* ── Scrollable content area ── */
+.page-scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; position: relative; z-index: 1; }
+.page-inner { padding: 16px 20px 32px; max-width: 1100px; margin: 0 auto; }
+
+/* ── Glass Cards ── */
+.card {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  margin-bottom: 12px;
+  box-shadow: var(--glass-shadow);
+  transition: box-shadow 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+/* Brillo superior estilo "liquid glass" (CONEJO) para las tarjetas de cristal */
+.card::before, .app-pill::before, .modal-sheet::before, .stats-summary::before, .email-card-wrap::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 55%;
+  background: linear-gradient(180deg, var(--glass-shine) 0%, transparent 100%);
+  pointer-events: none; opacity: 0.4; z-index: 0;
+}
+.app-pill, .modal-sheet, .stats-summary, .email-card-wrap { position: relative; overflow: hidden; }
+.card-dashed { border: 1.5px dashed rgba(124,58,237,0.35); background: rgba(255,255,255,0.22); }
+
+/* ── Section title ── */
+.sec-title { font-size: 0.68rem; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.7rem; }
+
+/* ── Form elements ── */
+label { font-size: 0.76rem; font-weight: 600; color: var(--text-2); display: block; margin-bottom: 4px; margin-top: 0.65rem; }
+label:first-child { margin-top: 0; }
+input, select, textarea {
+  width: 100%; font-family: var(--font); font-size: 0.86rem;
+  padding: 9px 12px; border-radius: var(--radius-sm);
+  border: 1px solid var(--glass-border);
+  background: rgba(255,255,255,0.45);
+  backdrop-filter: blur(8px);
+  color: var(--text); outline: none;
+  transition: border 0.2s, box-shadow 0.2s, background 0.2s;
+  -webkit-appearance: none;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(124,58,237,0.15);
+  background: rgba(255,255,255,0.65);
+}
+textarea { resize: vertical; min-height: 140px; line-height: 1.6; }
+input[readonly] { background: rgba(255,255,255,0.25); cursor: default; color: var(--text-2); }
+select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238890b0' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 12px center; padding-right: 30px;
+  border-radius: 100px; cursor: pointer;
+}
+
+/* ── Grid ── */
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+@media(max-width:480px) { .g3 { grid-template-columns: 1fr; } .g2 { grid-template-columns: 1fr; } }
+
+/* ── Buttons (píldora, idénticos a Rubricat) ── */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 8px 16px; border-radius: 100px; border: 1px solid var(--glass-border);
+  background: rgba(255,255,255,0.5); backdrop-filter: blur(8px);
+  cursor: pointer; font-family: var(--font); font-size: 0.84rem; font-weight: 600;
+  color: var(--text-2); transition: all 0.2s; text-decoration: none;
+  user-select: none; white-space: nowrap;
+}
+.btn svg { width: 15px; height: 15px; flex-shrink: 0; }
+.btn:hover { background: rgba(255,255,255,0.75); }
+.btn:active { transform: scale(.97); }
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: #fff; border-color: transparent; border-width: 0;
+  backdrop-filter: none; -webkit-backdrop-filter: none;
+  box-shadow: 0 3px 12px rgba(124,58,237,0.35);
+}
+.btn-primary:hover { background: linear-gradient(135deg, var(--accent), var(--accent2)); filter: brightness(1.05); transform: translateY(-1px); }
+.btn-danger { color: var(--danger); border-color: rgba(244,63,94,0.3); background: rgba(244,63,94,0.10); }
+.btn-danger:active { background: rgba(244,63,94,0.18); }
+.btn-sm { padding: 7px 13px; font-size: 0.76rem; }
+.btn-copy { background: var(--green-bg); border-color: var(--green-border); color: var(--green-dark); }
+.btn-copy-alu { background: rgba(56,189,248,0.14); border-color: rgba(56,189,248,0.4); color: #0369a1; }
+.btn-send {
+  background: linear-gradient(135deg, var(--green) 0%, var(--green-dark) 100%);
+  color: #fff; border: none; font-size: 0.88rem;
+  padding: 12px 20px; border-radius: 100px; width: 100%; margin-top: 0.75rem;
+  font-weight: 700; letter-spacing: 0.01em;
+  box-shadow: 0 4px 16px rgba(16,185,129,0.35);
+}
+.btn-send:active { transform: scale(.98); }
+.btn-outline { background: transparent; border-color: var(--glass-border); color: var(--text-2); }
+
+/* ── Email accordion selector ── */
+.email-steps { display: flex; flex-direction: column; gap: 8px; margin-bottom: 0.85rem; }
+.email-step {
+  border: 1px solid var(--glass-border); border-radius: var(--radius-sm);
+  background: rgba(255,255,255,0.35); overflow: hidden;
+  transition: border-color 0.2s, background 0.2s;
+}
+.email-step.active { border-color: var(--green); background: rgba(255,255,255,0.5); }
+.email-step.alu.active { border-color: var(--accent3); }
+
+.email-step-header {
+  display: flex; align-items: center; gap: 0.65rem; padding: 0.6rem 0.85rem;
+  cursor: pointer; width: 100%; border: none; background: transparent;
+  font-family: var(--font); text-align: left;
+}
+.email-step-header:active { background: rgba(255,255,255,0.35); }
+.email-step-num {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: rgba(255,255,255,0.5); color: var(--text-3);
+  font-size: 10px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  transition: all 0.2s;
+}
+.email-step.active .email-step-num { background: var(--green); color: #fff; }
+.email-step.alu.active .email-step-num { background: var(--accent3); }
+.email-step-text { flex: 1; min-width: 0; }
+.email-step-name { font-size: 0.82rem; font-weight: 500; color: var(--text-2); display: block; }
+.email-step.active .email-step-name { color: var(--green-dark); font-weight: 600; }
+.email-step.alu.active .email-step-name { color: #0369a1; }
+.email-step-hint { font-size: 0.66rem; color: var(--text-4); margin-top: 1px; display: block; }
+.email-step-arrow { color: var(--text-4); flex-shrink: 0; transition: transform 0.2s; }
+.email-step.active .email-step-arrow { transform: rotate(90deg); color: var(--green); }
+.email-step.alu.active .email-step-arrow { color: var(--accent3); }
+.email-step-body { display: none; border-top: 1px solid var(--glass-border); }
+.email-step.active .email-step-body { display: block; }
+
+/* ── Company tabs (chips píldora) ── */
+.company-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 0.85rem; }
+.company-tab {
+  padding: 7px 14px; border: 1px solid var(--glass-border); border-radius: 100px;
+  cursor: pointer; font-size: 0.78rem; color: var(--text-2);
+  background: rgba(255,255,255,0.45); backdrop-filter: blur(8px);
+  transition: all 0.2s; font-family: var(--font); text-align: left;
+}
+.company-tab.active { background: var(--green-dark); color: #fff; border-color: var(--green-dark); backdrop-filter: none; -webkit-backdrop-filter: none; }
+.company-tab-inner { display: flex; flex-direction: column; line-height: 1.3; }
+.company-tab-inner span:last-child { font-size: 0.66rem; color: var(--text-3); font-weight: 400; }
+.company-tab.active .company-tab-inner span:last-child { color: rgba(255,255,255,.7); }
+
+/* ── Email preview ── */
+.email-preview {
+  background: rgba(255,255,255,0.4); border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm); padding: 1rem; font-size: 0.85rem;
+  line-height: 1.75; white-space: pre-wrap; color: var(--text);
+  font-family: 'Georgia', 'Times New Roman', serif; word-break: break-word;
+}
+.var-missing { color: var(--danger); font-weight: 700; background: rgba(244,63,94,0.12); border-radius: 3px; padding: 0 3px; font-style: normal; }
+
+/* ── Meta rows ── */
+.meta-row { display: flex; align-items: center; gap: 8px; padding: 0.4rem 0; border-bottom: 1px solid var(--glass-border); }
+.meta-row:last-child { border-bottom: none; }
+.meta-label { font-size: 0.7rem; color: var(--text-3); min-width: 52px; flex-shrink: 0; font-weight: 600; }
+
+/* ── Avatar ── */
+.avatar {
+  width: 36px; height: 36px; border-radius: 50%; background: var(--green-light);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.76rem; font-weight: 700; color: var(--green-dark); flex-shrink: 0;
+}
+.avatar-company {
+  width: 38px; height: 38px; border-radius: 10px; background: rgba(255,255,255,0.5);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.82rem; font-weight: 700; color: var(--text-2); flex-shrink: 0;
+}
+
+/* ── Alumno card ── */
+.alumno-card { position: relative; }
+.alumno-header { display: flex; align-items: center; gap: 0.7rem; margin-bottom: 0.8rem; }
+.alumno-title { flex: 1; min-width: 0; }
+.alumno-title h3 { font-size: 0.88rem; font-weight: 700; color: var(--text); margin-bottom: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.alumno-title p { font-size: 0.7rem; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ── Badge ── */
+.badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 20px; font-size: 0.64rem; font-weight: 700; }
+.badge-green { background: var(--green-bg); color: var(--green-dark); border: 1px solid var(--green-border); }
+.badge-orange { background: rgba(245,158,11,0.12); color: #92670a; border: 1px solid rgba(245,158,11,0.35); }
+
+/* ── Hint / Note ── */
+.hint { font-size: 0.7rem; color: var(--text-4); margin-top: 3px; line-height: 1.4; }
+.note {
+  font-size: 0.7rem; color: #9f1239; background: rgba(244,63,94,0.08);
+  border: 1px solid rgba(244,63,94,0.3); border-radius: var(--radius-xs);
+  padding: 6px 10px; margin-top: 0.5rem; line-height: 1.5;
+  display: flex; align-items: flex-start; gap: 6px;
+}
+.note-green {
+  font-size: 0.7rem; color: var(--green-dark); background: var(--green-bg);
+  border: 1px solid var(--green-border); border-radius: var(--radius-xs);
+  padding: 6px 10px; margin-top: 0.5rem; line-height: 1.5;
+  display: flex; align-items: flex-start; gap: 6px;
+}
+
+/* ── Divider ── */
+.divider { border: none; border-top: 1px solid rgba(255,255,255,0.5); margin: 0.85rem 0; }
+hr { border: none; border-top: 1px solid rgba(255,255,255,0.5); margin: 0.85rem 0; }
+
+/* ── Hora select row ── */
+.hora-row { display: flex; align-items: center; gap: 7px; }
+.hora-row select { flex: 1; }
+.hora-row span { font-size: 0.82rem; color: var(--text-2); flex-shrink: 0; }
+
+/* ── Empty state ── */
+.empty { text-align: center; padding: 3rem 1rem; color: var(--text-3); font-size: 0.84rem; line-height: 1.6; }
+.empty-icon { font-size: 2.5rem; display: block; margin-bottom: 0.75rem; opacity: 0.5; }
+
+/* ── Toast (idéntico a Rubricat) ── */
+.toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
+  z-index: 9999; padding: 12px 22px; border-radius: var(--radius-sm);
+  background: rgba(30,20,60,0.85); color: #fff; font-size: 0.85rem; font-weight: 500;
+  backdrop-filter: blur(12px); opacity: 0; transition: all 0.3s; pointer-events: none;
+  white-space: nowrap; display: flex; align-items: center; gap: 9px; max-width: 85vw; text-align: center;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ── Modal / Sheet (bottom sheet glass, mismo criterio móvil que Rubricat) ── */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 300;
+  background: rgba(30,20,60,0.35); backdrop-filter: blur(8px);
+  display: none; align-items: flex-end; justify-content: center; padding: 0;
+}
+.modal-overlay.open { display: flex; }
+.modal-sheet {
+  backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+  background: rgba(255,255,255,0.82);
+  border: 1px solid var(--glass-border);
+  border-radius: 28px 28px 0 0;
+  box-shadow: 0 -12px 48px rgba(124,58,237,0.25);
+  width: 100%; max-width: 680px; max-height: 92vh; overflow-y: auto;
+  padding: 0 1.1rem 2rem;
+  animation: slideUp 0.28s ease;
+}
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.sheet-handle { width: 36px; height: 4px; background: rgba(0,0,0,0.15); border-radius: 2px; margin: 0.75rem auto 0.5rem; }
+.sheet-title { font-size: 1rem; font-weight: 700; padding: 0.5rem 0 1rem; display: flex; align-items: center; justify-content: space-between; }
+.sheet-close { background: none; border: none; font-size: 20px; color: var(--text-3); cursor: pointer; padding: 4px 8px; }
+
+/* ── Send modal ── */
+.send-header { display: flex; align-items: center; gap: 0.75rem; padding: 1rem 0 0.75rem; border-bottom: 1px solid var(--glass-border); margin-bottom: 0.75rem; }
+.send-icon { width: 44px; height: 44px; border-radius: var(--radius-sm); background: var(--green-bg); border: 1px solid var(--green-border); display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+.send-title { font-size: 0.95rem; font-weight: 700; }
+.send-sub { font-size: 0.76rem; color: var(--text-3); margin-top: 2px; }
+
+.send-field { margin-bottom: 0.6rem; }
+.send-field-label { font-size: 0.68rem; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+.send-field-value {
+  background: rgba(255,255,255,0.4); border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm); padding: 8px 11px; font-size: 0.82rem;
+  color: var(--text); word-break: break-word; line-height: 1.5;
+}
+.send-field-value.mono { font-family: 'Georgia', serif; white-space: pre-wrap; max-height: 180px; overflow-y: auto; }
+.send-actions { display: flex; gap: 8px; margin-top: 0.5rem; }
+.send-actions .btn { flex: 1; }
+
+/* ── Fab ── */
+.fab {
+  position: fixed; bottom: calc(var(--navbar-h) + 16px); right: 1rem;
+  width: 52px; height: 52px; border-radius: 50%; border: none; cursor: pointer;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 6px 20px rgba(124,58,237,0.4); z-index: 50; transition: transform 0.2s;
+}
+.fab:active { transform: scale(.93); }
+.fab svg { color: #fff; }
+
+/* ── Companion extra ── */
+.companion-section {
+  background: rgba(16,185,129,0.06); border: 1px solid var(--green-border);
+  border-radius: var(--radius-sm); padding: 0.85rem; margin-top: 0.75rem;
+}
+.companion-title { font-size: 0.66rem; font-weight: 700; color: var(--green-dark); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.65rem; display: flex; align-items: center; justify-content: space-between; }
+
+/* ── Page header ── */
+.page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.85rem; }
+.page-header h2 { font-size: 1.05rem; font-weight: 700; }
+.page-header p { font-size: 0.76rem; color: var(--text-3); margin-top: 1px; }
+
+/* ── Copy row ── */
+.copy-row { display: flex; align-items: center; gap: 8px; }
+.copy-row input { flex: 1; }
+
+/* ── Progress bar ── */
+.progress-bar { height: 4px; background: rgba(255,255,255,0.4); border-radius: 2px; overflow: hidden; margin: 0.5rem 0; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 2px; transition: width 0.3s; }
+
+/* ── Config icon groups ── */
+/* ── Cabecera fusionada: botón "Añadir estudio" + resumen de estadísticas (estilo Rubricat) ── */
+.add-subject-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+
+/* Resumen de estadísticas junto al botón Añadir estudio (chips estilo Rubricat) */
+.stats-summary { display: flex; gap: 8px; flex-wrap: wrap; }
+.stat-chip {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 12px; border-radius: 100px;
+  background: rgba(255,255,255,0.45); border: 1px solid var(--glass-border);
+}
+.stat-chip-icon { width: 20px; height: 20px; flex-shrink: 0; color: var(--accent); }
+.stat-chip-text { display: flex; flex-direction: column; line-height: 1.1; }
+.stat-chip-value { font-size: 0.95rem; font-weight: 800; color: var(--accent); }
+.stat-chip-value.empty { color: var(--text-3); }
+.stat-chip-label { font-size: 0.62rem; font-weight: 700; color: var(--text-3); letter-spacing: 0.04em; }
+
+/* ── Segmented control (pestañas internas, estilo píldora Rubricat) ── */
+.inner-tabs {
+  display: flex; gap: 2px; margin-bottom: 1rem;
+  background: rgba(255,255,255,0.35); backdrop-filter: blur(10px);
+  border: 1px solid var(--glass-border); border-radius: 100px; padding: 4px;
+}
+.inner-tab {
+  flex: 1; padding: 8px 6px; border: none; border-radius: 100px;
+  background: transparent; font-family: var(--font); font-size: 0.74rem; font-weight: 600;
+  color: var(--text-2); cursor: pointer; transition: all 0.2s; white-space: nowrap;
+}
+.inner-tab.active { background: rgba(255,255,255,0.85); color: var(--accent); box-shadow: 0 2px 8px rgba(124,58,237,0.14); }
+
+/* ── Segmented mode-toggle (General/Plantillas, Empresa/Alumnos) ── */
+.seg-toggle { display: flex; gap: 2px; margin-bottom: 0.85rem; background: rgba(255,255,255,0.35); backdrop-filter: blur(10px); border: 1px solid var(--glass-border); border-radius: 100px; padding: 4px; }
+.seg-btn {
+  flex: 1; padding: 9px 10px; border-radius: 100px; border: none;
+  font-family: var(--font); cursor: pointer; text-align: center; background: transparent;
+  transition: all 0.2s;
+}
+.seg-btn .seg-title { font-size: 0.78rem; font-weight: 700; color: var(--text-2); text-align: center; }
+.seg-btn .seg-sub { font-size: 0.62rem; color: var(--text-3); margin-top: 1px; text-align: center; }
+.seg-btn.active { background: #fff; box-shadow: 0 2px 8px rgba(124,58,237,0.14); }
+.seg-btn.active .seg-title { color: var(--text); }
+.seg-btn.active.emp .seg-title { color: var(--green-dark); }
+.seg-btn.active.alu .seg-title { color: #0369a1; }
+
+/* ── Email card improvements ── */
+.email-card-wrap {
+  background: rgba(255,255,255,0.35); backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border); border-radius: var(--radius);
+  overflow: hidden; margin-bottom: 0.75rem; box-shadow: var(--glass-shadow);
+}
+.email-card-header { display: flex; align-items: center; gap: 0.6rem; padding: 0.65rem 1rem; border-bottom: 1px solid var(--glass-border); }
+.email-card-icon { width: 30px; height: 30px; border-radius: var(--radius-xs); background: linear-gradient(135deg, var(--green), var(--green-dark)); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.email-card-meta { flex: 1; min-width: 0; }
+.email-card-meta strong { font-size: 0.82rem; font-weight: 700; color: var(--text); display: block; }
+.email-card-meta span { font-size: 0.7rem; color: var(--text-3); }
+.email-card-body { padding: 0.75rem 1rem; }
+.email-field-row { display: flex; align-items: center; gap: 8px; padding: 0.4rem 0; border-bottom: 1px solid var(--glass-border); }
+.email-field-row:last-child { border-bottom: none; }
+.email-field-label { font-size: 0.62rem; font-weight: 700; color: var(--text-4); text-transform: uppercase; letter-spacing: 0.06em; min-width: 50px; flex-shrink: 0; }
+.email-field-value { flex: 1; font-size: 0.82rem; color: var(--text); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.email-field-value.subject { font-weight: 600; }
+.email-body-section { margin-top: 0.65rem; }
+.email-body-label { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.4rem; }
+.email-body-label span { font-size: 0.62rem; font-weight: 700; color: var(--text-4); text-transform: uppercase; letter-spacing: 0.06em; }
+.email-send-row { padding: 0.75rem 1rem; border-top: 1px solid var(--glass-border); display: flex; gap: 8px; align-items: center; }
+
+/* ── Festivos calendar ── */
+.festivos-month { margin-bottom: 0.85rem; }
+.festivos-month-title { font-size: 0.76rem; font-weight: 700; color: var(--text-2); margin-bottom: 0.45rem; text-transform: capitalize; }
+.festivos-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.fday-header { font-size: 0.6rem; font-weight: 700; color: var(--text-4); text-align: center; padding: 2px 0; text-transform: uppercase; }
+.fday {
+  aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+  font-size: 0.76rem; font-weight: 500; border-radius: var(--radius-xs); cursor: pointer;
+  border: 1px solid transparent; transition: all 0.2s; user-select: none; color: var(--text-2);
+}
+.fday:empty { cursor: default; }
+.fday.out-range { color: var(--text-4); background: rgba(255,255,255,0.2); cursor: default; }
+.fday.in-range { background: var(--green-bg); color: var(--text); }
+.fday.in-range:active { background: var(--green-border); }
+.fday.festivo { background: rgba(244,63,94,0.12); color: var(--danger); border-color: rgba(244,63,94,0.4); font-weight: 700; }
+.fday.festivo:active { background: rgba(244,63,94,0.2); }
+.fday.today { border-color: var(--green); }
+.festivos-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.festivo-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(244,63,94,0.12); border: 1px solid rgba(244,63,94,0.4); color: var(--danger);
+  font-size: 0.7rem; font-weight: 600; padding: 3px 9px; border-radius: 100px; cursor: pointer;
+}
+.festivo-chip:active { background: rgba(244,63,94,0.2); }
+.festivos-empty { font-size: 0.76rem; color: var(--text-4); font-style: italic; }
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(124,58,237,0.25); border-radius: 10px; }
+
+@media(max-width:640px){
+  .app-pill-header { padding: 12px 12px 6px; }
+  .app-pill { padding: 5px; gap: 6px; min-height: 44px; }
+  .topbar-left, .app-pill-left, .nav-tabs { height: 34px; }
+  .app-logo { padding: 0 4px 0 8px; gap: 4px; }
+  .topbar-logo-mark { width: 32px; height: 32px; }
+  .topbar-logo-mark svg { width: 30px; height: 30px; }
+  .page-inner { padding: 14px 12px 90px; }
+  .nav-item { padding: 0 10px; font-size: 0.7rem; gap: 0; }
+  .nav-item svg { width: 18px; height: 18px; }
+  .nav-item span { display: none; }
+  .add-subject-header { flex-direction: column; align-items: stretch; gap: 12px; }
+  #btn-add-estudio { width: 100%; justify-content: center; }
+  .stats-summary { width: 100%; }
+  .stat-chip { flex: 1; min-width: 0; padding: 8px 4px; flex-direction: column; gap: 3px; justify-content: center; }
+  .stat-chip-icon { width: 17px; height: 17px; }
+  .stat-chip-text { align-items: center; }
+  .stat-chip-value { font-size: 0.85rem; max-width: 100%; }
+  .stat-chip-label { display: none; }
+  .modal-sheet { border-radius: 28px 28px 0 0; }
+  .modal-footer, .send-actions { flex-direction: column; }
+}
+</style>
+</head>
+<body>
+
+<div class="bg-scene" aria-hidden="true">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+  <div class="blob blob-4"></div>
+  <div class="blob blob-5"></div>
+</div>
+<div class="bg-grid" aria-hidden="true"></div>
+<div class="particles" id="particles" aria-hidden="true"></div>
+
+<!-- Top nav bar (píldora, idéntica a Rubricat) -->
+<header class="app-pill-header">
+  <div class="app-pill">
+    <div class="topbar-left">
+      <div class="app-logo">
+        <div class="topbar-logo-mark">
+          <svg viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M183.967 86.9455C252.62 12.0977 244.517 75.8891 263.023 85.1447C268.275 87.7725 275.324 85.0069 279.193 83.347" stroke="currentColor" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M219.968 106.121C241.931 80.0587 278.638 143.309 281.516 119.913" stroke="currentColor" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M157.258 63.7549C121.516 74.7106 105.852 117.17 121.513 148.401" stroke="currentColor" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M110.544 171.591C97.2219 190.533 110.121 194.598 125.903 188.961" stroke="currentColor" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M125.988 193.171C121.915 260.485 266.13 345.452 275.71 186.666" stroke="currentColor" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M176.84 149.305C192.345 148.711 256.228 140.836 268.06 147.641C290.76 160.692 276.999 199.124 249.499 202.832C225.999 206 214.898 146.506 217.717 146.902C224.482 147.853 222.319 190.253 209.856 202.832C182.676 230.265 152.592 179.295 168.142 153.514" stroke="currentColor" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M79 346.16C109.376 314.794 132.649 289 175.228 289C180.405 298.068 196.368 316.205 218.81 316.205C241.252 316.205 246.862 298.068 246.862 289C302.967 289 307.115 331.849 321 349" stroke="currentColor" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h1>Autoemilio</h1>
+      </div>
+    </div>
+    <nav class="nav-tabs">
+      <button class="nav-item active" id="nav-general" onclick="showPage('general')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M4.93 4.93l1.41 1.41M12 2v2M12 20v2M20 12h2M2 12h2M19.07 19.07l-1.41-1.41M4.93 19.07l1.41-1.41"/></svg>
+        <span>General</span>
+      </button>
+      <button class="nav-item" id="nav-alumnos" onclick="showPage('alumnos')">
+        <div class="nav-dot" id="nav-dot-alumnos"></div>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
+        <span>Empresas</span>
+      </button>
+      <button class="nav-item" id="nav-correos-empresa" onclick="showPage('correos-empresa')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="2,4 12,13 22,4"/></svg>
+        <span>Correos</span>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<!-- Main scroll area -->
+<div class="page-scroll" id="page-scroll">
+  <div class="page-inner">
+
+    <!-- PAGE: GENERAL (Configuración + Plantillas) -->
+    <div id="page-general">
+      <!-- Mode toggle header matching correos style -->
+      <div class="seg-toggle">
+        <button class="seg-btn active" id="itab-config" onclick="showInnerTab('config')">
+          <div class="seg-title">Configuración</div>
+          <div class="seg-sub">Datos del tutor y parámetros</div>
+        </button>
+        <button class="seg-btn right" id="itab-plantillas" onclick="showInnerTab('plantillas')">
+          <div class="seg-title">Plantillas</div>
+          <div class="seg-sub">Edita los modelos de correo</div>
+        </button>
+      </div>
+
+      <!-- INNER: CONFIG -->
+      <div id="inner-config">
+        <div class="card">
+          <p class="sec-title">Tutor/a docente</p>
+          <div class="g3">
+            <div>
+              <label>Correo educativo</label>
+              <input type="email" id="cfg-correo-remitente" placeholder="nombre.apellido@easdjerez.com" oninput="saveCfg()" onblur="autofillNombreFromEmail()">
+            </div>
+            <div>
+              <label>Nombre y apellido</label>
+              <input type="text" id="cfg-docente-nombre" placeholder="" oninput="saveCfg()">
+            </div>
+            <div>
+              <label>Sexo</label>
+              <select id="cfg-genero" onchange="saveCfg()">
+                <option value="" disabled selected>Seleccionar...</option>
+                <option value="hombre">Hombre</option>
+                <option value="mujer">Mujer</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="add-subject-header">
+            <button class="btn btn-sm btn-primary" id="btn-add-estudio" onclick="addNivel()" style="gap:5px">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Añadir estudio
+            </button>
+            <div id="cfg-summary-content" class="stats-summary"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <p class="sec-title">Estudios</p>
+
+          <!-- Saved estudios list -->
+          <div id="niveles-list"></div>
+
+          <!-- Inline form — hidden by default -->
+          <div id="nivel-inline-form" style="display:none;border:1.5px solid rgba(255,255,255,0.5);border-radius:var(--radius);padding:1rem;margin-bottom:.85rem;background:var(--card)">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.85rem">
+              <p style="font-size:13px;font-weight:700;color:#7c3aed;text-transform:uppercase;letter-spacing:.04em" id="nivel-form-title">Nuevo estudio</p>
+              <button onclick="closeNivelForm()" style="background:none;border:none;font-size:18px;color:var(--text-3);cursor:pointer;padding:2px 6px">✕</button>
+            </div>
+
+            <label style="margin-top:0">Tipo de estudio</label>
+            <select id="cfg-estudio-sel" onchange="onEstudioChange()" style="margin-bottom:.85rem"></select>
+
+            <div id="cfg-otro-estudio-wrap" style="display:none;margin-bottom:.85rem">
+              <div class="g2">
+                <div>
+                  <label style="margin-top:0">Nombre del estudio</label>
+                  <input type="text" id="cfg-otro-nombre" placeholder="Ej: Joyería artística" oninput="onOtroEstudioChange()">
+                </div>
+                <div>
+                  <label style="margin-top:0">Horas de prácticas</label>
+                  <input type="number" id="cfg-otro-horas" placeholder="Ej: 100" min="1" oninput="onOtroEstudioChange()">
+                </div>
+              </div>
+            </div>
+
+            <div class="g2">
+              <div>
+                <label style="margin-top:0">Inicio de prácticas</label>
+                <div style="display:flex;gap:6px">
+                  <select id="cfg-inicio-dia" onchange="saveCfgFechas()" style="flex:1"></select>
+                  <select id="cfg-inicio-mes" onchange="saveCfgFechas()" style="flex:2"></select>
+                </div>
+              </div>
+              <div>
+                <label style="margin-top:0">Fin de prácticas</label>
+                <div style="display:flex;gap:6px">
+                  <select id="cfg-fin-dia" onchange="saveCfgFechas()" style="flex:1"></select>
+                  <select id="cfg-fin-mes" onchange="saveCfgFechas()" style="flex:2"></select>
+                </div>
+              </div>
+            </div>
+
+            <p class="sec-title" style="margin-bottom:.5rem;margin-top:.85rem">Días no lectivos</p>
+            <div style="display:flex;gap:8px;align-items:center;margin-bottom:.6rem">
+              <select id="festivo-dia" style="flex:1"></select>
+              <select id="festivo-mes" style="flex:2"></select>
+              <button class="btn btn-sm" onclick="addFestivoFromSelects()" style="flex-shrink:0;height:38px;background:rgba(255,255,255,0.4);border-style:dashed;border-color:rgba(124,58,237,0.35);color:var(--text)">+ Añadir</button>
+            </div>
+            <div id="festivos-list-wrap" style="margin-bottom:.75rem"></div>
+
+            <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="saveNivelForm()">Guardar estudio</button>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-sm" onclick="exportData()" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;height:36px">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Exportar copia
+          </button>
+          <input type="file" id="import-file-input" accept=".json" style="display:none" onchange="importData(event)">
+          <button class="btn btn-sm" onclick="document.getElementById('import-file-input').click()" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;height:36px">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Importar copia
+          </button>
+        </div>
+      </div>
+
+      <!-- INNER: PLANTILLAS -->
+      <div id="inner-plantillas" style="display:none">
+        <div id="plantillas-list"></div>
+      </div>
+    </div>
+
+    <!-- PAGE: ALUMNOS -->
+    <div id="page-alumnos" style="display:none">
+      <div style="padding:10px 12px;border-radius:var(--radius-sm);background:rgba(255,255,255,0.45);border:1px solid rgba(255,255,255,0.5);margin-bottom:.75rem">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="font-size:13px;font-weight:700;color:var(--text)">Empresas</span>
+              <span id="alumnos-count-text" style="font-size:11px;font-weight:700;color:var(--text-2);background:rgba(124,58,237,0.12);border:1px solid rgba(124,58,237,0.25);border-radius:100px;padding:2px 10px"></span>
+            </div>
+            <div style="font-size:10px;color:var(--text-3);margin-top:1px">Empresas con alumnos en prácticas</div>
+          </div>
+          <button class="btn btn-sm btn-primary" id="btn-nueva-empresa" onclick="toggleInlineForm()" style="gap:4px">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Nueva
+          </button>
+        </div>
+      </div>
+      <!-- Inline form (hidden by default) -->
+      <div id="inline-empresa-form" style="display:none;background:var(--card);border:1.5px solid rgba(255,255,255,0.5);border-radius:var(--radius);padding:1rem;margin-bottom:.85rem;box-shadow:var(--shadow)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
+          <p style="font-size:13px;font-weight:700;color:#7c3aed;text-transform:uppercase;letter-spacing:.04em" id="inline-form-title">Nueva empresa</p>
+          <button onclick="closeInlineForm()" style="background:none;border:none;font-size:18px;color:var(--text-3);cursor:pointer;padding:2px 6px">✕</button>
+        </div>
+        <div class="g2" style="margin-bottom:.5rem">
+          <div>
+            <label style="margin-top:0">Empresa <span style="color:#f43f5e">*</span></label>
+            <input type="text" id="nf-empresa" placeholder="Nombre de la empresa">
+          </div>
+          <div>
+            <label style="margin-top:0">Tutor/a laboral <span style="font-size:10px;color:var(--text-3);font-weight:400">(sólo nombre)</span></label>
+            <input type="text" id="nf-tutor" placeholder="Nombre del/la tutor/a">
+          </div>
+          <div>
+            <label>Correo de la empresa</label>
+            <input type="email" id="nf-coemp" placeholder="empresa@ejemplo.com">
+          </div>
+          <div>
+            <label>Horario por defecto</label>
+            <div class="hora-row">
+              <select id="nf-hora1"></select>
+              <span>-</span>
+              <select id="nf-hora2"></select>
+            </div>
+          </div>
+        </div>
+        <p style="font-size:11px;font-weight:700;color:#7c3aed;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.65rem;margin-top:.85rem">Alumno</p>
+        <div class="g3">
+          <div>
+            <label style="margin-top:0">Nombre completo</label>
+            <input type="text" id="nf-nombre" placeholder="Nombre del alumno/a">
+          </div>
+          <div>
+            <label style="margin-top:0">Correo</label>
+            <input type="email" id="nf-correo" placeholder="alumno@ejemplo.com">
+          </div>
+          <div>
+            <label style="margin-top:0">Estudio</label>
+            <select id="nf-nivel" onchange="onNfNivelChange()">
+              <option value="">Seleccionar...</option>
+            </select>
+          </div>
+        </div>
+        <div id="nf-companion-area"></div>
+        <div style="display:flex;gap:8px;margin-top:1rem;flex-wrap:wrap">
+          <button class="btn btn-primary" style="flex:1" onclick="saveNewAlumno()">Guardar</button>
+          <button class="btn btn-sm btn-outline" id="nf-companion-btn" onclick="addNewExtra()" style="border-style:dashed">+ Añadir alumno/a</button>
+        </div>
+      </div>
+      <div id="alumnos-list"></div>
+    </div>
+
+    <!-- PAGE: CORREOS (empresa + alumnos combinados) -->
+    <div id="page-correos-empresa" style="display:none">
+      <!-- Mode toggle header -->
+      <div class="seg-toggle">
+        <button class="seg-btn emp active" id="mode-btn-empresa" onclick="setCorreosMode('empresa')">
+          <div class="seg-title">Correos empresa</div>
+          <div class="seg-sub">Genera y envía correos a empresas</div>
+        </button>
+        <button class="seg-btn alu right" id="mode-btn-alumnos" onclick="setCorreosMode('alumnos')">
+          <div class="seg-title">Correos alumnos</div>
+          <div class="seg-sub">Genera y envía correos a alumnos</div>
+        </button>
+      </div>
+
+      <!-- Empresa mode -->
+      <div id="correos-mode-empresa">
+        <div class="company-tabs" id="tabs-empresa"></div>
+        <div id="correos-empresa-content"></div>
+      </div>
+
+      <!-- Alumnos mode -->
+      <div id="correos-mode-alumnos" style="display:none">
+        <div id="correos-alumnos-content"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Bottom nav -->
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- ══ MODAL: Enviar correo ══ -->
+<div class="modal-overlay send-modal" id="modal-send" onclick="closeSendModalIfBg(event)">
+  <div class="modal-sheet">
+    <div class="sheet-handle"></div>
+    <div class="send-header">
+      <div class="send-icon">✉️</div>
+      <div>
+        <div class="send-title" id="send-modal-title">Enviar correo</div>
+        <div class="send-sub" id="send-modal-sub"></div>
+      </div>
+    </div>
+
+    <div class="send-field">
+      <div class="send-field-label">Para</div>
+      <div class="send-field-value" id="send-para" style="color:var(--text-3)"></div>
+    </div>
+    <div class="send-field">
+      <div class="send-field-label">Asunto</div>
+      <div class="send-field-value" id="send-asunto" style="font-weight:600"></div>
+    </div>
+    <div class="send-field">
+      <div class="send-field-label">Vista previa del cuerpo</div>
+      <div class="send-field-value mono" id="send-cuerpo"></div>
+    </div>
+
+    <div class="send-actions">
+      <button class="btn" onclick="closeSendModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="doSendEmail()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        Abrir en Email
+      </button>
+    </div>
+    <p class="hint" style="text-align:center;margin-top:.5rem">Abrirá tu app de correo con los campos rellenos.</p>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+/* Partículas de fondo (estilo CONEJO) */
+(function(){
+  var c = document.getElementById('particles');
+  if (!c) return;
+  for (var i = 0; i < 18; i++) {
+    var p = document.createElement('div');
+    p.className = 'particle';
+    p.style.left = Math.random() * 100 + '%';
+    var s = Math.random() * 3 + 1.5;
+    p.style.width = p.style.height = s + 'px';
+    p.style.animationDuration = (Math.random() * 22 + 18) + 's';
+    p.style.animationDelay = (Math.random() * 22) + 's';
+    p.style.opacity = Math.random() * 0.35 + 0.05;
+    c.appendChild(p);
+  }
+})();
+
+
+// ────────────────────────────────────────────────
+//  CONSTANTES
+// ────────────────────────────────────────────────
+const EMAIL_EMP_NAMES = [
+  'Solicitud de prácticas',
+  'Solicitud de datos (convenio)',
+  'Convenio disponible para firma',
+  'Aviso de inicio de prácticas',
+  'Seguimiento (mitad del período)',
+  'Finalización de prácticas'
+];
+const EMAIL_EMP_NOTAS = [
+  'Antes de confirmar si la empresa acepta al alumno.',
+  'Solo cuando la empresa ya ha confirmado que acepta al alumno.',
+  'Una vez el convenio está redactado. Adjunta el documento.',
+  'Unos días antes del comienzo como recordatorio.',
+  'A mitad del período para hacer seguimiento con el tutor laboral.',
+  'Al finalizar las prácticas. Solicita el informe de evaluación.'
+];
+const EMAIL_ALU_NAMES = [
+  'Inicio de prácticas (información)',
+  'Seguimiento del alumnado',
+  'Finalización de prácticas'
+];
+const EMAIL_ALU_NOTAS = [
+  'Se envía a TODOS los alumnos justo antes de comenzar.',
+  'Se envía a TODOS los alumnos a mitad del período.',
+  'Se envía a TODOS los alumnos al finalizar las prácticas.'
+];
+
+const DEF_EMP = [
+  {
+    asunto: 'Consulta sobre acogida de alumnos en prácticas',
+    cuerpo: `Estimado/a {{TUTOR}},
+
+Me pongo en contacto con usted para consultar si {{EMPRESA}} estaría dispuesta a acoger a {{NOMBRE}}, quien cursa {{ESTUDIO}}, para la realización de sus prácticas formativas.
+
+El cómputo de prácticas sería de {{COMPUTO_PRACTICAS}}, y el período previsto comprendería {{FECHA}}, en horario de {{HORA}}, salvo acuerdo distinto entre la empresa y el/la alumno/a.
+
+Quedo a su entera disposición para cualquier consulta o para concretar los detalles.
+
+Un cordial saludo,
+{{DOCENTE}}
+{{GENERO}}`
+  },
+  {
+    asunto: 'Solicitud de datos para la formalización del convenio',
+    cuerpo: `Estimado/a {{TUTOR}},
+
+Gracias por su amable disposición a acoger a {{NOMBRE}} para la realización de sus prácticas en {{EMPRESA}}.
+
+Para proceder con la documentación necesaria, le rogamos nos facilite los siguientes datos:
+
+— Razón social y CIF de la empresa
+— Dirección completa del centro de trabajo
+— Nombre completo, DNI y cargo del/de la representante legal
+— Sus datos como tutor/a laboral (nombre, DNI y cargo)
+
+Puede enviarnos esta información respondiendo a este correo o contactando con nosotros por teléfono.
+
+Muchas gracias por su colaboración.
+
+Un cordial saludo,
+{{DOCENTE}}
+{{GENERO}}`
+  },
+  {
+    asunto: 'Convenio de prácticas disponible para firma',
+    cuerpo: `Estimado/a {{TUTOR}},
+
+Le informamos de que el convenio de prácticas de {{NOMBRE}}, quien cursa {{ESTUDIO}}, ya está preparado y disponible para su firma.
+
+Las prácticas tendrán lugar durante el período {{FECHA}}, con un cómputo de {{COMPUTO_PRACTICAS}}, en horario de {{HORA}}.
+
+Le rogamos que, una vez revisado el documento, proceda a su firma y nos lo devuelva a la mayor brevedad posible para poder formalizar el inicio de las prácticas.
+
+Ante cualquier duda, no dude en contactarnos.
+
+Un cordial saludo,
+{{DOCENTE}}
+{{GENERO}}`
+  },
+  {
+    asunto: 'Recordatorio — inicio de prácticas de {{NOMBRE}}',
+    cuerpo: `Estimado/a {{TUTOR}},
+
+Le escribimos para recordarle que {{NOMBRE}} comenzará sus prácticas en {{EMPRESA}} próximamente, según el calendario acordado: {{FECHA}}, en horario de {{HORA}}, salvo acuerdo distinto entre ambas partes.
+
+Antes del inicio, le rogamos que verifique que el convenio ha sido debidamente firmado por todas las partes.
+
+Si necesita cualquier aclaración, no dude en ponerse en contacto con nosotros.
+
+Un cordial saludo,
+{{DOCENTE}}
+{{GENERO}}`
+  },
+  {
+    asunto: 'Seguimiento de prácticas — {{NOMBRE}}',
+    cuerpo: `Estimado/a {{TUTOR}},
+
+Nos ponemos en contacto para realizar un seguimiento del período de prácticas de {{NOMBRE}} en {{EMPRESA}}.
+
+Hasta el momento ha completado aproximadamente la mitad del cómputo establecido ({{COMPUTO_PRACTICAS}}). Le agradecería que nos trasladara su valoración sobre el/la alumno/a y nos informara de si el desarrollo está transcurriendo con normalidad.
+
+En caso de que hubiera surgido alguna incidencia, estamos a su disposición.
+
+Muchas gracias por su colaboración.
+
+Un cordial saludo,
+{{DOCENTE}}
+{{GENERO}}`
+  },
+  {
+    asunto: 'Finalización de prácticas — {{NOMBRE}}',
+    cuerpo: `Estimado/a {{TUTOR}},
+
+Mediante el presente correo le comunicamos que {{NOMBRE}} ha concluido su período de prácticas en {{EMPRESA}} ({{FECHA}}).
+
+Le rogamos que, si aún no lo ha hecho, proceda a cumplimentar y enviarnos el informe de evaluación, documento imprescindible para la calificación final.
+
+Queremos aprovechar la ocasión para agradecerle sinceramente la colaboración de {{EMPRESA}} en la formación de nuestro alumnado.
+
+Esperamos poder contar con su empresa en futuras ediciones.
+
+Un cordial saludo,
+{{DOCENTE}}
+{{GENERO}}`
+  }
+];
+
+const DEF_ALU = [
+  {
+    asunto: 'Inicio de tus prácticas — información importante',
+    cuerpo: `Estimado/a {{NOMBRE}},
+
+Te escribimos para comunicarte que muy pronto darán comienzo tus prácticas formativas en {{EMPRESA}}. El período previsto es {{FECHA}}, en horario de {{HORA}}, salvo acuerdo distinto entre ambas partes.
+
+Antes de comenzar, es importante que te pongas en contacto con tu tutor/a laboral, {{TUTOR}}, para confirmar los detalles del primer día.
+
+Recuerda que deberás presentarte correctamente y llevar contigo una copia del convenio firmado.
+
+Cualquier duda o incidencia no dudes en comunicárnosla.
+
+Un cordial saludo,
+{{DOCENTE}}
+{{GENERO}}`
+  },
+  {
+    asunto: 'Seguimiento de tus prácticas',
+    cuerpo: `Estimado/a {{NOMBRE}},
+
+Nos ponemos en contacto contigo para hacer un seguimiento de cómo están transcurriendo tus prácticas en {{EMPRESA}}.
+
+Ya llevas aproximadamente la mitad del período, y queremos saber cómo te encuentras, si estás teniendo alguna dificultad o si hay algo en lo que podamos ayudarte.
+
+Por favor, responde a este correo con una breve valoración de cómo va todo.
+
+Un cordial saludo,
+{{DOCENTE}}
+{{GENERO}}`
+  },
+  {
+    asunto: 'Finalización de tus prácticas — documentación a entregar',
+    cuerpo: `Estimado/a {{NOMBRE}},
+
+Nos ponemos en contacto para recordarte que tu período de prácticas en {{EMPRESA}} está próximo a finalizar ({{FECHA}}).
+
+Una vez concluidas, deberás entregar la siguiente documentación en el centro:
+
+— Memoria o diario de prácticas debidamente cumplimentado
+— Justificante de asistencia firmado por el/la tutor/a laboral
+— Cualquier otra documentación que te haya sido indicada
+
+Por favor, asegúrate de tenerlo todo preparado antes de la fecha límite.
+
+Un cordial saludo,
+{{DOCENTE}}
+{{GENERO}}`
+  }
+];
+
+// ────────────────────────────────────────────────
+//  CATÁLOGO DE ESTUDIOS
+// ────────────────────────────────────────────────
+const ESTUDIOS_CATALOGO = [
+  { id: 'animacion',        nombre: 'Animación',                  horas: 150, jornadas: 25, hDiarias: 6 },
+  { id: 'decoracion',       nombre: 'Decoración Cerámica',         horas: 76,  jornadas: 15, hDiarias: 5 },
+  { id: 'disenio-grafico',  nombre: 'Diseño gráfico',             horas: 300, jornadas: 60, hDiarias: 5 },
+  { id: 'disenio-int',      nombre: 'Diseño de interiores',        horas: 300, jornadas: 60, hDiarias: 5 },
+  { id: 'ebanisteria',      nombre: 'Ebanistería artística',       horas: 65,  jornadas: 13, hDiarias: 5 },
+  { id: 'escultura',        nombre: 'Escultura aplicada',          horas: 65,  jornadas: 13, hDiarias: 5 },
+  { id: 'fotografia',       nombre: 'Fotografía',                  horas: 150, jornadas: 25, hDiarias: 6 },
+  { id: 'grafica-pub',      nombre: 'Gráfica publicitaria',        horas: 150, jornadas: 25, hDiarias: 6 },
+  { id: 'modelismo',        nombre: 'Modelismo e indumentaria',    horas: 105, jornadas: 21, hDiarias: 5 },
+  { id: 'pdod',             nombre: 'PDOD',                        horas: 110, jornadas: 22, hDiarias: 5 },
+].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es', { sensitivity: 'base' }));
+
+function getEstudioById(id) {
+  return ESTUDIOS_CATALOGO.find(e => e.id === id) || (state.customEstudios || []).find(e => e.id === id) || null;
+}
+
+function getOrCreateCustomEstudio(nivel) {
+  if (!nivel) return null;
+  let entry = state.customEstudios.find(e => e.nivelId === nivel.id);
+  if (!entry) {
+    entry = { id: 'custom_' + nivel.id, nivelId: nivel.id, nombre: '', horas: 0, jornadas: 0, hDiarias: 5 };
+    state.customEstudios.push(entry);
+  }
+  return entry;
+}
+
+// ────────────────────────────────────────────────
+//  ESTADO
+// ────────────────────────────────────────────────
+let state = {
+  cfg: {
+    docenteNombre: '', docenteApellido: '', genero: '', remitente: '',
+  },
+  // Array of niveles educativos, each with its own dates/hours/festivos
+  niveles: [
+    // { id, estudioId, nombre, fechaInicio, fechaFin, hora1, hora2, festivos }
+  ],
+  activoNivelIdx: 0,  // which nivel is currently selected in config
+  plantillasEmp: DEF_EMP.map(t => ({...t})),
+  plantillasAlu: DEF_ALU.map(t => ({...t})),
+  alumnos: [],
+  customEstudios: [], // estudios personalizados creados con "Otro"
+};
+
+// ────────────────────────────────────────────────
+//  NIVELES — HELPERS
+// ────────────────────────────────────────────────
+let _nivelCounter = 0;
+
+// ────────────────────────────────────────────────
+//  VALIDACIÓN DE DATOS (localStorage e importación)
+// ────────────────────────────────────────────────
+// Cualquier JSON que entre en la app (el propio localStorage, o un archivo
+// importado por el usuario) se pasa por aquí antes de usarse. Así, un archivo
+// corrupto o con una forma inesperada no puede colar valores de tipo erróneo
+// que luego rompan el renderizado (p.ej. alumnos que no sea un array).
+function isPlainObject(v) { return v !== null && typeof v === 'object' && !Array.isArray(v); }
+function asStr(v, fallback) { return typeof v === 'string' ? v : (fallback !== undefined ? fallback : ''); }
+function asNum(v, fallback) {
+  const n = typeof v === 'number' ? v : parseInt(v, 10);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+function sanitizeNivel(n) {
+  if (!isPlainObject(n) || !n.id) return null;
+  return {
+    id: asStr(n.id),
+    estudioId: asStr(n.estudioId),
+    nombre: asStr(n.nombre),
+    fechaInicio: asStr(n.fechaInicio),
+    fechaFin: asStr(n.fechaFin),
+    hora1: asNum(n.hora1, undefined),
+    hora2: asNum(n.hora2, undefined),
+    festivos: Array.isArray(n.festivos) ? n.festivos.filter(f => typeof f === 'string') : []
+  };
+}
+function sanitizePlantilla(t) {
+  if (!isPlainObject(t)) return null;
+  return { asunto: asStr(t.asunto), cuerpo: asStr(t.cuerpo) };
+}
+function sanitizeAlumnoExtra(e) {
+  if (!isPlainObject(e)) return null;
+  return { nombre: asStr(e.nombre), correo: asStr(e.correo), estudio: asStr(e.estudio), nivelId: asStr(e.nivelId) };
+}
+function sanitizeAlumno(a) {
+  if (!isPlainObject(a)) return null;
+  return {
+    empresa: asStr(a.empresa), tutor: asStr(a.tutor), coemp: asStr(a.coemp),
+    nombre: asStr(a.nombre), correo: asStr(a.correo), estudio: asStr(a.estudio),
+    nivelId: asStr(a.nivelId), hora1: asNum(a.hora1, 9), hora2: asNum(a.hora2, 14),
+    alumnos_extra: Array.isArray(a.alumnos_extra) ? a.alumnos_extra.map(sanitizeAlumnoExtra).filter(Boolean) : []
+  };
+}
+function sanitizeCustomEstudio(c) {
+  if (!isPlainObject(c) || !c.id) return null;
+  return {
+    id: asStr(c.id), nivelId: asStr(c.nivelId), nombre: asStr(c.nombre),
+    horas: asNum(c.horas, 0), jornadas: asNum(c.jornadas, 0), hDiarias: asNum(c.hDiarias, 5)
+  };
+}
+// Devuelve una versión "limpia" del objeto de estado: solo campos con el tipo
+// esperado sobreviven; el resto se descarta en lugar de propagarse sin control.
+function sanitizeState(raw) {
+  const out = {};
+  if (!isPlainObject(raw)) return out;
+
+  if (isPlainObject(raw.cfg)) {
+    out.cfg = {
+      docenteNombre: asStr(raw.cfg.docenteNombre, asStr(raw.cfg.docente)),
+      docenteApellido: asStr(raw.cfg.docenteApellido),
+      genero: asStr(raw.cfg.genero),
+      remitente: asStr(raw.cfg.remitente),
+      // solo relevantes para la migración de datos antiguos de un único nivel
+      fechaInicio: typeof raw.cfg.fechaInicio === 'string' ? raw.cfg.fechaInicio : undefined,
+      fechaFin: typeof raw.cfg.fechaFin === 'string' ? raw.cfg.fechaFin : undefined,
+      hora1: raw.cfg.hora1,
+      tipo: raw.cfg.tipo
+    };
+  }
+  if (Array.isArray(raw.niveles)) {
+    const niveles = raw.niveles.map(sanitizeNivel).filter(Boolean);
+    if (niveles.length) out.niveles = niveles;
+  }
+  if (Number.isFinite(raw.activoNivelIdx)) out.activoNivelIdx = raw.activoNivelIdx;
+  if (Array.isArray(raw.plantillasEmp)) {
+    const arr = raw.plantillasEmp.map(sanitizePlantilla).filter(Boolean);
+    if (arr.length) out.plantillasEmp = arr;
+  }
+  if (Array.isArray(raw.plantillasAlu)) {
+    const arr = raw.plantillasAlu.map(sanitizePlantilla).filter(Boolean);
+    if (arr.length) out.plantillasAlu = arr;
+  }
+  if (Array.isArray(raw.alumnos)) out.alumnos = raw.alumnos.map(sanitizeAlumno).filter(Boolean);
+  if (Array.isArray(raw.customEstudios)) out.customEstudios = raw.customEstudios.map(sanitizeCustomEstudio).filter(Boolean);
+  if (Array.isArray(raw.festivos)) out.festivos = raw.festivos.filter(f => typeof f === 'string');
+
+  return out;
+}
+
+// ────────────────────────────────────────────────
+//  PERSISTENCIA
+// ────────────────────────────────────────────────
+function save() {
+  try { localStorage.setItem('automail_v4', JSON.stringify(state)); } catch(e){}
+}
+
+// Aplica un objeto de estado ya saneado (sanitizeState) al estado en memoria.
+// La usan tanto load() (datos propios) como importData() (archivo externo).
+function applyState(raw) {
+  const p = sanitizeState(raw);
+  if (p.cfg) {
+    state.cfg.docenteNombre   = p.cfg.docenteNombre;
+    state.cfg.docenteApellido = p.cfg.docenteApellido;
+    state.cfg.genero          = p.cfg.genero;
+    state.cfg.remitente       = p.cfg.remitente;
+  }
+  if (p.niveles && p.niveles.length) {
+    state.niveles = p.niveles;
+    state.activoNivelIdx = p.activoNivelIdx || 0;
+    // Restore counter to avoid id collisions on new niveles
+    p.niveles.forEach(n => {
+      const m = n.id && n.id.match(/nivel_(\d+)/);
+      if (m) _nivelCounter = Math.max(_nivelCounter, parseInt(m[1]) + 1);
+    });
+  } else if (p.cfg && (p.cfg.fechaInicio || p.cfg.fechaFin || p.cfg.hora1)) {
+    // Migrate old single-nivel data
+    state.niveles = [{
+      id: 'nivel_0',
+      estudioId: p.cfg.tipo === 'ciclo' ? 'fotografia' : 'disenio-grafico',
+      fechaInicio: p.cfg.fechaInicio || '',
+      fechaFin: p.cfg.fechaFin || '',
+      festivos: p.festivos || []
+    }];
+  }
+  if (p.plantillasEmp) state.plantillasEmp = p.plantillasEmp;
+  if (p.plantillasAlu) state.plantillasAlu = p.plantillasAlu;
+  if (p.alumnos) state.alumnos = p.alumnos;
+  if (p.customEstudios) state.customEstudios = p.customEstudios;
+}
+
+function load() {
+  try {
+    const s = localStorage.getItem('automail_v4') || localStorage.getItem('fpeet_correos_v4');
+    if (s) applyState(JSON.parse(s));
+  } catch(e) {}
+  // Ensure at least one nivel exists
+  // Don't auto-create a nivel — user must click "Añadir estudio"
+  // (state.niveles stays empty until explicitly added)
+}
+
+// ────────────────────────────────────────────────
+//  NIVELES — HELPERS
+// ────────────────────────────────────────────────
+function makeNivel(estudioId) {
+  return {
+    id: 'nivel_' + (_nivelCounter++),
+    estudioId: estudioId || '',
+    fechaInicio: '',
+    fechaFin: '',
+    festivos: []
+  };
+}
+
+function getNivelActivo() {
+  if (typeof _editingNivelIdx !== 'undefined' && _editingNivelIdx === -2 && _pendingNivel) return _pendingNivel;
+  return state.niveles[state.activoNivelIdx] || state.niveles[0] || null;
+}
+
+function getNivelById(id) {
+  return state.niveles.find(n => n.id === id) || null;
+}
+
+// ────────────────────────────────────────────────
+//  FESTIVOS (por nivel)
+// ────────────────────────────────────────────────
+function toggleFestivo(dateStr, nivelId) {
+  const nivel = nivelId ? getNivelById(nivelId) : getNivelActivo();
+  if (!nivel) return;
+  const idx = nivel.festivos.indexOf(dateStr);
+  if (idx >= 0) nivel.festivos.splice(idx, 1);
+  else nivel.festivos.push(dateStr);
+  nivel.festivos.sort();
+  save();
+  renderFestivosList();
+  renderCfgSummary();
+}
+
+function addFestivoFromSelects() {
+  const nivel = getNivelActivo();
+  if (!nivel) { showToast('⚠️ Selecciona primero un estudio'); return; }
+  const dia = document.getElementById('festivo-dia').value;
+  const mes = document.getElementById('festivo-mes').value;
+  if (!dia || !mes) { showToast('Selecciona día y mes'); return; }
+  const baseYear = nivel.fechaInicio ? parseInt(nivel.fechaInicio.split('-')[0]) : new Date().getFullYear();
+  const startMonth = nivel.fechaInicio ? parseInt(nivel.fechaInicio.split('-')[1]) : 1;
+  const endYear    = nivel.fechaFin    ? parseInt(nivel.fechaFin.split('-')[0])    : baseYear;
+  let year = baseYear;
+  if (parseInt(mes) < startMonth && endYear > baseYear) year = endYear;
+  const ds = `${year}-${mes.padStart(2,'0')}-${String(dia).padStart(2,'0')}`;
+  if (nivel.fechaInicio && nivel.fechaFin && (ds < nivel.fechaInicio || ds > nivel.fechaFin)) {
+    showToast('Ese día está fuera del período de prácticas'); return;
+  }
+  if (nivel.festivos.includes(ds)) { showToast('Ese día ya está marcado'); return; }
+  nivel.festivos.push(ds);
+  nivel.festivos.sort();
+  save();
+  renderFestivosList();
+  renderCfgSummary();
+  showToast('Festivo añadido ✓');
+}
+
+function buildDateSelects() {
+  const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  ['cfg-inicio-dia','cfg-fin-dia'].forEach(id => {
+    const el = document.getElementById(id); if (!el) return;
+    el.innerHTML = '<option value="">Día</option>';
+    for (let d = 1; d <= 31; d++) el.innerHTML += `<option value="${d}">${d}</option>`;
+  });
+  ['cfg-inicio-mes','cfg-fin-mes'].forEach(id => {
+    const el = document.getElementById(id); if (!el) return;
+    el.innerHTML = '<option value="">Mes</option>';
+    meses.forEach((m, i) => el.innerHTML += `<option value="${i+1}">${m}</option>`);
+  });
+}
+
+function saveCfgFechas() {
+  const nivel = getNivelActivo();
+  if (!nivel) return;
+  const thisYear = new Date().getFullYear();
+  function buildDate(diaId, mesId) {
+    const dia = document.getElementById(diaId) && document.getElementById(diaId).value;
+    const mes = document.getElementById(mesId) && document.getElementById(mesId).value;
+    if (!dia || !mes) return '';
+    return `${thisYear}-${String(mes).padStart(2,'0')}-${String(dia).padStart(2,'0')}`;
+  }
+  nivel.fechaInicio = buildDate('cfg-inicio-dia','cfg-inicio-mes');
+  nivel.fechaFin    = buildDate('cfg-fin-dia','cfg-fin-mes');
+  save();
+  renderCfgSummary();
+  renderFestivosList();
+}
+
+function loadDateSelects() {
+  const nivel = getNivelActivo();
+  if (!nivel) return;
+  function setFromIso(iso, diaId, mesId) {
+    if (!iso) return;
+    const [,m,d] = iso.split('-');
+    const dEl = document.getElementById(diaId);
+    const mEl = document.getElementById(mesId);
+    if (dEl) dEl.value = parseInt(d);
+    if (mEl) mEl.value = parseInt(m);
+  }
+  setFromIso(nivel.fechaInicio, 'cfg-inicio-dia', 'cfg-inicio-mes');
+  setFromIso(nivel.fechaFin,    'cfg-fin-dia',    'cfg-fin-mes');
+}
+
+function buildFestivoSelects() {
+  const diaEl = document.getElementById('festivo-dia');
+  const mesEl = document.getElementById('festivo-mes');
+  if (!diaEl || !mesEl) return;
+  const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  diaEl.innerHTML = '<option value="">Día</option>';
+  for (let d = 1; d <= 31; d++) diaEl.innerHTML += `<option value="${d}">${d}</option>`;
+  mesEl.innerHTML = '<option value="">Mes</option>';
+  meses.forEach((m, i) => mesEl.innerHTML += `<option value="${i+1}">${m}</option>`);
+}
+
+function renderFestivosCalendar() { /* no-op */ }
+
+function renderFestivosList() {
+  const wrap = document.getElementById('festivos-list-wrap');
+  if (!wrap) return;
+  const nivel = getNivelActivo();
+  const festivos = nivel ? nivel.festivos : [];
+  if (!festivos.length) {
+    wrap.innerHTML = '<p class="festivos-empty">Sin días no lectivos añadidos.</p>';
+    return;
+  }
+  const chips = festivos.map(ds => {
+    const dt = new Date(ds + 'T00:00:00');
+    const label = dt.toLocaleDateString('es-ES', { weekday:'short', day:'numeric', month:'short' });
+    return `<span class="festivo-chip" onclick="toggleFestivo('${ds}')" title="Quitar">${label} ✕</span>`;
+  }).join('');
+  wrap.innerHTML = `<div class="festivos-chips">${chips}</div>
+    <p class="hint" style="margin-top:.45rem">Toca un día para quitarlo. Total: ${festivos.length} día${festivos.length!==1?'s':''} festivo${festivos.length!==1?'s':''}.</p>`;
+}
+
+// ────────────────────────────────────────────────
+//  HELPERS
+// ────────────────────────────────────────────────
+function esc(s) {
+  return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+// Escapes a value so it's safe to embed inside a single-quoted JS string
+// literal written directly in an onclick="..." attribute. Note: HTML entities
+// (like &#39;) do NOT work here, because the browser decodes them *before*
+// evaluating the attribute as JavaScript, so the literal apostrophe/backslash
+// would still break the string. This must escape backslash first, then quote.
+function jsStr(s) {
+  return String(s || '').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+}
+function initials(n) {
+  return (n || '?').split(' ').slice(0,2).map(w => w[0]||'').join('').toUpperCase() || '?';
+}
+function formatDate(s) {
+  if (!s) return '';
+  const [y,m,d] = s.split('-');
+  return `${d}/${m}/${y}`;
+}
+function getNivelDeAlumno(alumno) {
+  if (alumno && alumno.nivelId) {
+    const found = getNivelById(alumno.nivelId);
+    if (found) return found;
+    // Nivel was deleted — return a minimal safe object to avoid broken correos
+    return { id: '', estudioId: '', fechaInicio: '', fechaFin: '', festivos: [], _huerfano: true };
+  }
+  return getNivelActivo();
+}
+
+function getComputo(nivelOrId) {
+  let nivel = typeof nivelOrId === 'string' ? getNivelById(nivelOrId) : nivelOrId;
+  if (!nivel) nivel = getNivelActivo();
+  const cat = getEstudioById(nivel.estudioId);
+  if (cat) return `${cat.horas} horas en ${cat.jornadas} jornadas de ${cat.hDiarias} horas`;
+  return '[cómputo no definido]';
+}
+
+function formatDateShort(s) {
+  if (!s) return '';
+  const [y,m,d] = s.split('-');
+  return `${d}/${m}`;
+}
+
+function getFechas(nivel) {
+  if (!nivel) nivel = getNivelActivo();
+  const i = nivel.fechaInicio, f = nivel.fechaFin;
+  if (!i && !f) return '[FECHAS POR DEFINIR]';
+  if (i && f) return `del ${formatDate(i)} al ${formatDate(f)}`;
+  if (i) return `desde el ${formatDate(i)}`;
+  return `hasta el ${formatDate(f)}`;
+}
+
+function getFestivosStr(nivel) {
+  if (!nivel || !nivel.festivos || !nivel.festivos.length) return '';
+  return nivel.festivos.map(ds => {
+    const dt = new Date(ds + 'T00:00:00');
+    return dt.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' });
+  }).join(', ');
+}
+
+function getFechasCortas(nivel) {
+  if (!nivel) nivel = getNivelActivo();
+  const i = nivel.fechaInicio, f = nivel.fechaFin;
+  if (!i && !f) return '[FECHAS POR DEFINIR]';
+  if (i && f) return `${formatDateShort(i)} al ${formatDateShort(f)}`;
+  if (i) return `desde ${formatDateShort(i)}`;
+  return `hasta ${formatDateShort(f)}`;
+}
+
+function getHoraDefault(alumno) {
+  if (alumno && alumno.hora1) {
+    return `${String(alumno.hora1).padStart(2,'0')}:00 - ${String(alumno.hora2||14).padStart(2,'0')}:00`;
+  }
+  return '09:00 - 14:00';
+}
+function getDocenteFullName() {
+  // Single field stores full name
+  const single = (state.cfg.docenteNombre || '').trim();
+  if (single) return single;
+  // Fallback for old data with apellido split
+  const a = (state.cfg.docenteApellido || '').trim();
+  if (a) return a;
+  return state.cfg.docente || '[DOCENTE]';
+}
+function getGeneroLabel() {
+  return state.cfg.genero === 'hombre' ? 'el tutor docente' : 'la tutora docente';
+}
+function getTodosAlumnos(al) {
+  const lista = [{ nombre: al.nombre, correo: al.correo, estudio: al.estudio }];
+  if (al.alumnos_extra && al.alumnos_extra.length) al.alumnos_extra.forEach(ex => lista.push(ex));
+  return lista.filter(a => a.nombre || a.correo);
+}
+function getNombreAlumno(al) {
+  const todos = getTodosAlumnos(al);
+  const nombres = todos.map(a => a.nombre).filter(Boolean);
+  if (!nombres.length) return '[NOMBRE]';
+  if (nombres.length === 1) return nombres[0];
+  return nombres.slice(0,-1).join(', ') + ' y ' + nombres[nombres.length-1];
+}
+function getNombresAlumnos(al) {
+  return getTodosAlumnos(al).map(a => a.nombre).filter(Boolean).join(' · ') || 'Sin alumnos';
+}
+function getEstudioAlumno(al) {
+  // Use nivel-based lookup via getEstudioDeAlumnoObj
+  const nivel = getNivelDeAlumno(al);
+  return getEstudioDeAlumnoObj(al, nivel);
+}
+// Resolve estudio name from a sub-alumno object (has its own nivelId) or fall back to stored string
+function getEstudioDeAlumnoObj(subAlu, nivelFallback) {
+  if (subAlu && subAlu.nivelId) {
+    const n = getNivelById(subAlu.nivelId);
+    if (n) { const cat = getEstudioById(n.estudioId); if (cat) return cat.nombre; }
+  }
+  if (subAlu && subAlu.estudio) return subAlu.estudio;
+  if (nivelFallback) { const cat = getEstudioById(nivelFallback.estudioId); if (cat) return cat.nombre; }
+  return '[ESTUDIO]';
+}
+
+// Wrap any [PLACEHOLDER] left unreplaced in a red highlight span
+function highlightMissing(text) {
+  return esc(text).replace(/\[([A-ZÁÉÍÓÚÑ ]+)\]/g, '<span class="var-missing">[$1]</span>');
+}
+
+function applyTagsAlumno(text, alumno, alumnoSubObj) {
+  const src = alumnoSubObj || alumno;
+  const nivel = getNivelDeAlumno(src);
+  const h1 = alumno.hora1 || 9;
+  const h2 = alumno.hora2 || 14;
+  const hora = `${String(h1).padStart(2,'0')}:00 - ${String(h2).padStart(2,'0')}:00`;
+
+  // Gather all distinct niveles from all alumnos of this empresa
+  const todosAlumnos = getTodosAlumnos(alumno);
+  const nivelesIds = [...new Set(todosAlumnos.map(a => a.nivelId || alumno.nivelId).filter(Boolean))];
+  const nivelesUsados = nivelesIds.map(id => getNivelById(id)).filter(Boolean);
+
+  // Build combined estudios list (deduplicated)
+  const estudiosList = [...new Set(nivelesUsados.map(nv => {
+    const cat = getEstudioById(nv.estudioId);
+    return cat ? cat.nombre : null;
+  }).filter(Boolean))];
+  const estudiosStr = estudiosList.length
+    ? estudiosList.slice(0,-1).join(', ') + (estudiosList.length > 1 ? ' y ' : '') + estudiosList[estudiosList.length-1]
+    : '[ESTUDIO]';
+
+  // Build combined FECHA (deduplicated by value)
+  const fechasList = [...new Set(nivelesUsados.map(nv => getFechas(nv)).filter(s => s && s !== '[FECHAS POR DEFINIR]'))];
+  const fechasStr = fechasList.length ? fechasList.join(' / ') : (nivelesUsados.length ? getFechas(nivelesUsados[0]) : '[FECHAS POR DEFINIR]');
+
+  // Build combined COMPUTO (deduplicated)
+  const computosList = [...new Set(nivelesUsados.map(nv => getComputo(nv)).filter(Boolean))];
+  const computosStr = computosList.length ? computosList.join(' / ') : getComputo(nivel);
+
+  // Build combined FESTIVOS (deduplicated across niveles)
+  const festivosList = [...new Set(nivelesUsados.flatMap(nv => getFestivosStr(nv) ? [getFestivosStr(nv)] : []))];
+  const festivosStr = festivosList.join(', ') || '';
+
+  return text
+    .replace(/\{\{NOMBRE\}\}/g, alumnoSubObj ? (alumnoSubObj.nombre || '[NOMBRE]') : getNombreAlumno(alumno))
+    .replace(/\{\{CORREO\}\}/g, (src.correo || '[CORREO]'))
+    .replace(/\{\{ESTUDIO\}\}/g, alumnoSubObj ? getEstudioDeAlumnoObj(src, nivel) : estudiosStr)
+    .replace(/\{\{EMPRESA\}\}/g, alumno.empresa || '[EMPRESA]')
+    .replace(/\{\{TUTOR\}\}/g, alumno.tutor || '[TUTOR]')
+    .replace(/\{\{COEMP\}\}/g, alumno.coemp || '[CORREO EMPRESA]')
+    .replace(/\{\{HORA\}\}/g, hora)
+    .replace(/\{\{FECHA\}\}/g, alumnoSubObj ? getFechas(nivel) : fechasStr)
+    .replace(/\{\{FESTIVOS\}\}/g, alumnoSubObj ? getFestivosStr(nivel) : festivosStr)
+    .replace(/\{\{COMPUTO_PRACTICAS\}\}/g, alumnoSubObj ? getComputo(nivel) : computosStr)
+    .replace(/\{\{DOCENTE\}\}/g, getDocenteFullName())
+    .replace(/\{\{GENERO\}\}/g, getGeneroLabel());
+}
+function applyTagsGenerico(text, nombresOverride, alumnoCtx) {
+  const nivel = alumnoCtx ? getNivelDeAlumno(alumnoCtx) : getNivelActivo();
+  const h1 = alumnoCtx ? (alumnoCtx.hora1 || 9) : 9;
+  const h2 = alumnoCtx ? (alumnoCtx.hora2 || 14) : 14;
+  const hora = `${String(h1).padStart(2,'0')}:00 - ${String(h2).padStart(2,'0')}:00`;
+  // Build list of all distinct company names
+  const allEmpresas = [...new Set(state.alumnos.map(al => al.empresa).filter(Boolean))];
+  const empresasStr = allEmpresas.length === 0 ? '[EMPRESA]'
+    : allEmpresas.length === 1 ? allEmpresas[0]
+    : allEmpresas.slice(0,-1).join(', ') + ' y ' + allEmpresas[allEmpresas.length-1];
+  // Build list of all distinct tutores from all empresas
+  const allTutores = [...new Set(state.alumnos.map(al => al.tutor).filter(Boolean))];
+  const tutoresStr = allTutores.length === 0 ? '[TUTOR]'
+    : allTutores.length === 1 ? allTutores[0]
+    : allTutores.slice(0,-1).join(', ') + ' y ' + allTutores[allTutores.length-1];
+  return text
+    .replace(/\{\{NOMBRE\}\}/g, nombresOverride || '[ALUMNOS]')
+    .replace(/\{\{CORREO\}\}/g, '[CORREO]')
+    .replace(/\{\{ESTUDIO\}\}/g, '[ESTUDIO]')
+    .replace(/\{\{EMPRESA\}\}/g, empresasStr)
+    .replace(/\{\{TUTOR\}\}/g,   tutoresStr)
+    .replace(/\{\{COEMP\}\}/g,   '[CORREO EMPRESA]')
+    .replace(/\{\{HORA\}\}/g, hora)
+    .replace(/\{\{FECHA\}\}/g, getFechas(nivel))
+    .replace(/\{\{FESTIVOS\}\}/g, getFestivosStr(nivel))
+    .replace(/\{\{COMPUTO_PRACTICAS\}\}/g, getComputo(nivel))
+    .replace(/\{\{DOCENTE\}\}/g, getDocenteFullName())
+    .replace(/\{\{GENERO\}\}/g, getGeneroLabel());
+}
+
+// ────────────────────────────────────────────────
+//  HORA SELECTS
+// ────────────────────────────────────────────────
+function horaOpts(sel) {
+  const selNum = parseInt(sel) || 0;
+  let h = '<option value="">—</option>';
+  for (let x = 7; x <= 22; x++) {
+    const lbl = String(x).padStart(2,'0') + ':00';
+    h += `<option value="${x}"${selNum === x ? ' selected' : ''}>${lbl}</option>`;
+  }
+  return h;
+}
+function buildHourSelects() {
+  ['nf-hora1','nf-hora2'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el || el.children.length > 1) return;
+    for (let x = 7; x <= 22; x++) {
+      el.innerHTML += `<option value="${x}">${String(x).padStart(2,'0')}:00</option>`;
+    }
+  });
+}
+
+// ────────────────────────────────────────────────
+//  NAVIGATION
+// ────────────────────────────────────────────────
+const PAGES = ['general','alumnos','correos-empresa'];
+let currentPage = 'general';
+let currentInnerTab = 'config';
+let correosMode = 'empresa';
+
+function setCorreosMode(mode) {
+  correosMode = mode;
+  const isEmp = mode === 'empresa';
+  document.getElementById('correos-mode-empresa').style.display = isEmp ? 'block' : 'none';
+  document.getElementById('correos-mode-alumnos').style.display = isEmp ? 'none' : 'block';
+  const btnEmp = document.getElementById('mode-btn-empresa');
+  const btnAlu = document.getElementById('mode-btn-alumnos');
+  btnEmp.classList.toggle('active', isEmp);
+  btnAlu.classList.toggle('active', !isEmp);
+  if (isEmp) renderCorreosEmpresa();
+  else renderCorreosAlumnos();
+}
+
+function _hasUnsavedForm() {
+  // Returns a description string if there's an open form with data, or null
+  const empForm = document.getElementById('inline-empresa-form');
+  if (empForm && empForm.style.display !== 'none') {
+    const empresa = (document.getElementById('nf-empresa') || {}).value || '';
+    const nombre  = (document.getElementById('nf-nombre')  || {}).value || '';
+    if (empresa || nombre) return 'empresa';
+  }
+  const nivForm = document.getElementById('nivel-inline-form');
+  if (nivForm && nivForm.style.display !== 'none') {
+    const sel = document.getElementById('cfg-estudio-sel');
+    if (sel && sel.value) return 'estudio';
+    // If it's a new pending nivel with no estudio yet, no need to warn
+    if (_editingNivelIdx >= 0) return 'estudio';
+  }
+  return null;
+}
+
+function showInnerTab(tab) {
+  currentInnerTab = tab;
+  ['config','plantillas'].forEach(t => {
+    const el = document.getElementById('inner-' + t);
+    if (el) el.style.display = t === tab ? 'block' : 'none';
+  });
+  const btnCfg = document.getElementById('itab-config');
+  const btnPl  = document.getElementById('itab-plantillas');
+  if (btnCfg) btnCfg.classList.toggle('active', tab === 'config');
+  if (btnPl)  btnPl.classList.toggle('active', tab === 'plantillas');
+  if (tab === 'plantillas') renderPlantillas();
+}
+
+function showPage(p) {
+  // Guard: warn if navigating away from an open form with data
+  if (p !== currentPage) {
+    const unsaved = _hasUnsavedForm();
+    if (unsaved && !confirm(`Tienes un formulario de ${unsaved} abierto con cambios sin guardar. ¿Salir igualmente?`)) return;
+    // Close any open forms cleanly
+    if (editingAlumnoIdx >= 0) _closeEditCard();
+    else {
+      const empForm = document.getElementById('inline-empresa-form');
+      if (empForm) empForm.style.display = 'none';
+    }
+    if (_editingNivelIdx !== -1) closeNivelForm();
+  }
+  currentPage = p;
+  PAGES.forEach(x => {
+    document.getElementById('page-' + x).style.display = x === p ? 'block' : 'none';
+    const nb = document.getElementById('nav-' + x);
+    if (nb) nb.classList.toggle('active', x === p);
+  });
+  document.getElementById('page-scroll').scrollTop = 0;
+  if (p === 'alumnos') {
+    renderAlumnos();
+    // If the inline form is open, refresh the nivel selects in case new estudios were added
+    const form = document.getElementById('inline-empresa-form');
+    if (form && form.style.display !== 'none') {
+      // Re-populate main alumno nivel select, preserving current selection
+      const sel = document.getElementById('nf-nivel');
+      const currentVal = sel ? sel.value : '';
+      populateNfNivelSelect(currentVal);
+      // Re-populate extras nivel selects, preserving their current selections
+      for (let n = 1; n <= nfExtraCount; n++) {
+        const exSel = document.getElementById('nf-ex-nivel-' + n);
+        if (!exSel) break;
+        const exVal = exSel.value;
+        const sortedV = [...state.niveles].filter(nv => !!nv.estudioId).sort((a,b) => {
+          const ca = getEstudioById(a.estudioId), cb = getEstudioById(b.estudioId);
+          return (ca?ca.nombre:'').localeCompare(cb?cb.nombre:'','es',{sensitivity:'base'});
+        });
+        exSel.innerHTML = '<option value="">Seleccionar...</option>' + sortedV.map(nv => {
+          const cat = getEstudioById(nv.estudioId);
+          return `<option value="${nv.id}"${nv.id === exVal ? ' selected' : ''}>${cat ? cat.nombre : ''}</option>`;
+        }).join('');
+        if (exVal) exSel.value = exVal;
+      }
+    }
+  }
+  if (p === 'correos-empresa') setCorreosMode(correosMode);
+  updateTopbarSub();
+}
+
+function updateTopbarSub() { /* subtitle is now static */ }
+
+// ────────────────────────────────────────────────
+//  TOAST
+// ────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ────────────────────────────────────────────────
+//  COPY
+// ────────────────────────────────────────────────
+const _buf = {};
+let _bi = 0;
+function _cb(text) { const k = 'k'+(_bi++); _buf[k] = text; return k; }
+function _bufReset() { Object.keys(_buf).forEach(k => delete _buf[k]); _bi = 0; }
+function copyBuf(k, msg) {
+  const t = _buf[k] || '';
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(t).then(() => showToast(msg || 'Copiado ✓'));
+  } else {
+    const ta = document.createElement('textarea');
+    ta.value = t;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.focus(); ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast(msg || 'Copiado ✓');
+  }
+}
+
+// ────────────────────────────────────────────────
+//  CONFIGURACIÓN
+// ────────────────────────────────────────────────
+function onEstudioChange() {
+  const estudioEl = document.getElementById('cfg-estudio-sel');
+  const rawValue = estudioEl ? estudioEl.value || '' : '';
+  const nivel = getNivelActivo();
+  const wrap = document.getElementById('cfg-otro-estudio-wrap');
+
+  if (rawValue === 'otro') {
+    // Custom estudio: create/reuse a per-nivel custom entry
+    const entry = getOrCreateCustomEstudio(nivel);
+    nivel.estudioId = entry.id;
+    if (wrap) wrap.style.display = 'block';
+    const nombreEl = document.getElementById('cfg-otro-nombre');
+    const horasEl  = document.getElementById('cfg-otro-horas');
+    if (nombreEl) nombreEl.value = entry.nombre || '';
+    if (horasEl)  horasEl.value  = entry.horas || '';
+    const titleEl = document.getElementById('nivel-form-title');
+    if (titleEl) titleEl.textContent = entry.nombre || 'Nuevo estudio';
+    save();
+    renderCfgSummary();
+    return;
+  }
+
+  const newEstudioId = rawValue;
+
+  // Check for duplicate
+  if (newEstudioId) {
+    const duplicate = state.niveles.find((n, i) => n.estudioId === newEstudioId && i !== state.activoNivelIdx);
+    if (duplicate) {
+      showToast('⚠️ Ya tienes este estudio registrado');
+      estudioEl.value = nivel.estudioId || '';
+      return;
+    }
+  }
+
+  // Leaving a custom estudio behind — clean up its orphaned entry
+  if ((nivel.estudioId || '').startsWith('custom_')) {
+    state.customEstudios = state.customEstudios.filter(e => e.nivelId !== nivel.id);
+  }
+
+  if (wrap) wrap.style.display = 'none';
+  nivel.estudioId = newEstudioId;
+  const titleEl = document.getElementById('nivel-form-title');
+  if (titleEl) {
+    const cat = getEstudioById(newEstudioId);
+    titleEl.textContent = cat ? cat.nombre : 'Nuevo estudio';
+  }
+  save();
+  renderNivelesList();
+  renderCfgSummary();
+}
+
+function onOtroEstudioChange() {
+  const nivel = getNivelActivo();
+  if (!nivel) return;
+  const entry = getOrCreateCustomEstudio(nivel);
+  const nombreEl = document.getElementById('cfg-otro-nombre');
+  const horasEl  = document.getElementById('cfg-otro-horas');
+  entry.nombre = nombreEl ? nombreEl.value.trim() : '';
+  const horas = horasEl ? parseInt(horasEl.value) || 0 : 0;
+  entry.horas = horas;
+  entry.hDiarias = entry.hDiarias || 5;
+  entry.jornadas = horas > 0 ? Math.max(1, Math.round(horas / entry.hDiarias)) : 0;
+  nivel.estudioId = entry.id;
+  const titleEl = document.getElementById('nivel-form-title');
+  if (titleEl) titleEl.textContent = entry.nombre || 'Nuevo estudio';
+  save();
+  renderCfgSummary();
+}
+
+function emailToName(email) {
+  // Nombre = antes del primer punto; Apellido = después del punto hasta la @
+  const local = (email.split('@')[0] || '');
+  const cap = w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
+  const dot = local.indexOf('.');
+  if (dot === -1) return cap(local);
+  const nombre = local.slice(0, dot);
+  const apellido = local.slice(dot + 1);
+  return [nombre, apellido].filter(Boolean).map(cap).join(' ');
+}
+
+function saveCfg() {
+  state.cfg.docenteNombre   = (document.getElementById('cfg-docente-nombre') || {}).value || '';
+  state.cfg.docenteApellido = '';
+  const generoEl = document.getElementById('cfg-genero');
+  state.cfg.genero = generoEl.value || 'hombre';
+  const newRem = document.getElementById('cfg-correo-remitente').value.trim();
+  state.cfg.remitente = newRem;
+  save();
+  renderCfgSummary();
+  updateTopbarSub();
+}
+
+function autofillNombreFromEmail() {
+  const nombreEl = document.getElementById('cfg-docente-nombre');
+  const correoEl = document.getElementById('cfg-correo-remitente');
+  if (!nombreEl || !correoEl) return;
+  const email = correoEl.value.trim();
+  if (email && !nombreEl.value.trim()) {
+    const guess = emailToName(email);
+    if (guess) {
+      nombreEl.value = guess;
+      saveCfg();
+    }
+  }
+}
+
+function loadCfg() {
+  const nEl = document.getElementById('cfg-docente-nombre');
+  if (nEl) {
+    const combined = [state.cfg.docenteNombre, state.cfg.docenteApellido].filter(Boolean).join(' ') || (state.cfg.docente || '');
+    nEl.value = combined;
+  }
+  const generoEl = document.getElementById('cfg-genero');
+  generoEl.value = state.cfg.genero || '';
+  if (generoEl.value !== 'hombre' && generoEl.value !== 'mujer') generoEl.selectedIndex = 0;
+  document.getElementById('cfg-correo-remitente').value = state.cfg.remitente || '';
+  buildDateSelects();
+  buildFestivoSelects();
+  renderNivelesList();
+  closeNivelForm();
+  renderCfgSummary();
+  renderFestivosList();
+}
+
+// ────────────────────────────────────────────────
+//  NIVELES UI (tabs + form)
+// ────────────────────────────────────────────────
+function renderNivelesTabs() {
+  // no-op: tabs replaced by renderNivelesList
+}
+
+function renderNivelesList() {
+  // Always rescue the form from inside the list before clearing it
+  const wrap = document.getElementById('niveles-list');
+  if (!wrap) return;
+  const form = document.getElementById('nivel-inline-form');
+  const card = document.getElementById('configuracion');
+  if (form && wrap.contains(form)) {
+    wrap.parentNode.insertBefore(form, wrap);
+  }
+
+  wrap.innerHTML = '';
+  const svgEdit  = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`;
+  const svgTrash = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>`;
+
+  // Only render niveles that have an estudioId (skip unsaved orphans)
+  state.niveles.forEach((n, i) => {
+    if (!n.estudioId) return;
+    const cat = getEstudioById(n.estudioId);
+    const ini = n.fechaInicio ? formatDateShort(n.fechaInicio) : '—';
+    const fin = n.fechaFin    ? formatDateShort(n.fechaFin)    : '—';
+
+    const row = document.createElement('div');
+    row.id = `nivel-row-${i}`;
+    row.style.cssText = 'display:flex;align-items:center;gap:8px;padding:.55rem 0;border-bottom:1px solid var(--border-2)';
+
+    const info = document.createElement('div');
+    info.style.cssText = 'flex:1;min-width:0';
+    info.innerHTML = `<p style="font-size:13px;font-weight:600;color:var(--text)">${cat ? cat.nombre : '—'}</p>
+      <p style="font-size:11px;color:var(--text-3)">${cat ? cat.horas+'h · '+cat.jornadas+' jornadas' : ''} · ${ini} – ${fin}</p>`;
+
+    const btnWrap = document.createElement('div');
+    btnWrap.style.cssText = 'display:flex;gap:6px;flex-shrink:0;align-items:center';
+
+    const btnEdit = document.createElement('button');
+    btnEdit.className = 'btn btn-sm';
+    btnEdit.style.cssText = 'padding:5px 9px';
+    btnEdit.innerHTML = svgEdit;
+    btnEdit.onclick = () => openNivelForm(i);
+
+    const btnDel = document.createElement('button');
+    btnDel.className = 'btn btn-sm';
+    btnDel.style.cssText = 'padding:5px 9px;border-color:rgba(244,63,94,0.4);color:#f43f5e';
+    btnDel.innerHTML = svgTrash;
+    btnDel.onclick = () => deleteNivel(i);
+
+    btnWrap.appendChild(btnEdit);
+    btnWrap.appendChild(btnDel);
+    row.appendChild(info);
+    row.appendChild(btnWrap);
+    wrap.appendChild(row);
+  });
+
+  if (state.niveles.filter(n => n.estudioId).length) {
+    const sp = document.createElement('div');
+    sp.style.height = '.65rem';
+    wrap.appendChild(sp);
+  }
+}
+
+let _editingNivelIdx = -1; // -1 = new (not yet in state), >= 0 = editing existing
+let _pendingNivel = null;  // temp object for new nivel (not pushed to state until save)
+
+function openNivelForm(idx) {
+  // Close any open edit first
+  if (_editingNivelIdx >= 0) _restoreNivelRow(_editingNivelIdx);
+
+  _editingNivelIdx = idx;
+  state.activoNivelIdx = idx;
+
+  const nivel = state.niveles[idx];
+  const form = document.getElementById('nivel-inline-form');
+  if (!form) return;
+
+  const titleEl = document.getElementById('nivel-form-title');
+  const cat = nivel ? getEstudioById(nivel.estudioId) : null;
+  if (titleEl) titleEl.textContent = cat ? cat.nombre : 'Editar estudio';
+
+  loadNivelUI();
+  renderFestivosList();
+
+  // Hide the row and insert form in its place
+  const wrap = document.getElementById('niveles-list');
+  const row = document.getElementById(`nivel-row-${idx}`);
+  if (row) {
+    row.style.display = 'none';
+    row.parentNode.insertBefore(form, row);
+  }
+  form.style.display = 'block';
+  setTimeout(() => form.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
+}
+
+function addNivel() {
+  // Close any open edit first
+  if (_editingNivelIdx >= 0) _restoreNivelRow(_editingNivelIdx);
+
+  // Create temp nivel in memory (NOT pushed to state yet)
+  _pendingNivel = makeNivel();
+  const source = state.niveles.find(n => n.fechaInicio || n.fechaFin);
+  if (source) {
+    _pendingNivel.fechaInicio = source.fechaInicio;
+    _pendingNivel.fechaFin    = source.fechaFin;
+    _pendingNivel.festivos    = [...(source.festivos || [])];
+  }
+
+  // Point activoNivelIdx to a virtual slot (we'll use _pendingNivel directly)
+  _editingNivelIdx = -2; // special: "new, pending"
+
+  const form = document.getElementById('nivel-inline-form');
+  if (!form) return;
+  const titleEl = document.getElementById('nivel-form-title');
+  if (titleEl) titleEl.textContent = 'Nuevo estudio';
+
+  // Load UI using _pendingNivel
+  _loadNivelUIFromObj(_pendingNivel);
+  renderFestivosList();
+
+  // Place form before the niveles-list (at the top of the list)
+  const wrap = document.getElementById('niveles-list');
+  if (wrap) wrap.parentNode.insertBefore(form, wrap);
+  form.style.display = 'block';
+  setTimeout(() => form.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
+}
+
+function _restoreNivelRow(idx) {
+  const form = document.getElementById('nivel-inline-form');
+  const wrap = document.getElementById('niveles-list');
+  // Move form back before the list so renderNivelesList doesn't wipe it
+  if (form && wrap && form.parentNode === wrap) {
+    wrap.parentNode.insertBefore(form, wrap);
+  }
+  if (form) form.style.display = 'none';
+  _editingNivelIdx = -1;
+  // Re-render the whole list so rows are built fresh with DOM methods (no SVG layout bugs)
+  renderNivelesList();
+}
+
+function closeNivelForm() {
+  if (_editingNivelIdx === -2) {
+    // New, unsaved — just discard and hide
+    if (_pendingNivel) state.customEstudios = state.customEstudios.filter(e => e.nivelId !== _pendingNivel.id);
+    _pendingNivel = null;
+    _editingNivelIdx = -1;
+    const form = document.getElementById('nivel-inline-form');
+    if (form) form.style.display = 'none';
+    // Move form back before the list
+    const wrap = document.getElementById('niveles-list');
+    if (wrap && form && form.parentNode === wrap) wrap.parentNode.insertBefore(form, wrap);
+  } else {
+    _restoreNivelRow(_editingNivelIdx);
+  }
+  _pendingNivel = null;
+}
+
+function isCustomEstudioIncomplete(estudioId) {
+  if (!(estudioId || '').startsWith('custom_')) return false;
+  const entry = getEstudioById(estudioId);
+  return !entry || !entry.nombre || !entry.horas;
+}
+
+function saveNivelForm() {
+  if (_editingNivelIdx === -2) {
+    // New nivel: validate then push to state
+    if (!_pendingNivel || !_pendingNivel.estudioId) {
+      showToast('⚠️ Selecciona el tipo de estudio'); return;
+    }
+    if (isCustomEstudioIncomplete(_pendingNivel.estudioId)) {
+      showToast('⚠️ Indica el nombre y las horas del estudio'); return;
+    }
+    // Read fechas from UI into _pendingNivel (already written by saveCfgFechas on each change)
+    state.niveles.push(_pendingNivel);
+    state.activoNivelIdx = state.niveles.length - 1;
+    _pendingNivel = null;
+    _editingNivelIdx = -1;
+    const form = document.getElementById('nivel-inline-form');
+    if (form) form.style.display = 'none';
+    const wrap = document.getElementById('niveles-list');
+    if (wrap && form && form.parentNode === wrap) wrap.parentNode.insertBefore(form, wrap);
+    save();
+    renderNivelesList();
+    renderCfgSummary();
+    showToast('Estudio guardado ✓');
+  } else {
+    // Editing existing
+    const nivel = state.niveles[_editingNivelIdx];
+    if (!nivel) return;
+    if (!nivel.estudioId) { showToast('⚠️ Selecciona el tipo de estudio'); return; }
+    if (isCustomEstudioIncomplete(nivel.estudioId)) {
+      showToast('⚠️ Indica el nombre y las horas del estudio'); return;
+    }
+    _restoreNivelRow(_editingNivelIdx);
+    save();
+    renderNivelesList();
+    renderCfgSummary();
+    showToast('Estudio guardado ✓');
+  }
+}
+
+function deleteNivel(idx) {
+  const nivel = state.niveles[idx];
+  if (!nivel) return;
+  const cat = getEstudioById(nivel.estudioId);
+  const linked = state.alumnos.filter(al => getTodosAlumnos(al).some(a => (a.nivelId || al.nivelId) === nivel.id));
+  let msg = `¿Eliminar el estudio "${cat ? cat.nombre : 'Sin nombre'}"?`;
+  if (linked.length) msg = `El estudio está vinculado a ${linked.length} empresa${linked.length>1?'s':''} (${linked.map(a=>a.empresa).join(', ')}). ¿Eliminar igualmente?`;
+  if (!confirm(msg)) return;
+  // If this nivel is currently being edited, close cleanly first
+  if (_editingNivelIdx === idx) _restoreNivelRow(idx);
+  state.niveles.splice(idx, 1);
+  state.customEstudios = state.customEstudios.filter(e => e.nivelId !== nivel.id);
+  if (state.activoNivelIdx >= state.niveles.length) state.activoNivelIdx = Math.max(0, state.niveles.length - 1);
+  save();
+  renderNivelesList();
+  renderCfgSummary();
+  showToast('Estudio eliminado');
+}
+
+function _loadNivelUIFromObj(nivel) {
+  // loadNivelUI uses getNivelActivo() which returns _pendingNivel when _editingNivelIdx === -2
+  // So we just need to reset the form fields and call the existing loader
+  const estSel = document.getElementById('cfg-estudio-sel');
+  const isCustom = (nivel.estudioId || '').startsWith('custom_');
+  if (estSel) {
+    const usedIds = new Set(state.niveles.map(n => n.estudioId).filter(Boolean));
+    estSel.innerHTML = '<option value="">Seleccionar...</option>' + ESTUDIOS_CATALOGO
+      .filter(e => !usedIds.has(e.id))
+      .map(e => `<option value="${e.id}">${e.nombre} (${e.horas}h)</option>`)
+      .join('') + '<option value="otro">Otro (no está en la lista)</option>';
+    estSel.value = isCustom ? 'otro' : (nivel.estudioId || '');
+  }
+  const wrap = document.getElementById('cfg-otro-estudio-wrap');
+  if (wrap) {
+    wrap.style.display = isCustom ? 'block' : 'none';
+    if (isCustom) {
+      const entry = getOrCreateCustomEstudio(nivel);
+      const nombreEl = document.getElementById('cfg-otro-nombre');
+      const horasEl  = document.getElementById('cfg-otro-horas');
+      if (nombreEl) nombreEl.value = entry.nombre || '';
+      if (horasEl)  horasEl.value  = entry.horas || '';
+    }
+  }
+  loadDateSelects();
+  const delBtn = document.getElementById('btn-del-nivel');
+  if (delBtn) delBtn.style.display = 'none'; // can't delete what isn't saved yet
+}
+
+function loadNivelUI() {
+  const nivel = getNivelActivo();
+  if (!nivel) return; // No estudios yet
+  const estSel = document.getElementById('cfg-estudio-sel');
+  const isCustom = (nivel.estudioId || '').startsWith('custom_');
+  if (estSel) {
+    // Get estudioIds already used by OTHER niveles (not the current one)
+    const usedIds = new Set(
+      state.niveles
+        .filter((_, i) => i !== state.activoNivelIdx)
+        .map(n => n.estudioId)
+        .filter(Boolean)
+    );
+    estSel.innerHTML = '<option value="">Seleccionar...</option>' + ESTUDIOS_CATALOGO
+      .filter(e => !usedIds.has(e.id) || e.id === nivel.estudioId)
+      .map(e => `<option value="${e.id}"${nivel.estudioId === e.id ? ' selected' : ''}>${e.nombre} (${e.horas}h)</option>`)
+      .join('') + `<option value="otro"${isCustom ? ' selected' : ''}>Otro (no está en la lista)</option>`;
+    estSel.value = isCustom ? 'otro' : (nivel.estudioId || '');
+  }
+  const wrap = document.getElementById('cfg-otro-estudio-wrap');
+  if (wrap) {
+    wrap.style.display = isCustom ? 'block' : 'none';
+    if (isCustom) {
+      const entry = getOrCreateCustomEstudio(nivel);
+      const nombreEl = document.getElementById('cfg-otro-nombre');
+      const horasEl  = document.getElementById('cfg-otro-horas');
+      if (nombreEl) nombreEl.value = entry.nombre || '';
+      if (horasEl)  horasEl.value  = entry.horas || '';
+    }
+  }
+  loadDateSelects();
+  const delBtn = document.getElementById('btn-del-nivel');
+  if (delBtn) delBtn.style.display = state.niveles.length > 1 ? 'inline-flex' : 'none';
+}
+function renderCfgSummary() {
+  const c = document.getElementById('cfg-summary-content');
+  if (!c) return;
+  const svgEstudio  = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>`;
+  const svgEmpresas = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>`;
+  const svgAlumnos  = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="7" r="4"/><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="17" cy="7" r="3"/><path d="M22 21v-2a3.99 3.99 0 00-2.5-3.7"/></svg>`;
+
+  const nEstudios = state.niveles.filter(nv => !!nv.estudioId).length;
+  const nEmpresas = state.alumnos.length;
+  const nAlumnos = state.alumnos.reduce((s, a) => s + 1 + ((a.alumnos_extra || []).length), 0);
+
+  const chips = [
+    { icon: svgEstudio,  value: String(nEstudios), label: 'Estudios registrados', empty: false },
+    { icon: svgEmpresas, value: String(nEmpresas), label: 'Empresas registradas', empty: false },
+    { icon: svgAlumnos,  value: String(nAlumnos),  label: 'Alumnos de prácticas', empty: false }
+  ];
+  c.innerHTML = chips.map(ch => `
+    <div class="stat-chip">
+      <div class="stat-chip-icon">${ch.icon}</div>
+      <div class="stat-chip-text">
+        <span class="stat-chip-value${ch.empty ? ' empty' : ''}">${esc(ch.value)}</span>
+        <span class="stat-chip-label">${ch.label.toUpperCase()}</span>
+      </div>
+    </div>`).join('');
+}
+
+// ────────────────────────────────────────────────
+//  PLANTILLAS
+// ────────────────────────────────────────────────
+function renderPlantillas() {
+  const c = document.getElementById('plantillas-list');
+  c.innerHTML = '';
+
+  // Circular badge — number in white on an accent-colored circle
+  const greyBadge = n => `<span style="width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;font-size:10px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0">${n+1}</span>`;
+
+  const h1 = document.createElement('p');
+  h1.className = 'sec-title'; h1.style.marginBottom = '.65rem';
+  h1.textContent = `Plantillas para empresas (${state.plantillasEmp.length})`;
+  c.appendChild(h1);
+
+  state.plantillasEmp.forEach((pl, i) => {
+    const isDefault = i < DEF_EMP.length;
+    const nombre = isDefault ? EMAIL_EMP_NAMES[i] : (pl.nombre || `Correo empresa ${i+1}`);
+    const nota = isDefault ? EMAIL_EMP_NOTAS[i] : 'Plantilla personalizada.';
+    const d = document.createElement('div');
+    d.className = 'card'; d.id = 'pl-emp-' + i;
+    d.innerHTML = `
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:.75rem">
+        ${greyBadge(i)}
+        <span style="font-size:13px;font-weight:600;flex:1;color:var(--text)" id="pl-hdr-emp-${i}">${esc(nombre)}</span>
+        ${isDefault
+          ? `<button class="btn btn-sm" style="font-size:10px;padding:4px 8px;color:#8890b0;border-color:rgba(255,255,255,0.5)" onclick="restorePlantilla('emp',${i})" title="Restaurar texto original">↺ Restaurar</button>`
+          : `<button class="btn btn-sm" style="border-color:rgba(244,63,94,0.4);color:#f43f5e" onclick="delPlantilla('emp',${i})">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+            </button>`}
+      </div>
+      ${!isDefault ? `<label style="margin-top:0">Nombre</label><input type="text" value="${esc(pl.nombre||'')}" placeholder="Nombre del correo" oninput="state.plantillasEmp[${i}].nombre=this.value;save();const h=document.getElementById('pl-hdr-emp-${i}');if(h)h.textContent=this.value||'Correo empresa ${i+1}'">` : ''}
+      <label ${isDefault ? '' : ''}>Asunto</label>
+      <input type="text" value="${esc(pl.asunto)}" oninput="state.plantillasEmp[${i}].asunto=this.value;save()">
+      <label>Cuerpo</label>
+      <textarea oninput="state.plantillasEmp[${i}].cuerpo=this.value;save()">${esc(pl.cuerpo)}</textarea>
+      <div class="note"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> ${nota}</div>
+    `;
+    c.appendChild(d);
+  });
+
+  const h2 = document.createElement('p');
+  h2.className = 'sec-title'; h2.style.cssText = 'margin-top:1.25rem;margin-bottom:.65rem';
+  h2.textContent = `Plantillas para alumnos (${state.plantillasAlu.length})`;
+  c.appendChild(h2);
+
+  state.plantillasAlu.forEach((pl, i) => {
+    const isDefault = i < DEF_ALU.length;
+    const nombre = isDefault ? EMAIL_ALU_NAMES[i] : (pl.nombre || `Correo alumno ${i+1}`);
+    const nota = isDefault ? EMAIL_ALU_NOTAS[i] : 'Plantilla personalizada.';
+    const d = document.createElement('div');
+    d.className = 'card'; d.id = 'pl-alu-' + i;
+    d.innerHTML = `
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:.75rem">
+        ${greyBadge(i)}
+        <span style="font-size:13px;font-weight:600;flex:1;color:var(--text)" id="pl-hdr-alu-${i}">${esc(nombre)}</span>
+        ${isDefault
+          ? `<button class="btn btn-sm" style="font-size:10px;padding:4px 8px;color:#8890b0;border-color:rgba(255,255,255,0.5)" onclick="restorePlantilla('alu',${i})" title="Restaurar texto original">↺ Restaurar</button>`
+          : `<button class="btn btn-sm" style="border-color:rgba(244,63,94,0.4);color:#f43f5e" onclick="delPlantilla('alu',${i})">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+            </button>`}
+      </div>
+      ${!isDefault ? `<label style="margin-top:0">Nombre</label><input type="text" value="${esc(pl.nombre||'')}" placeholder="Nombre del correo" oninput="state.plantillasAlu[${i}].nombre=this.value;save();const h=document.getElementById('pl-hdr-alu-${i}');if(h)h.textContent=this.value||'Correo alumno ${i+1}'">` : ''}
+      <label>Asunto</label>
+      <input type="text" value="${esc(pl.asunto)}" oninput="state.plantillasAlu[${i}].asunto=this.value;save()">
+      <label>Cuerpo</label>
+      <textarea oninput="state.plantillasAlu[${i}].cuerpo=this.value;save()">${esc(pl.cuerpo)}</textarea>
+      <div class="note"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> ${nota}</div>
+    `;
+    c.appendChild(d);
+  });
+
+  const btnCard = document.createElement('div');
+  btnCard.className = 'card card-dashed';
+  btnCard.style.cssText = 'text-align:center;padding:1.25rem;margin-top:.25rem';
+  btnCard.innerHTML = `
+    <p style="font-size:13px;color:var(--text-2);margin-bottom:.85rem">¿Necesitas una plantilla adicional?</p>
+    <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+      <button class="btn btn-sm btn-primary" onclick="createPlantilla('emp')">+ Para empresa</button>
+      <button class="btn btn-sm btn-primary" onclick="createPlantilla('alu')">+ Para alumno</button>
+    </div>
+  `;
+  c.appendChild(btnCard);
+
+  // ── Etiquetas reference card ──
+  const tagCard = document.createElement('div');
+  tagCard.className = 'card';
+  tagCard.style.cssText = 'margin-top:.5rem;background:rgba(255,255,255,0.45);border-color:rgba(255,255,255,0.5)';
+  const tagsEmp = [
+    { tag: '{{EMPRESA}}',           desc: 'Nombre de la empresa'             },
+    { tag: '{{COEMP}}',             desc: 'Correo de la empresa'             },
+    { tag: '{{HORA}}',              desc: 'Horario de prácticas'             },
+    { tag: '{{FECHA}}',             desc: 'Período de prácticas'             },
+    { tag: '{{FESTIVOS}}',          desc: 'Días no lectivos (ej: 4 de mayo)' },
+    { tag: '{{COMPUTO_PRACTICAS}}', desc: 'Horas, jornadas y h/día'          },
+    { tag: '{{TUTOR}}',             desc: 'Tutor/a laboral'                  },
+  ];
+  const tagsAlu = [
+    { tag: '{{DOCENTE}}',           desc: 'Nombre del/la tutor/a docente'    },
+    { tag: '{{GENERO}}',            desc: '"el tutor" / "la tutora docente"' },
+    { tag: '{{NOMBRE}}',            desc: 'Nombre del alumno/a'              },
+    { tag: '{{CORREO}}',            desc: 'Correo del alumno/a'              },
+    { tag: '{{ESTUDIO}}',           desc: 'Nombre del estudio'               },
+  ];
+  const row = (t) => t
+    ? `<p style="font-size:11px;line-height:1.5;margin:0;padding:.2rem 0;border-bottom:1px solid var(--border-2)"><span style="font-family:monospace;font-weight:700;color:#7c3aed;user-select:all">${t.tag}</span> <span style="color:var(--text-3)">${t.desc}</span></p>`
+    : `<p style="padding:.2rem 0;border-bottom:1px solid var(--border-2)">&nbsp;</p>`;
+  const maxRows = Math.max(tagsEmp.length, tagsAlu.length);
+  let rows = '';
+  for (let i = 0; i < maxRows; i++) {
+    rows += `<div>${row(tagsEmp[i])}</div><div>${row(tagsAlu[i])}</div>`;
+  }
+  tagCard.innerHTML = `
+    <p class="sec-title" style="margin-bottom:.55rem">Variables disponibles</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 14px">
+      <p style="font-size:9px;font-weight:700;color:var(--text-4);text-transform:uppercase;letter-spacing:.06em;padding-bottom:3px;border-bottom:1px solid var(--border);margin:0">Empresa / Tutor laboral</p>
+      <p style="font-size:9px;font-weight:700;color:var(--text-4);text-transform:uppercase;letter-spacing:.06em;padding-bottom:3px;border-bottom:1px solid var(--border);margin:0">Tutor docente / Alumno</p>
+      ${rows}
+    </div>
+  `;
+  c.appendChild(tagCard);
+}
+function createPlantilla(tipo) {
+  const pl = { nombre: '', asunto: '', cuerpo: '' };
+  if (tipo === 'emp') state.plantillasEmp.push(pl);
+  else state.plantillasAlu.push(pl);
+  save(); renderPlantillas();
+  showToast('Plantilla creada ✓');
+}
+function delPlantilla(tipo, idx) {
+  if (!confirm('¿Eliminar esta plantilla?')) return;
+  if (tipo === 'emp') state.plantillasEmp.splice(idx, 1);
+  else state.plantillasAlu.splice(idx, 1);
+  save(); renderPlantillas();
+}
+function restorePlantilla(tipo, idx) {
+  if (!confirm('¿Restaurar esta plantilla a su texto original? Se perderán los cambios.')) return;
+  if (tipo === 'emp' && DEF_EMP[idx]) {
+    state.plantillasEmp[idx] = { ...DEF_EMP[idx] };
+  } else if (tipo === 'alu' && DEF_ALU[idx]) {
+    state.plantillasAlu[idx] = { ...DEF_ALU[idx] };
+  }
+  save(); renderPlantillas();
+  showToast('Plantilla restaurada ✓');
+}
+
+// ────────────────────────────────────────────────
+//  ALUMNOS / EMPRESAS
+// ────────────────────────────────────────────────
+const MAX_EXTRA = 4;
+let nfExtraCount = 0;
+let editingAlumnoIdx = -1;
+
+function toggleInlineForm() {
+  const form = document.getElementById('inline-empresa-form');
+  const isVisible = form.style.display !== 'none';
+  if (isVisible) {
+    closeInlineForm();
+  } else {
+    if (editingAlumnoIdx >= 0) _closeEditCard();
+    openNewAlumnoSheet();
+  }
+}
+
+function _closeEditCard() {
+  const list = document.getElementById('alumnos-list');
+  const form = document.getElementById('inline-empresa-form');
+  const alPage = document.getElementById('page-alumnos');
+  // Move form back before the list
+  if (list && form && list.contains(form)) {
+    alPage.insertBefore(form, list);
+  }
+  form.style.display = 'none';
+  // Show the hidden card
+  const card = document.getElementById(`alumno-card-${editingAlumnoIdx}`);
+  if (card) card.style.display = '';
+  editingAlumnoIdx = -1;
+}
+
+function openEditAlumnoSheet(i) {
+  // Close any other open edit
+  if (editingAlumnoIdx >= 0 && editingAlumnoIdx !== i) _closeEditCard();
+  // Close "nueva" form if open
+  const form = document.getElementById('inline-empresa-form');
+  if (editingAlumnoIdx === -1 && form.style.display !== 'none') form.style.display = 'none';
+
+  editingAlumnoIdx = i;
+  const al = state.alumnos[i];
+  nfExtraCount = al.alumnos_extra ? al.alumnos_extra.length : 0;
+
+  document.getElementById('nf-empresa').value  = al.empresa || '';
+  document.getElementById('nf-tutor').value    = al.tutor || '';
+  document.getElementById('nf-coemp').value    = al.coemp || '';
+  document.getElementById('nf-nombre').value   = al.nombre || '';
+  document.getElementById('nf-correo').value   = al.correo || '';
+  populateNfNivelSelect(al.nivelId || '');
+  document.getElementById('nf-hora1').innerHTML = horaOpts(al.hora1 || 9);
+  document.getElementById('nf-hora2').innerHTML = horaOpts(al.hora2 || 14);
+  document.getElementById('nf-hora1').value = al.hora1 || 9;
+  document.getElementById('nf-hora2').value = al.hora2 || 14;
+  document.getElementById('inline-form-title').textContent = 'Editar empresa';
+  renderNfExtras(al.alumnos_extra || []);
+
+  // Hide card, insert form in its place
+  const list = document.getElementById('alumnos-list');
+  const card = document.getElementById(`alumno-card-${i}`);
+  if (card) {
+    card.style.display = 'none';
+    list.insertBefore(form, card);
+  }
+  form.style.display = 'block';
+  setTimeout(() => form.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
+}
+
+function closeInlineForm() {
+  if (editingAlumnoIdx >= 0) {
+    _closeEditCard();
+  } else {
+    document.getElementById('inline-empresa-form').style.display = 'none';
+  }
+  editingAlumnoIdx = -1;
+}
+
+function populateNfNivelSelect(selectedNivelId) {
+  const sel = document.getElementById('nf-nivel');
+  const validNiveles = state.niveles.filter(n => !!n.estudioId);
+  const sortedNiveles = [...validNiveles].sort((a, b) => {
+    const catA = getEstudioById(a.estudioId);
+    const catB = getEstudioById(b.estudioId);
+    const nameA = catA ? catA.nombre : '';
+    const nameB = catB ? catB.nombre : '';
+    return nameA.localeCompare(nameB, 'es', { sensitivity: 'base' });
+  });
+  sel.innerHTML = '<option value="">Seleccionar...</option>' + sortedNiveles.map(n => {
+    const cat = getEstudioById(n.estudioId);
+    return `<option value="${n.id}"${n.id === selectedNivelId ? ' selected' : ''}>${cat ? cat.nombre : ''}</option>`;
+  }).join('');
+  if (selectedNivelId) sel.value = selectedNivelId;
+}
+
+function onNfNivelChange() { /* El valor se lee al guardar */ }
+
+function renderNfExtras(extrasData) {
+  const area = document.getElementById('nf-companion-area');
+  const btn = document.getElementById('nf-companion-btn');
+  const primaryNivelId = (() => {
+    const sel = document.getElementById('nf-nivel');
+    return sel ? sel.value : (state.niveles[state.activoNivelIdx] ? state.niveles[state.activoNivelIdx].id : '');
+  })();
+  const sortedNivelesExtras = [...state.niveles]
+    .filter(n => !!n.estudioId)
+    .sort((a, b) => {
+      const catA = getEstudioById(a.estudioId);
+      const catB = getEstudioById(b.estudioId);
+      return (catA ? catA.nombre : '').localeCompare(catB ? catB.nombre : '', 'es', { sensitivity: 'base' });
+    });
+  const nivelOptsHtml = sortedNivelesExtras.map(n => {
+    const cat = getEstudioById(n.estudioId);
+    return `<option value="${n.id}">${cat ? cat.nombre : ''}</option>`;
+  }).join('');
+  let html = '';
+  for (let n = 1; n <= nfExtraCount; n++) {
+    const ex = extrasData && extrasData[n-1] ? extrasData[n-1] : {};
+    html += `
+      <hr class="divider">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem">
+        <p style="font-size:11px;font-weight:700;color:#8890b0;text-transform:uppercase;letter-spacing:.05em">Alumno ${n+1}</p>
+        ${n === nfExtraCount ? `<button class="btn btn-sm btn-danger" onclick="removeLastNfExtra()" title="Quitar" style="padding:5px 9px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg></button>` : ''}
+      </div>
+      <div class="g3">
+        <div><label style="margin-top:0">Nombre completo</label><input type="text" id="nf-ex-n-${n}" value="${esc(ex.nombre||'')}" placeholder="Nombre del alumno/a"></div>
+        <div><label style="margin-top:0">Correo</label><input type="email" id="nf-ex-c-${n}" value="${esc(ex.correo||'')}" placeholder="alumno@ejemplo.com"></div>
+        <div><label style="margin-top:0">Estudio</label>
+          <select id="nf-ex-nivel-${n}">
+            <option value="">Seleccionar...</option>
+            ${nivelOptsHtml}
+          </select>
+        </div>
+      </div>`;
+  }
+  area.innerHTML = html;
+  for (let n = 1; n <= nfExtraCount; n++) {
+    const ex = extrasData && extrasData[n-1] ? extrasData[n-1] : {};
+    const sel = document.getElementById('nf-ex-nivel-' + n);
+    if (sel) sel.value = ex.nivelId || primaryNivelId;
+  }
+  btn.style.display = nfExtraCount >= MAX_EXTRA ? 'none' : '';
+}
+
+function collectCurrentExtras() {
+  const result = [];
+  for (let n = 1; n <= nfExtraCount; n++) {
+    const nombreEl = document.getElementById('nf-ex-n-' + n);
+    const correoEl = document.getElementById('nf-ex-c-' + n);
+    const nivelEl  = document.getElementById('nf-ex-nivel-' + n);
+    result.push({
+      nombre:  nombreEl ? nombreEl.value : '',
+      correo:  correoEl ? correoEl.value : '',
+      nivelId: nivelEl  ? nivelEl.value  : '',
+    });
+  }
+  return result;
+}
+
+function addNewExtra() {
+  if (nfExtraCount >= MAX_EXTRA) return;
+  const current = collectCurrentExtras();
+  nfExtraCount++;
+  renderNfExtras(current);
+  setTimeout(() => { const el = document.getElementById('nf-ex-n-' + nfExtraCount); if (el) el.focus(); }, 50);
+}
+
+function removeLastNfExtra() {
+  if (nfExtraCount <= 0) return;
+  const current = collectCurrentExtras();
+  current.pop();
+  nfExtraCount--;
+  renderNfExtras(current);
+}
+
+function openNewAlumnoSheet() {
+  editingAlumnoIdx = -1;
+  nfExtraCount = 0;
+  document.getElementById('nf-empresa').value = '';
+  document.getElementById('nf-tutor').value = '';
+  document.getElementById('nf-coemp').value = '';
+  document.getElementById('nf-nombre').value = '';
+  document.getElementById('nf-correo').value = '';
+  populateNfNivelSelect('');
+  document.getElementById('nf-hora1').innerHTML = horaOpts(9);
+  document.getElementById('nf-hora2').innerHTML = horaOpts(14);
+  document.getElementById('nf-hora1').value = 9;
+  document.getElementById('nf-hora2').value = 14;
+  document.getElementById('nf-companion-area').innerHTML = '';
+  document.getElementById('nf-companion-btn').style.display = '';
+  document.getElementById('inline-form-title').textContent = 'Nueva empresa';
+  document.getElementById('inline-empresa-form').style.display = 'block';
+  document.getElementById('page-scroll').scrollTop = 0;
+  setTimeout(() => document.getElementById('nf-empresa').focus(), 50);
+}
+
+
+function saveNewAlumno() {
+  const empresa = document.getElementById('nf-empresa').value.trim();
+  if (!empresa) { showToast('⚠️ Indica el nombre de la empresa'); return; }
+
+  // Read nivelId FIRST — needed by the extras loop below
+  const nivelSel = document.getElementById('nf-nivel');
+  const nivelId = nivelSel ? nivelSel.value : '';
+  if (!nivelId) { showToast('⚠️ Selecciona el nivel educativo del alumno'); return; }
+  const nivelCat = getEstudioById((getNivelById(nivelId) || {}).estudioId);
+
+  const alumnos_extra = [];
+  for (let n = 1; n <= nfExtraCount; n++) {
+    const nombre = (document.getElementById('nf-ex-n-'+n)||{}).value || '';
+    const correo = (document.getElementById('nf-ex-c-'+n)||{}).value || '';
+    const exNivelSel = document.getElementById('nf-ex-nivel-'+n);
+    const exNivelId = exNivelSel && exNivelSel.value ? exNivelSel.value : nivelId;
+    const exNivelCat = exNivelId ? getEstudioById((getNivelById(exNivelId)||{}).estudioId) : null;
+
+    if (nombre || correo) alumnos_extra.push({
+      nombre: nombre.trim(),
+      correo: correo.trim(),
+      estudio: exNivelCat ? exNivelCat.nombre : '',
+      nivelId: exNivelId,
+
+    });
+  }
+  const data = {
+    empresa,
+    tutor:    document.getElementById('nf-tutor').value.trim(),
+    coemp:    document.getElementById('nf-coemp').value.trim(),
+    nombre:   document.getElementById('nf-nombre').value.trim(),
+    correo:   document.getElementById('nf-correo').value.trim(),
+    estudio:  nivelCat ? nivelCat.nombre : '',
+    nivelId,
+    hora1:    parseInt(document.getElementById('nf-hora1').value) || 9,
+    hora2:    parseInt(document.getElementById('nf-hora2').value) || 14,
+
+    alumnos_extra
+  };
+  if (editingAlumnoIdx >= 0) {
+    state.alumnos[editingAlumnoIdx] = data;
+    showToast('Empresa actualizada ✓');
+  } else {
+    state.alumnos.push(data);
+    showToast('Empresa añadida ✓');
+    document.getElementById('nav-dot-alumnos').classList.add('show');
+    setTimeout(() => document.getElementById('nav-dot-alumnos').classList.remove('show'), 3000);
+  }
+  save(); closeInlineForm(); renderAlumnos();
+  updateTopbarSub();
+  renderCfgSummary();
+}
+
+function renderAlumnos() {
+  const c = document.getElementById('alumnos-list');
+  const countEl = document.getElementById('alumnos-count-text');
+
+  // Rescue form if it's inside the list before wiping it
+  const form = document.getElementById('inline-empresa-form');
+  const alPage = document.getElementById('page-alumnos');
+  if (form && c.contains(form)) alPage.insertBefore(form, c);
+  form.style.display = 'none';
+  editingAlumnoIdx = -1;
+
+  c.innerHTML = '';
+
+  const countText = state.alumnos.length
+    ? `${state.alumnos.length} empresa${state.alumnos.length > 1 ? 's' : ''}`
+    : '0';
+  countEl.textContent = countText;
+
+  if (!state.alumnos.length) {
+    c.innerHTML = `<div class="empty">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" style="display:block;margin:0 auto .75rem;color:var(--text-4)"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
+      Añade empresas usando el botón <strong>Nueva</strong> de arriba.
+    </div>`;
+    return;
+  }
+
+  // SVG icons — nav-bar style (thin stroke, clean)
+  const svgTutor   = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>`;
+  const svgMail    = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="2,4 12,13 22,4"/></svg>`;
+  const svgHorario = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
+  const svgEdit    = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`;
+  const svgTrash   = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>`;
+  const svgMailSm  = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="2,4 12,13 22,4"/></svg>`;
+
+  const badgeStyle = 'background:rgba(255,255,255,0.45);border:1px solid rgba(255,255,255,0.5);color:#7c3aed';
+
+  state.alumnos.forEach((al, i) => {
+    const todos = getTodosAlumnos(al);
+    const letra = (al.empresa || '?').charAt(0).toUpperCase();
+    const horaEmp = (al.hora1 && al.hora2)
+      ? `${String(al.hora1).padStart(2,'0')}:00 - ${String(al.hora2).padStart(2,'0')}:00`
+      : '09:00 - 14:00';
+
+    const d = document.createElement('div');
+    d.className = 'card alumno-card';
+    d.id = `alumno-card-${i}`;
+    d.style.padding = '0';
+    d.style.overflow = 'hidden';
+    d.innerHTML = `
+      <!-- Empresa header — white -->
+      <div style="background:rgba(255,255,255,0.4);border-bottom:1px solid var(--border);padding:.6rem .85rem;display:flex;align-items:center;gap:.65rem">
+        <span style="width:30px;height:30px;border-radius:50%;background:#7c3aed;color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">${letra}</span>
+        <span style="font-size:13px;font-weight:700;color:#1a1a2e;flex:1">${esc(al.empresa || 'Sin empresa')}</span>
+        <button class="btn btn-sm" style="border-color:rgba(255,255,255,0.5);color:#7c3aed;padding:5px 9px;gap:4px" onclick="openEditAlumnoSheet(${i})" title="Editar">${svgEdit}</button>
+        <button class="btn btn-sm" style="border-color:rgba(244,63,94,0.4);color:#f43f5e;padding:5px 9px;gap:4px" onclick="removeAlumno(${i})" title="Eliminar">${svgTrash}</button>
+      </div>
+      <!-- Meta: tutor, correo, horarios -->
+      <div style="padding:.55rem .85rem .4rem;display:flex;flex-wrap:wrap;gap:5px">
+        ${al.tutor ? `<span class="badge" style="${badgeStyle};display:inline-flex;align-items:center;gap:4px">${svgTutor} ${esc(al.tutor)}</span>` : ''}
+        ${al.coemp ? `<span class="badge" style="${badgeStyle};display:inline-flex;align-items:center;gap:4px">${svgMail} ${esc(al.coemp)}</span>` : ''}
+        <span class="badge" style="${badgeStyle};display:inline-flex;align-items:center;gap:4px">${svgHorario} ${esc(horaEmp)}</span>
+      </div>
+      <!-- Alumnos -->
+      ${todos.map(a => `
+        <div style="border-top:1px solid var(--border-2);padding:.4rem .85rem;display:flex;align-items:center;gap:.6rem">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" stroke-width="1.8"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+          <div style="flex:1;min-width:0">
+            <p style="font-size:13px;font-weight:500;color:var(--text)">${esc(a.nombre || '—')}</p>
+            <p style="font-size:11px;color:var(--text-3)">${esc(a.correo || '—')} · ${esc(a.estudio || '—')}</p>
+          </div>
+        </div>
+      `).join('')}
+      <!-- Quick actions -->
+      <div style="padding:.55rem .85rem .6rem;display:flex;gap:5px;flex-wrap:wrap">
+        <button class="btn btn-sm" style="flex:1;gap:4px;justify-content:center" onclick="goToCorreosEmpresa(${i},3)">${svgMailSm} Inicio</button>
+        <button class="btn btn-sm" style="flex:1;gap:4px;justify-content:center" onclick="goToCorreosEmpresa(${i},4)">${svgMailSm} Seguimiento</button>
+        <button class="btn btn-sm" style="flex:1;gap:4px;justify-content:center" onclick="goToCorreosEmpresa(${i},5)">${svgMailSm} Finalización</button>
+      </div>
+    `;
+    c.appendChild(d);
+  });
+}
+
+function goToCorreosEmpresa(i, emailIdx) {
+  activeTabEmp = i;
+  activeEmailEmp = (emailIdx !== undefined) ? emailIdx : -1;
+  showPage('correos-empresa');
+}
+function goToCorreosAlumnos() {
+  showPage('correos-empresa');
+  setCorreosMode('alumnos');
+}
+
+function removeAlumno(i) {
+  if (!confirm('¿Eliminar "' + (state.alumnos[i].empresa || 'esta empresa') + '" y todos sus datos?')) return;
+  // If this card is being edited, close the form cleanly first
+  if (editingAlumnoIdx === i) {
+    const form = document.getElementById('inline-empresa-form');
+    const alPage = document.getElementById('page-alumnos');
+    const list = document.getElementById('alumnos-list');
+    if (form && list && list.contains(form)) alPage.insertBefore(form, list);
+    if (form) form.style.display = 'none';
+    editingAlumnoIdx = -1;
+  }
+  state.alumnos.splice(i, 1);
+  save(); renderAlumnos(); updateTopbarSub(); renderCfgSummary();
+  showToast('Empresa eliminada');
+}
+
+// ────────────────────────────────────────────────
+//  CORREOS EMPRESA
+// ────────────────────────────────────────────────
+let activeTabEmp = 0;
+let activeEmailEmp = -1;
+
+function renderCorreosEmpresa() {
+  const tabs = document.getElementById('tabs-empresa');
+  const content = document.getElementById('correos-empresa-content');
+  tabs.innerHTML = '';
+  content.innerHTML = '';
+
+  if (!state.alumnos.length) {
+    content.innerHTML = `<div class="empty"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" style="display:block;margin:0 auto .75rem;color:var(--text-4)"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="2,4 12,13 22,4"/></svg>Añade empresas primero en la sección <strong>Empresas</strong>.</div>`;
+    return;
+  }
+  if (activeTabEmp >= state.alumnos.length) activeTabEmp = 0;
+
+  state.alumnos.forEach((al, i) => {
+    const b = document.createElement('button');
+    const isActive = i === activeTabEmp;
+    b.className = 'company-tab' + (isActive ? ' active' : '');
+    if (!isActive) {
+      b.style.background = 'rgba(16,185,129,0.10)';
+      b.style.borderColor = 'rgba(16,185,129,0.45)';
+      b.style.color = '#047857';
+    }
+    b.innerHTML = `<span class="company-tab-inner"><span>${esc(al.empresa || 'Sin nombre')}</span><span style="${!isActive ? 'color:#047857' : ''}">${esc(getNombresAlumnos(al))}</span></span>`;
+    b.onclick = () => { activeTabEmp = i; activeEmailEmp = -1; renderCorreosEmpresa(); };
+    tabs.appendChild(b);
+  });
+
+  renderEmailsEmpresa(activeTabEmp);
+}
+
+function renderEmailsEmpresa(ai) {
+  _bufReset();
+  const al = state.alumnos[ai];
+  const content = document.getElementById('correos-empresa-content');
+  content.innerHTML = '';
+
+  const etabs = document.createElement('div');
+  etabs.className = 'email-steps';
+  const EMP_HINTS = [
+    '¿Acepta al alumno?',
+    'Empresa confirmada',
+    'Adjunta el documento',
+    'Días antes del inicio',
+    'A mitad del período',
+    'Al terminar las prácticas'
+  ];
+  // Category definitions: [startIdx, label, borderColor, numBg, numColor, labelBg, labelColor]
+  const EMP_CATS = [
+    { start: 0, end: 0, label: 'Búsqueda',  border: 'rgba(16,185,129,0.45)', numBg: '#10b981', labelBg: 'rgba(16,185,129,0.15)', labelColor: '#047857' },
+    { start: 1, end: 2, label: 'Convenio',  border: 'rgba(16,185,129,0.35)', numBg: '#10b981', labelBg: 'rgba(16,185,129,0.12)', labelColor: '#047857' },
+    { start: 3, end: 5, label: 'Seguimiento del docente', border: 'rgba(16,185,129,0.3)', numBg: '#34d399', labelBg: 'rgba(16,185,129,0.10)', labelColor: '#059669' },
+  ];
+
+  state.plantillasEmp.forEach((pl, i) => {
+    // Insert category header before each default group's first item
+    const cat = EMP_CATS.find(c => c.start === i);
+    if (cat) {
+      const sep = document.createElement('div');
+      sep.style.cssText = `display:flex;align-items:center;gap:7px;margin:${i===0?'0':'6px'} 0 3px`;
+      sep.innerHTML = `
+        <span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:${cat.labelColor};background:${cat.labelBg};padding:2px 8px;border-radius:100px;border:1px solid ${cat.border}">${cat.label}</span>
+        <span style="flex:1;height:1px;background:${cat.border};opacity:.4"></span>`;
+      etabs.appendChild(sep);
+    }
+    // Custom templates header before first non-default — same lightest green as "Seguimiento"
+    if (i === DEF_EMP.length) {
+      const sep2 = document.createElement('div');
+      sep2.style.cssText = 'display:flex;align-items:center;gap:7px;margin:6px 0 3px';
+      sep2.innerHTML = `
+        <span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#059669;background:rgba(16,185,129,0.10);padding:2px 8px;border-radius:100px;border:1px solid rgba(16,185,129,0.3)">Plantillas personalizadas por el docente</span>
+        <span style="flex:1;height:1px;background:rgba(16,185,129,0.3);opacity:.4"></span>`;
+      etabs.appendChild(sep2);
+    }
+
+    const nombre = i < EMAIL_EMP_NAMES.length ? EMAIL_EMP_NAMES[i] : (pl.nombre || `Correo ${i+1}`);
+    const hint = i < EMP_HINTS.length ? EMP_HINTS[i] : '';
+    const isActive = i === activeEmailEmp;
+    const thisCat = EMP_CATS.find(c => i >= c.start && i <= c.end);
+    // All steps use green — custom ones get the lightest green (same as Seguimiento)
+    const catBorder = thisCat ? thisCat.border : 'rgba(16,185,129,0.3)';
+    const catNumBg  = thisCat ? thisCat.numBg  : '#34d399';
+
+    // Build email body for this item
+    const plData = state.plantillasEmp[i];
+    const asuntoI = applyTagsAlumno(plData.asunto, al);
+    const cuerpoI = applyTagsAlumno(plData.cuerpo, al);
+    const paraI   = al.coemp || '';
+    const notaI   = i < EMAIL_EMP_NOTAS.length ? EMAIL_EMP_NOTAS[i] : '';
+    const kParaI   = _cb(paraI);
+    const kAsuntoI = _cb(asuntoI);
+    const kCuerpoI = _cb(cuerpoI);
+
+    const copyIcon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>`;
+
+    const step = document.createElement('div');
+    const isCustom = i >= DEF_EMP.length;
+    step.className = 'email-step' + (isActive ? ' active' : '');
+    step.style.borderColor = isActive ? '' : catBorder;
+    if (isCustom && !isActive) {
+      step.style.borderWidth = '1.5px';
+    }
+    step.innerHTML = `
+      <button class="email-step-header" onclick="activeEmailEmp=(activeEmailEmp===${i}?-1:${i});renderEmailsEmpresa(${ai})">
+        <span class="email-step-num" style="${!isActive ? `background:${catNumBg};color:#fff` : ''}">${i+1}</span>
+        <span class="email-step-text">
+          <span class="email-step-name">${esc(nombre)}</span>
+          ${hint ? `<span class="email-step-hint">${hint}</span>` : ''}
+        </span>
+        <svg class="email-step-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+      <div class="email-step-body">
+        <div class="email-card-body">
+          <div class="email-field-row">
+            <span class="email-field-label">Para</span>
+            <span class="email-field-value" style="${!paraI ? 'color:var(--text-4);font-style:italic' : ''}">${esc(paraI || 'Sin correo definido')}</span>
+            ${paraI ? `<button class="btn btn-sm btn-copy" title="Copiar" onclick="copyBuf('${kParaI}','Correo copiado ✓')">${copyIcon}</button>` : ''}
+          </div>
+          <div class="email-field-row">
+            <span class="email-field-label">Asunto</span>
+            <span class="email-field-value subject" style="white-space:normal">${highlightMissing(asuntoI)}</span>
+            <button class="btn btn-sm btn-copy" title="Copiar" onclick="copyBuf('${kAsuntoI}','Asunto copiado ✓')" style="flex-shrink:0">${copyIcon}</button>
+          </div>
+          <div class="email-body-section">
+            <div class="email-body-label">
+              <span>Cuerpo</span>
+              <button class="btn btn-sm btn-copy" title="Copiar" onclick="copyBuf('${kCuerpoI}','Cuerpo copiado ✓')">${copyIcon}</button>
+            </div>
+            <div class="email-preview">${highlightMissing(cuerpoI)}</div>
+          </div>
+          ${notaI ? `<div class="note" style="margin-top:.5rem"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> ${esc(notaI)}</div>` : ''}
+        </div>
+        <div class="email-send-row">
+          <button class="btn-send" style="margin-top:0;flex:1" onclick="openSendModal('${jsStr(esc(paraI))}','${jsStr(esc(asuntoI))}','${kCuerpoI}','Correo para ${jsStr(esc(al.empresa))}','${jsStr(esc(al.empresa))}')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:6px"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            Enviar a ${esc(al.empresa || 'empresa')}
+          </button>
+        </div>
+      </div>
+    `;
+    etabs.appendChild(step);
+  });
+  content.appendChild(etabs);
+}
+
+// ────────────────────────────────────────────────
+//  CORREOS ALUMNOS
+// ────────────────────────────────────────────────
+let activeEmailAlu = -1;
+
+function renderCorreosAlumnos() {
+  _bufReset();
+  const c = document.getElementById('correos-alumnos-content');
+  c.innerHTML = '';
+
+  if (!state.alumnos.length) {
+    c.innerHTML = `<div class="empty"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" style="display:block;margin:0 auto .75rem;color:var(--text-4)"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>Añade alumnos primero en la sección <strong>Empresas</strong>.</div>`;
+    return;
+  }
+
+  const etabs = document.createElement('div');
+  etabs.className = 'email-steps';
+  const ALU_HINTS = [
+    'Justo antes de comenzar',
+    'A mitad del período',
+    'Al finalizar las prácticas'
+  ];
+
+  const todosCorreos = state.alumnos
+    .flatMap(al => getTodosAlumnos(al).map(a => a.correo).filter(Boolean));
+  const correoStr = todosCorreos.join(', ');
+  const todosNombres = state.alumnos
+    .flatMap(al => getTodosAlumnos(al).map(a => a.nombre).filter(Boolean));
+  const nombresStr = todosNombres.length > 1
+    ? todosNombres.slice(0,-1).join(', ') + ' y ' + todosNombres[todosNombres.length-1]
+    : (todosNombres[0] || '[ALUMNOS]');
+
+  state.plantillasAlu.forEach((pl, i) => {
+    const isDefault = i < 3; // DEF_ALU has 3
+    // Insert single category header before first default item — with alumnos list above it
+    if (i === 0) {
+      // Alumnos list line
+      const todosNombresDisp = state.alumnos
+        .flatMap(al => getTodosAlumnos(al).map(a => a.nombre).filter(Boolean));
+      const nombresDisp = todosNombresDisp.join(' · ');
+      const total = todosNombresDisp.length;
+      const aluLine = document.createElement('div');
+      aluLine.style.cssText = 'background:rgba(56,189,248,0.15);border:1px solid rgba(56,189,248,0.4);border-radius:100px;padding:7px 14px;margin-bottom:6px;font-size:12px;color:#075985;line-height:1.5;display:flex;align-items:center;gap:8px';
+      aluLine.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0369a1" stroke-width="2" style="flex-shrink:0"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>${nombresDisp
+        ? `<span>${esc(nombresDisp)} <span style="font-weight:600;color:#0369a1">(${total})</span></span>`
+        : '<em style="color:rgba(56,189,248,0.4)">Sin alumnos registrados</em>'}`;
+      etabs.appendChild(aluLine);
+
+      const sep = document.createElement('div');
+      sep.style.cssText = 'display:flex;align-items:center;gap:7px;margin:0 0 3px';
+      sep.innerHTML = `
+        <span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#0369a1;background:rgba(56,189,248,0.15);padding:2px 8px;border-radius:100px;border:1px solid rgba(56,189,248,0.4)">Seguimiento del docente</span>
+        <span style="flex:1;height:1px;background:rgba(56,189,248,0.4);opacity:.4"></span>`;
+      etabs.appendChild(sep);
+    }
+    // Custom templates get their own category header
+    if (!isDefault && i === 3) {
+      const sep2 = document.createElement('div');
+      sep2.style.cssText = 'display:flex;align-items:center;gap:7px;margin:6px 0 3px';
+      sep2.innerHTML = `
+        <span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#0369a1;background:rgba(56,189,248,0.15);padding:2px 8px;border-radius:100px;border:1px solid rgba(56,189,248,0.4)">Plantillas personalizadas por el alumno</span>
+        <span style="flex:1;height:1px;background:rgba(56,189,248,0.4);opacity:.4"></span>`;
+      etabs.appendChild(sep2);
+    }
+
+    const nombre = i < EMAIL_ALU_NAMES.length ? EMAIL_ALU_NAMES[i] : (pl.nombre || `Correo ${i+1}`);
+    const hint = i < ALU_HINTS.length ? ALU_HINTS[i] : '';
+    const isActive = i === activeEmailAlu;
+    const borderCol = 'rgba(56,189,248,0.4)'; // always blue for all alu steps
+    const numBgCol  = '#38bdf8'; // always blue number for all alu steps
+
+    // Build multi-nivel aware context for generic tags
+    // Gather distinct niveles from all alumnos
+    const nivelesEnUso = [...new Set(
+      state.alumnos.flatMap(al => getTodosAlumnos(al).map(a => a.nivelId || al.nivelId).filter(Boolean))
+    )].map(id => getNivelById(id)).filter(Boolean);
+
+    // For generic correo: use first alumno as empresa/tutor ctx, but build combined FECHA/HORA/COMPUTO
+    const alumnoCtx = state.alumnos[0] || {};
+    let fechaGenerico, horaGenerico, computoGenerico;
+    if (nivelesEnUso.length === 1) {
+      fechaGenerico   = getFechas(nivelesEnUso[0]);
+      computoGenerico = getComputo(nivelesEnUso[0]);
+    } else if (nivelesEnUso.length > 1) {
+      const cats = nivelesEnUso.map(n => getEstudioById(n.estudioId)).filter(Boolean);
+      fechaGenerico   = nivelesEnUso.map(n => {
+        const cat = getEstudioById(n.estudioId);
+        return `${cat ? cat.nombre : '?'}: ${getFechas(n)}`;
+      }).join(' / ');
+      computoGenerico = [...new Set(cats.map(c => `${c.horas}h (${c.jornadas}j × ${c.hDiarias}h)`))].join(', ');
+    } else {
+      fechaGenerico   = '[FECHAS POR DEFINIR]';
+      computoGenerico = '[CÓMPUTO POR DEFINIR]';
+    }
+    // Horario: list distinct horarios from all empresas
+    const todasHoras = state.alumnos.map(al => {
+      const h1 = al.hora1 || 9;
+      const h2 = al.hora2 || 14;
+      return `${String(h1).padStart(2,'0')}:00 - ${String(h2).padStart(2,'0')}:00`;
+    });
+    horaGenerico = [...new Set(todasHoras)].join(' / ') || '09:00 - 14:00';
+
+    const asuntoI = applyTagsGenerico(pl.asunto, nombresStr, alumnoCtx)
+      .replace(/\{\{FECHA\}\}/g, fechaGenerico)
+      .replace(/\{\{HORA\}\}/g, horaGenerico)
+      .replace(/\{\{COMPUTO_PRACTICAS\}\}/g, computoGenerico);
+    const cuerpoI = applyTagsGenerico(pl.cuerpo, nombresStr, alumnoCtx)
+      .replace(/\{\{FECHA\}\}/g, fechaGenerico)
+      .replace(/\{\{HORA\}\}/g, horaGenerico)
+      .replace(/\{\{COMPUTO_PRACTICAS\}\}/g, computoGenerico);
+    const notaI   = i < EMAIL_ALU_NOTAS.length ? EMAIL_ALU_NOTAS[i] : '';
+    const kCorreosI = _cb(correoStr);
+    const kAsuntoI  = _cb(asuntoI);
+    const kCuerpoI  = _cb(cuerpoI);
+
+    const step = document.createElement('div');
+    const isCustomAlu = !isDefault;
+    step.className = 'email-step alu' + (isActive ? ' active' : '');
+    step.style.borderColor = isActive ? '' : borderCol;
+    if (isCustomAlu && !isActive) {
+      step.style.borderWidth = '1.5px';
+      // No background tint — keep white like default steps
+    }
+    const copyIcon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>`;
+    step.innerHTML = `
+      <button class="email-step-header" onclick="activeEmailAlu=(activeEmailAlu===${i}?-1:${i});renderCorreosAlumnos()">
+        <span class="email-step-num" style="${!isActive ? `background:${numBgCol};color:#fff` : ''}">${i+1}</span>
+        <span class="email-step-text">
+          <span class="email-step-name">${esc(nombre)}</span>
+          ${hint ? `<span class="email-step-hint">${hint}</span>` : ''}
+        </span>
+        <svg class="email-step-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+      <div class="email-step-body">
+        <div class="email-card-body">
+          <div class="email-field-row">
+            <span class="email-field-label">Para</span>
+            <span class="email-field-value" style="${!correoStr ? 'color:var(--text-4);font-style:italic' : 'font-size:12px'}">${esc(correoStr || 'Sin correos definidos')}</span>
+            ${correoStr ? `<button class="btn btn-sm btn-copy-alu" title="Copiar" onclick="copyBuf('${kCorreosI}','Correos copiados ✓')" style="flex-shrink:0">${copyIcon}</button>` : ''}
+          </div>
+          <div class="email-field-row">
+            <span class="email-field-label">Asunto</span>
+            <span class="email-field-value subject" style="white-space:normal">${highlightMissing(asuntoI)}</span>
+            <button class="btn btn-sm btn-copy-alu" title="Copiar" onclick="copyBuf('${kAsuntoI}','Asunto copiado ✓')" style="flex-shrink:0">${copyIcon}</button>
+          </div>
+          <div class="email-body-section">
+            <div class="email-body-label">
+              <span>Cuerpo</span>
+              <button class="btn btn-sm btn-copy-alu" title="Copiar" onclick="copyBuf('${kCuerpoI}','Cuerpo copiado ✓')">${copyIcon}</button>
+            </div>
+            <div class="email-preview">${highlightMissing(cuerpoI)}</div>
+          </div>
+          ${notaI ? `<div class="note" style="margin-top:.5rem"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> ${esc(notaI)}</div>` : ''}
+        </div>
+        <div class="email-send-row">
+          <button class="btn-send" style="margin-top:0;flex:1;background:linear-gradient(135deg,#38bdf8 0%,#0284c7 100%);box-shadow:0 4px 16px rgba(56,189,248,.4)" onclick="openSendModal('${jsStr(esc(correoStr))}','${jsStr(esc(asuntoI))}','${kCuerpoI}','Correo a alumnos','Todos los alumnos')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:6px"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            Enviar a todos los alumnos
+          </button>
+        </div>
+      </div>
+    `;
+    etabs.appendChild(step);
+  });
+  c.appendChild(etabs);
+}
+
+// ────────────────────────────────────────────────
+//  SEND EMAIL
+// ────────────────────────────────────────────────
+let _sendData = {};
+
+// Único punto de detección de dispositivo, usado tanto por el modal
+// de confirmación como por cualquier otro sitio que lo necesite.
+function isMobileDevice() {
+  return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+}
+
+function encMailParam(s) {
+  return encodeURIComponent(s || '').replace(/!/g,'%21').replace(/'/g,'%27').replace(/\(/g,'%28').replace(/\)/g,'%29').replace(/\*/g,'%2A');
+}
+
+// Abre el modal de confirmación con la vista previa del correo.
+// El envío real se dispara desde doSendEmail(), al pulsar "Abrir en Email".
+function openSendModal(para, asunto, kCuerpo, title, sub) {
+  const cuerpo = _buf[kCuerpo] || '';
+  _sendData = { para, asunto, cuerpo };
+
+  document.getElementById('send-modal-title').textContent = title || 'Enviar correo';
+  document.getElementById('send-modal-sub').textContent = sub || '';
+  document.getElementById('send-para').textContent = para || '(sin destinatario)';
+  document.getElementById('send-asunto').textContent = asunto || '(sin asunto)';
+  document.getElementById('send-cuerpo').textContent = cuerpo || '';
+
+  document.getElementById('modal-send').classList.add('open');
+}
+
+function closeSendModal() {
+  document.getElementById('modal-send').classList.remove('open');
+}
+function closeSendModalIfBg(e) {
+  if (e.target === document.getElementById('modal-send')) closeSendModal();
+}
+
+function doSendEmail() {
+  const { para, asunto, cuerpo } = _sendData;
+  if (!para) { showToast('⚠️ No hay correo destinatario'); return; }
+
+  if (isMobileDevice()) {
+    // Móvil: abrir la app de correo nativa vía mailto:
+    let qs = `subject=${encMailParam(asunto)}&body=${encMailParam(cuerpo)}`;
+    if (state.cfg.remitente) qs += `&from=${encMailParam(state.cfg.remitente)}`;
+    const link = document.createElement('a');
+    link.href = `mailto:${para}?${qs}`;
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showToast('✉️ Abriendo app de correo...');
+  } else {
+    // Escritorio: abrir Gmail web con el borrador
+    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1` +
+      `&to=${encMailParam(para)}` +
+      `&su=${encMailParam(asunto)}` +
+      `&body=${encMailParam(cuerpo)}` +
+      (state.cfg.remitente ? `&from=${encMailParam(state.cfg.remitente)}` : '');
+    window.open(gmailUrl, '_blank');
+    showToast('✉️ Abriendo Gmail...');
+  }
+
+  closeSendModal();
+}
+
+// ────────────────────────────────────────────────
+//  EXPORT / IMPORT
+// ────────────────────────────────────────────────
+function exportData() {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'autoemilio_backup.json';
+  a.click();
+  showToast('Copia exportada ✓');
+}
+function importData(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const r = new FileReader();
+  r.onload = ev => {
+    let p;
+    try { p = JSON.parse(ev.target.result); }
+    catch { showToast('⚠️ El archivo no es un JSON válido'); e.target.value = ''; return; }
+
+    if (!isPlainObject(p) || !('cfg' in p || 'niveles' in p || 'alumnos' in p || 'plantillasEmp' in p)) {
+      showToast('⚠️ El archivo no parece una copia de esta aplicación');
+      e.target.value = '';
+      return;
+    }
+
+    try {
+      applyState(p);
+      // Reset edit state to avoid stale references
+      editingAlumnoIdx = -1;
+      _editingNivelIdx = -1;
+      _pendingNivel    = null;
+      save();
+      loadCfg();
+      renderNivelesList();
+      renderAlumnos();
+      renderCfgSummary();
+      showPage('general');
+      showToast('Datos importados ✓');
+    } catch { showToast('Error al importar el archivo'); }
+  };
+  r.readAsText(file);
+  e.target.value = '';
+}
+
+// ────────────────────────────────────────────────
+//  INIT
+// ────────────────────────────────────────────────
+buildHourSelects();
+load();
+loadCfg();
+updateTopbarSub();
+showPage('general');
+showInnerTab('config');
+</script>
+</body>
+</html>
