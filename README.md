@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>CONEJO — Agiliza tu labor docente</title>
-
+ 
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐇</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
+ 
     <style>
         :root {
             --bg: #f0ece6;
@@ -21,11 +21,11 @@
             --glass-border: rgba(255, 255, 255, 0.75);
             --glass-shine: rgba(255, 255, 255, 0.8);
         }
-
+ 
         * { margin: 0; padding: 0; box-sizing: border-box; }
-
+ 
         html { scroll-behavior: smooth; }
-
+ 
         body {
             font-family: 'Outfit', sans-serif;
             background: var(--bg);
@@ -33,7 +33,7 @@
             line-height: 1.6;
             overflow-x: hidden;
         }
-
+ 
         /* ===== FONDO ===== */
         .bg-scene {
             position: fixed; inset: 0; z-index: 0; overflow: hidden;
@@ -44,18 +44,18 @@
         .blob-2 { width: 500px; height: 500px; background: radial-gradient(circle, rgba(192,132,252,0.3), transparent 70%); top: 20%; right: -12%; animation: f2 24s ease-in-out infinite; }
         .blob-3 { width: 420px; height: 420px; background: radial-gradient(circle, rgba(167,139,250,0.22), transparent 70%); top: 65%; left: 50%; animation: f3 22s ease-in-out infinite; }
         .blob-4 { width: 380px; height: 380px; background: radial-gradient(circle, rgba(236,72,153,0.10), transparent 70%); bottom: -10%; left: -5%; animation: f4 26s ease-in-out infinite; }
-
+ 
         @keyframes f1 { 0%,100%{transform:translate(0,0) scale(1)} 25%{transform:translate(70px,50px) scale(1.08)} 50%{transform:translate(30px,100px) scale(.95)} 75%{transform:translate(-20px,40px) scale(1.04)} }
         @keyframes f2 { 0%,100%{transform:translate(0,0) scale(1)} 30%{transform:translate(-60px,-70px) scale(1.12)} 60%{transform:translate(-30px,-30px) scale(.92)} }
         @keyframes f3 { 0%,100%{transform:translate(0,0) scale(1)} 33%{transform:translate(-80px,40px) scale(1.08)} 66%{transform:translate(40px,-50px) scale(.96)} }
         @keyframes f4 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(60px,-50px)} }
-
+ 
         .bg-grid {
             position: fixed; inset: 0; z-index: 1; pointer-events: none;
             background-image: linear-gradient(rgba(124,58,237,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(124,58,237,0.025) 1px, transparent 1px);
             background-size: 50px 50px;
         }
-
+ 
         /* ===== GLASS ===== */
         .liquid-glass {
             background: var(--glass-bg);
@@ -76,9 +76,9 @@
             background: linear-gradient(90deg, transparent, rgba(255,255,255,0.9), transparent);
             pointer-events: none;
         }
-
+ 
         main { position: relative; z-index: 2; max-width: 980px; margin: 0 auto; padding: 0 24px; }
-
+ 
         /* ===== HERO ===== */
         .hero { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 60px 0 40px; }
         .mascot-wrapper { width: 200px; height: 200px; margin: 0 auto 8px; position: relative; display: flex; align-items: flex-end; justify-content: center; }
@@ -86,14 +86,14 @@
         .mascot-shadow { position: absolute; bottom: 0; width: 100px; height: 13px; background: rgba(124,58,237,0.15); border-radius: 50%; filter: blur(5px); animation: realisticShadow 2.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite; }
         @keyframes realisticJump { 0%, 100% { transform: translateY(0) scale(1, 1); } 10% { transform: translateY(2px) scale(1.02, 0.95); } 40% { transform: translateY(-22px) scale(0.98, 1.04); } 60% { transform: translateY(-22px) scale(0.98, 1.04); } 85% { transform: translateY(0) scale(1.02, 0.95); } }
         @keyframes realisticShadow { 0%, 100% { transform: scale(1); opacity: 0.5; } 10% { transform: scale(1.1); opacity: 0.6; } 40% { transform: scale(0.5); opacity: 0.2; } 60% { transform: scale(0.5); opacity: 0.2; } 85% { transform: scale(1.1); opacity: 0.6; } }
-
+ 
         .logo-text { font-weight: 900; font-size: 4rem; letter-spacing: 0.15em; text-transform: uppercase; line-height: 1; color: var(--fg); }
         .logo-sub { font-weight: 300; font-size: 1.05rem; color: var(--muted); margin-top: 14px; letter-spacing: 0.04em; }
         .lede {
             font-family: 'Playfair Display', serif; font-style: italic; font-weight: 400;
             font-size: 1.35rem; color: var(--accent-dark); max-width: 560px; margin: 26px auto 0; line-height: 1.5;
         }
-
+ 
         .hero-actions { display: flex; gap: 14px; margin-top: 36px; flex-wrap: wrap; justify-content: center; }
         .btn {
             display: inline-flex; align-items: center; gap: 9px; padding: 13px 28px; border-radius: 50px;
@@ -104,21 +104,21 @@
         .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(124,58,237,0.4); }
         .btn-ghost { background: var(--glass-bg); color: var(--fg); border: 1px solid var(--glass-border); backdrop-filter: blur(20px); }
         .btn-ghost:hover { transform: translateY(-3px); border-color: rgba(124,58,237,0.3); }
-
+ 
         .scroll-hint { position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%); color: var(--muted); font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; display: flex; flex-direction: column; align-items: center; gap: 6px; opacity: 0.7; }
         .scroll-hint i { animation: bounce 1.8s ease-in-out infinite; }
         @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(6px)} }
-
+ 
         /* ===== SECTIONS ===== */
         .section { padding: 70px 0; }
         .eyebrow { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; display: block; }
         .section h2 { font-size: 2.1rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 30px; }
-
+ 
         .panel { padding: 38px 40px; }
         .panel p { font-size: 1.02rem; color: var(--fg); max-width: 680px; }
         .panel p + p { margin-top: 16px; }
         .panel strong { color: var(--accent-dark); font-weight: 700; }
-
+ 
         /* ===== APPS ===== */
         .apps-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
         .app-card { padding: 32px 26px; transition: transform 0.4s cubic-bezier(0.23,1,0.32,1), box-shadow 0.4s ease; }
@@ -128,7 +128,7 @@
         .app-card h3 { font-size: 1.2rem; font-weight: 700; position: relative; z-index: 2; margin-bottom: 4px; }
         .app-tag { font-size: 0.76rem; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: 0.05em; position: relative; z-index: 2; display: block; margin-bottom: 12px; }
         .app-card p { font-size: 0.9rem; color: var(--muted); position: relative; z-index: 2; line-height: 1.55; }
-
+ 
         /* ===== FEATURES ===== */
         .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
         .feature { padding: 26px; display: flex; gap: 16px; align-items: flex-start; }
@@ -141,7 +141,7 @@
         .feature-text { position: relative; z-index: 2; }
         .feature-text h4 { font-size: 0.96rem; font-weight: 700; margin-bottom: 4px; }
         .feature-text p { font-size: 0.85rem; color: var(--muted); line-height: 1.5; }
-
+ 
         /* ===== FOOTER ===== */
         footer { padding: 50px 0 70px; text-align: center; }
         .footer-panel { padding: 34px 30px; max-width: 480px; margin: 0 auto; }
@@ -160,7 +160,7 @@
         }
         .github-btn:hover { transform: translateY(-2px); }
         .made-with { margin-top: 30px; font-size: 0.72rem; color: var(--muted); opacity: 0.7; }
-
+ 
         /* ===== RESPONSIVE ===== */
         @media (max-width: 820px) {
             .logo-text { font-size: 2.6rem; }
@@ -177,7 +177,7 @@
             .hero-actions { flex-direction: column; width: 100%; }
             .btn { justify-content: center; }
         }
-
+ 
         :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
         @media (prefers-reduced-motion: reduce) {
             .mascot-rabbit, .mascot-shadow, .blob, .scroll-hint i { animation: none !important; }
@@ -185,7 +185,7 @@
     </style>
 </head>
 <body>
-
+ 
     <div class="bg-scene">
         <div class="blob blob-1"></div>
         <div class="blob blob-2"></div>
@@ -193,9 +193,9 @@
         <div class="blob blob-4"></div>
     </div>
     <div class="bg-grid"></div>
-
+ 
     <main>
-
+ 
         <!-- HERO -->
         <section class="hero">
             <div class="mascot-wrapper">
@@ -207,19 +207,19 @@
                 </svg>
                 <div class="mascot-shadow"></div>
             </div>
-
+ 
             <h1 class="logo-text">CONEJO</h1>
             <p class="logo-sub">Agiliza tu labor docente</p>
             <p class="lede">Una puerta de entrada a las herramientas que te quitan tiempo de la burocracia, para dártelo de vuelta en el aula.</p>
-
+ 
             <div class="hero-actions">
                 <a href="index.html" class="btn btn-primary"><i class="fa-solid fa-arrow-right"></i> Abrir CONEJO</a>
                 <a href="https://github.com/conejoapps/conejoapps.github.io" target="_blank" class="btn btn-ghost"><i class="fa-brands fa-github"></i> Ver en GitHub</a>
             </div>
-
+ 
             <div class="scroll-hint"><span>Descubre más</span><i class="fa-solid fa-chevron-down"></i></div>
         </section>
-
+ 
         <!-- QUÉ ES -->
         <section class="section" id="que-es">
             <span class="eyebrow">El proyecto</span>
@@ -229,13 +229,13 @@
                 <p>Cada aplicación se abre dentro de CONEJO con un solo toque, y puedes volver al inicio en cualquier momento — con el gesto nativo de "atrás" en el móvil o con el botón flotante en el escritorio.</p>
             </div>
         </section>
-
+ 
         <!-- APLICACIONES -->
         <section class="section" id="apps">
             <span class="eyebrow">Dentro de CONEJO</span>
             <h2>Aplicaciones</h2>
             <div class="apps-grid">
-
+ 
                 <div class="liquid-glass app-card">
                     <div class="app-icon-wrap">
                         <svg viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -252,7 +252,7 @@
                     <span class="app-tag">Evaluación flexible y rápida</span>
                     <p>Diseña y aplica rúbricas de evaluación sin fricción, pensadas para agilizar la corrección y dar un feedback claro al alumnado.</p>
                 </div>
-
+ 
                 <div class="liquid-glass app-card">
                     <div class="app-icon-wrap">
                         <svg viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -275,7 +275,7 @@
                     <span class="app-tag">Correos automáticos personalizados</span>
                     <p>Genera comunicaciones para familias o alumnado a partir de lo que ya tienes, en vez de escribir el mismo correo una y otra vez.</p>
                 </div>
-
+ 
                 <div class="liquid-glass app-card">
                     <div class="app-icon-wrap">
                         <svg viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -295,49 +295,49 @@
                     <span class="app-tag">Creación de programaciones didácticas</span>
                     <p>Da estructura a tus programaciones docentes con menos trabajo de formato, para dedicar ese tiempo a lo que importa: el aula.</p>
                 </div>
-
+ 
             </div>
         </section>
-
+ 
         <!-- CARACTERÍSTICAS -->
         <section class="section" id="caracteristicas">
             <span class="eyebrow">Por qué usarlo</span>
             <h2>Características</h2>
             <div class="features-grid">
-
+ 
                 <div class="liquid-glass feature">
                     <div class="feature-icon"><i class="fa-solid fa-shield-halved"></i></div>
                     <div class="feature-text"><h4>No guarda tus datos</h4><p>Cada app funciona en tu propio navegador, sin cuentas ni servidores intermedios.</p></div>
                 </div>
-
+ 
                 <div class="liquid-glass feature">
                     <div class="feature-icon"><i class="fa-brands fa-github"></i></div>
                     <div class="feature-text"><h4>Código abierto</h4><p>Puedes revisar, modificar o descargar todo el proyecto libremente.</p></div>
                 </div>
-
+ 
                 <div class="liquid-glass feature">
                     <div class="feature-icon"><i class="fa-solid fa-download"></i></div>
                     <div class="feature-text"><h4>Funciona en local</h4><p>Descárgalo y ábrelo sin conexión, sin instalación ni dependencias.</p></div>
                 </div>
-
+ 
                 <div class="liquid-glass feature">
                     <div class="feature-icon"><i class="fa-solid fa-mobile-screen"></i></div>
                     <div class="feature-text"><h4>Se adapta a tu pantalla</h4><p>Pensado para usarse igual de bien en el móvil que en el ordenador.</p></div>
                 </div>
-
+ 
                 <div class="liquid-glass feature">
                     <div class="feature-icon"><i class="fa-solid fa-heart"></i></div>
                     <div class="feature-text"><h4>Gratis, sin anuncios</h4><p>Hecho para ahorrarte tiempo, no para venderte nada.</p></div>
                 </div>
-
+ 
                 <div class="liquid-glass feature">
                     <div class="feature-icon"><i class="fa-solid fa-layer-group"></i></div>
                     <div class="feature-text"><h4>Todo en un mismo sitio</h4><p>Varias herramientas, una sola puerta de entrada.</p></div>
                 </div>
-
+ 
             </div>
         </section>
-
+ 
         <!-- FOOTER -->
         <footer>
             <div class="liquid-glass footer-panel">
@@ -349,8 +349,8 @@
             </div>
             <p class="made-with">CONEJO no almacena datos de usuario y es totalmente libre.</p>
         </footer>
-
+ 
     </main>
-
+ 
 </body>
 </html>
