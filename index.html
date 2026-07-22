@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>CONEJO</title>
+    
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐇</text></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f0ece6;
+            --fg: #1a1a2e;
+            --muted: #8a8698;
+            --accent: #7c3aed;
+            --glass-border: rgba(255, 255, 255, 0.75);
+            --glass-shine: rgba(255, 255, 255, 0.8);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        /* [FIX] Resaltado táctil nativo del navegador al tocar cualquier
+           elemento pulsable: color según navegador/tema del teléfono (de ahí
+           el recuadro verde). Se desactiva globalmente porque CONEJO ya
+           controla su propio feedback visual al tocar (.pressed, :active). */
+        * { -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg);
+            color: var(--fg);
+            height: 100vh;
+            height: 100dvh;
+            overflow: hidden;
+        }
+
+        .bg-scene {
+            position: fixed; inset: 0; z-index: 0; overflow: hidden;
+            background: linear-gradient(160deg, #f5f1eb 0%, #ede7f0 40%, #e8e0f0 70%, #f0ece6 100%);
+            /* [FIX RENDIMIENTO] Aísla el repintado de los blobs animados a esta
+               capa, para que el navegador no tenga que recomponer toda la
+               página en cada fotograma de su animación. */
+            contain: strict;
+        }
+        .blob { position: absolute; border-radius: 50%; opacity: 0.45; }
+        .blob-1 { width: 550px; height: 550px; background: radial-gradient(circle, rgba(124,58,237,0.35), transparent 70%); top: -15%; left: -8%; }
+        .blob-2 { width: 500px; height: 500px; background: radial-gradient(circle, rgba(192,132,252,0.3), transparent 70%); bottom: -20%; right: -8%; }
+        .blob-3 { width: 400px; height: 400px; background: radial-gradient(circle, rgba(167,139,250,0.25), transparent 70%); top: 40%; left: 55%; }
+
+        .bg-grid {
+            position: fixed; inset: 0; z-index: 1; pointer-events: none;
+            background-image: linear-gradient(rgba(124,58,237,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(124,58,237,0.025) 1px, transparent 1px);
+            background-size: 50px 50px;
+            contain: strict;
+        }
+
+        .liquid-glass {
+            background: rgba(255, 255, 255, 0.82);
+            border: 1px solid var(--glass-border);
+            border-radius: 28px;
+            position: relative; overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.04), 0 2px 8px rgba(124,58,237,0.04), inset 0 1px 0 rgba(255,255,255,0.6);
+            transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.5s cubic-bezier(0.23, 1, 0.32, 1), border-color 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        .liquid-glass::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 55%;
+            background: linear-gradient(180deg, var(--glass-shine) 0%, transparent 100%);
+            border-radius: 28px 28px 0 0; pointer-events: none; opacity: 0.4;
+            transition: transform 0.6s ease, opacity 0.6s ease;
+        }
+        .liquid-glass::after {
+            content: ''; position: absolute; top: -1px; left: 15%; right: 15%; height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.9), transparent);
+            pointer-events: none;
+        }
+
+        /* [VUELTA AL ORIGINAL] Tarjetas cuadradas como al principio, con dos
+           ajustes pequeños pedidos: iconos SVG un poco más grandes (72→80px) y
+           tarjetas un poco más reducidas (320→280px máximo, menos padding). */
+        .app-card {
+            cursor: pointer;
+            flex: 1 1 230px;
+            min-width: 180px;
+            max-width: 280px;
+            aspect-ratio: 1;
+            padding: 20px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            text-align: center; gap: 14px;
+        }
+        /* [FIX] :active nativo solo para ratón real. En táctil (iOS sobre
+           todo) puede quedarse "pegado" si la página cambia bruscamente justo
+           tras el toque (se abre la app a pantalla completa) antes de que el
+           navegador procese el final del toque — y ese estado interno NO se
+           puede limpiar por JS ni CSS una vez atascado. En touch se usa en
+           su lugar la clase .pressed (ver JS más abajo), que sí controlamos
+           por completo y forzamos a limpiar siempre al volver a CONEJO. */
+        @media (hover: hover) {
+            .app-card:active { transform: translateY(-3px) scale(0.98); transition-duration: 0.1s; }
+        }
+        .app-card.pressed { transform: translateY(-3px) scale(0.98); transition-duration: 0.1s; }
+
+        /* [FIX] Las tarjetas son <div tabindex="0">, así que un simple toque
+           las deja "enfocadas" y el navegador pinta su contorno de foco por
+           defecto (color según navegador/tema — de ahí el recuadro verde en
+           algunos móviles). Antes quedaba disimulado bajo el brillo de
+           :hover, que saltaba con cualquier toque; al restringir :hover a
+           dispositivos con puntero real, ese contorno por defecto quedó
+           expuesto. Se anula y se sustituye por uno propio que solo aparece
+           navegando con teclado (:focus-visible), no al tocar o hacer clic. */
+        .app-card:focus { outline: none; }
+        .app-card:focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 3px;
+        }
+
+        /* [FIX] :hover solo en dispositivos con puntero real (ratón). En touch,
+           un simple toque puede dejar la pseudo-clase :hover "pegada" a la
+           tarjeta (el navegador no siempre la limpia al no existir un puntero
+           que se "aleje"), así que al volver de una app esa tarjeta se queda
+           con el transform/sombra de hover mientras las demás no — rompiendo
+           la cuadrícula visualmente. Igual que ya se hacía con .close-fab. */
+        @media (hover: hover) {
+            .app-card:hover {
+                transform: translateY(-10px) scale(1.02);
+                border-color: rgba(124,58,237,0.15);
+                box-shadow: 0 25px 60px rgba(124,58,237,0.08), 0 8px 24px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.8);
+            }
+            .app-card:hover::before { transform: translateX(15px); opacity: 0.6; }
+            .app-card:hover .app-icon-wrap { transform: scale(1.1); }
+        }
+
+        /* Las 3 apps usan SVG de marca propio, así que el wrapper solo
+           necesita layout — nada de fondo/sombra decorativos que anular. */
+        .app-icon-wrap {
+            width: 80px; height: 80px; border-radius: 20px;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--accent);
+            transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+            position: relative; z-index: 2;
+        }
+        .app-icon-wrap svg {
+            width: 100%; height: 100%;
+            filter: drop-shadow(0 4px 8px rgba(124,58,237,0.15));
+            transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1), filter 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+            transform-origin: center;
+        }
+
+        /* Ajuste de tamaño visual SIN tocar el código SVG original */
+        .app-icon-wrap svg.brand-rubrica { transform: scale(0.8); }
+        .app-icon-wrap svg.brand-autoemilio { transform: scale(0.85); }
+
+        @media (hover: hover) {
+            .app-card:hover .app-icon-wrap svg {
+                filter: drop-shadow(0 6px 16px rgba(124,58,237,0.3));
+                transform: scale(1.1);
+            }
+            .app-card:hover .app-icon-wrap svg.brand-rubrica { transform: scale(0.88); } /* 0.8 * 1.1 */
+            .app-card:hover .app-icon-wrap svg.brand-autoemilio { transform: scale(0.935); } /* 0.85 * 1.1 */
+        }
+
+        .app-info { display: flex; flex-direction: column; align-items: center; gap: 0; }
+        .app-title { font-weight: 700; font-size: 1.15rem; letter-spacing: -0.02em; color: var(--fg); position: relative; z-index: 2; }
+        .app-desc { font-weight: 300; font-size: 0.78rem; color: var(--muted); line-height: 1.5; position: relative; z-index: 2; max-width: 190px; }
+
+        #homeView {
+            position: fixed; inset: 0; z-index: 10;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: opacity 0.55s cubic-bezier(0.23, 1, 0.32, 1), transform 0.55s cubic-bezier(0.23, 1, 0.32, 1);
+            padding-top: 20px;
+            padding-bottom: 110px; 
+            overflow-y: auto; 
+        }
+        #homeView.hidden-view { opacity: 0; transform: scale(0.94); pointer-events: none; }
+
+        .logo-area { text-align: center; margin-bottom: 28px; animation: fadeUp 0.9s cubic-bezier(0.23, 1, 0.32, 1) both; }
+        
+        .mascot-wrapper { margin: 0 auto 16px; width: 220px; height: 220px; position: relative; display: flex; align-items: flex-end; justify-content: center; }
+        .mascot-rabbit { position: absolute; bottom: 0; width: 100%; height: auto; filter: drop-shadow(0 10px 15px rgba(124,58,237,0.25)); transform-origin: center bottom; animation: realisticJump 2.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite; }
+        .hidden-rabbit { display: none; }
+        .mascot-shadow { position: absolute; bottom: 0; width: 110px; height: 14px; background: radial-gradient(ellipse at center, rgba(124,58,237,0.28) 0%, rgba(124,58,237,0.12) 45%, transparent 72%); border-radius: 50%; animation: realisticShadow 2.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite; }
+
+        @keyframes realisticJump { 0%, 100% { transform: translateY(0) scale(1, 1); } 10% { transform: translateY(2px) scale(1.02, 0.95); } 40% { transform: translateY(-22px) scale(0.98, 1.04); } 60% { transform: translateY(-22px) scale(0.98, 1.04); } 85% { transform: translateY(0) scale(1.02, 0.95); } }
+        @keyframes realisticShadow { 0%, 100% { transform: scale(1); opacity: 0.5; } 10% { transform: scale(1.1); opacity: 0.6; } 40% { transform: scale(0.5); opacity: 0.2; } 60% { transform: scale(0.5); opacity: 0.2; } 85% { transform: scale(1.1); opacity: 0.6; } }
+
+        .logo-text { font-family: 'Outfit', sans-serif; font-weight: 900; font-size: 3.6rem; letter-spacing: 0.15em; text-transform: uppercase; line-height: 1; color: var(--fg); }
+        .logo-sub { font-weight: 300; font-size: 0.95rem; color: var(--muted); margin-top: 12px; letter-spacing: 0.04em; }
+        
+        .cards-container {
+            display: flex; flex-direction: column; align-items: center;
+            animation: fadeUp 0.9s 0.15s cubic-bezier(0.23, 1, 0.32, 1) both;
+            width: 100%;
+            max-width: 900px;
+            padding: 0 20px;
+        }
+        .cards-row {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            width: 100%;
+        }
+
+        /* ===== BOTÓN ACERCA DE (Escritorio) ===== */
+        .about-btn {
+            margin-top: 36px;
+            margin-bottom: 0;
+            padding: 10px 24px;
+            background: linear-gradient(135deg, #7c3aed, #4c1d95);
+            color: #fff;
+            border: none;
+            border-radius: 50px;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            z-index: 10;
+            align-self: center; 
+        }
+        .about-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4); }
+
+        /* ===== MODAL ACERCA DE (Estilo Cristal Líquido) ===== */
+        .about-modal-overlay {
+            position: fixed; inset: 0; z-index: 100;
+            background: rgba(240, 236, 230, 0.88);
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+        }
+        .about-modal-overlay.active { opacity: 1; pointer-events: all; }
+        .about-modal-content {
+            position: relative; padding: 36px 32px; width: 90%; max-width: 420px;
+            text-align: center; transform: scale(0.9); transition: transform 0.3s ease;
+        }
+        .about-modal-overlay.active .about-modal-content { transform: scale(1); }
+        .close-modal-btn { position: absolute; top: 12px; right: 16px; background: transparent; border: none; font-size: 1.8rem; color: var(--muted); cursor: pointer; line-height: 1; transition: color 0.2s; z-index: 2; }
+        .close-modal-btn:hover { color: var(--accent); }
+        .about-modal-content h3 { margin-bottom: 16px; color: var(--fg); font-size: 1.2rem; font-weight: 700; position: relative; z-index: 2; }
+        .about-modal-content p { font-size: 0.9rem; line-height: 1.55; color: var(--fg); margin-bottom: 24px; position: relative; z-index: 2; text-align: justify; }
+        .modal-link { color: var(--accent); font-weight: 600; text-decoration: underline; }
+        .paypal-btn {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 10px 22px; background: #0070ba; color: white; border: none; border-radius: 50px;
+            text-decoration: none; font-weight: 600; font-size: 0.9rem; cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 112, 186, 0.3); transition: transform 0.2s ease, box-shadow 0.2s ease; position: relative; z-index: 2;
+        }
+        .paypal-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0, 112, 186, 0.4); }
+
+        /* ===== CONTADOR Y TEXTO LEGAL ===== */
+        .visit-counter {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            z-index: 15; text-align: center; color: var(--muted); opacity: 0.6;
+            transition: opacity 0.4s ease; width: 90%; max-width: 888px; padding: 0 16px;
+        }
+        #homeView.hidden-view ~ .visit-counter { opacity: 0; }
+        /* [FIX] Regla eliminada: ".cards-container .about-btn" es descendiente de
+           #homeView, no hermano, así que el combinador "~" nunca coincidía (era
+           código muerto). Era además redundante: #homeView.hidden-view ya aplica
+           opacity:0 y pointer-events:none a todo su contenido, incluido el botón. */
+
+        .counter-text { font-size: 0.85rem; }
+        #counter-number { font-weight: 700; font-size: 0.85rem; color: var(--accent); }
+        .about-modal-content p.modal-legal { font-size: 0.72rem; opacity: 0.75; line-height: 1.5; text-align: center; margin-top: 18px; margin-bottom: 0; }
+
+        #appView { position: fixed; inset: 0; z-index: 20; display: none; opacity: 0; transition: opacity 0.45s ease; }
+        #appView.active-view { opacity: 1; }
+        #appFrame { width: 100%; height: 100%; border: none; display: block; background: #fff; }
+
+        .close-fab {
+            position: fixed; bottom: max(8px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); z-index: 40;
+            width: 72px; height: 48px; border: none; cursor: pointer; background: transparent; border-radius: 24px;
+            display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; outline: none;
+            transition: width 0.35s cubic-bezier(0.23,1,0.32,1), height 0.35s cubic-bezier(0.23,1,0.32,1), bottom 0.35s cubic-bezier(0.23,1,0.32,1), background 0.35s ease, border 0.35s ease, box-shadow 0.35s ease, opacity 0.4s ease, visibility 0.4s ease;
+            visibility: hidden;
+        }
+        .close-fab.visible { opacity: 1; pointer-events: all; visibility: visible; }
+        .close-fab::before { content: ''; position: absolute; width: 48px; height: 5px; border-radius: 3px; background: rgba(30, 20, 50, 0.2); box-shadow: 0 1px 6px rgba(0,0,0,0.06); transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1); pointer-events: none; }
+
+        @media (hover: hover) {
+            .close-fab:hover { width: auto; height: 40px; padding: 0 22px; bottom: 20px; border-radius: 50px; background: rgba(30, 20, 50, 0.9); border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 4px 24px rgba(0,0,0,0.25); }
+            .close-fab:hover::before { width: 0; height: 0; opacity: 0; background: transparent; box-shadow: none; }
+            .close-fab:hover .fab-content { opacity: 1; transform: translateY(0); pointer-events: all; }
+        }
+
+        .fab-content { display: flex; align-items: center; gap: 8px; color: #fff; font-family: 'Outfit', sans-serif; font-weight: 600; font-size: 0.76rem; letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; opacity: 0; transform: translateY(4px); transition: all 0.25s ease 0.06s; pointer-events: none; }
+
+        /* En táctil no hay :hover que revele la etiqueta "CONEJO", así que el
+           botón se queda con su aspecto compacto (la pastillita pequeña) en
+           vez de expandirse por defecto — ocupa menos espacio en pantalla.
+           Un solo toque en cualquier parte de la pastilla cierra la app
+           igual (el listener de clic no depende de este aspecto visual). */
+
+        .loading-overlay { position: fixed; inset: 0; z-index: 25; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; background: var(--bg); opacity: 0; pointer-events: none; transition: opacity 0.35s ease; }
+        .loading-overlay.active { opacity: 1; pointer-events: all; }
+        .loader-ring { width: 38px; height: 38px; border: 2px solid rgba(124,58,237,0.12); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loader-text { font-weight: 400; font-size: 0.82rem; color: var(--muted); letter-spacing: 0.02em; }
+
+        @keyframes fadeUp { from{opacity:0;transform:translateY(28px)} to{opacity:1;transform:translateY(0)} }
+
+        /* ===== MÓVIL ===== */
+        @media (max-width: 820px) {
+            #homeView { justify-content: center; padding-top: 20px; padding-bottom: 80px; overflow-y: auto; }
+            .logo-area { margin-bottom: 20px; flex-shrink: 0; }
+            .mascot-wrapper { width: 130px; height: 130px; margin-bottom: 8px; }
+            .mascot-shadow { width: 65px; height: 10px; }
+            .logo-text { font-size: 2rem; letter-spacing: 0.12em; }
+            .logo-sub { font-size: 0.75rem; margin-top: 6px; }
+            
+            .cards-container {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 14px;
+                width: 90%;
+                padding: 0;
+                justify-items: stretch;
+                /* [FIX] .cards-container hereda align-items:center de la regla
+                   de escritorio (pensada para su layout flex), y nadie lo
+                   reseteaba aquí. Con "center", cada tarjeta tomaba solo la
+                   altura de su propio contenido en vez de igualarse a las
+                   demás de su fila — por eso Rubricat (texto más corto, cabe
+                   en 1 línea) quedaba más baja que Autoemilio/Programadog
+                   (texto más largo, 2 líneas). "stretch" iguala la altura de
+                   todas las tarjetas de una misma fila a la más alta. */
+                align-items: stretch;
+                animation: fadeUp 0.9s 0.15s cubic-bezier(0.23, 1, 0.32, 1) both;
+            }
+            .cards-row {
+                display: contents;
+                animation: none;
+            }
+            .app-card {
+                flex: none;
+                width: 100%;
+                min-width: 0;
+                aspect-ratio: auto;
+                max-width: none;
+                padding: 18px 10px 16px;
+                gap: 10px;
+                border-radius: 24px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+            }
+
+            /* Botón circular ligeramente más grande */
+            .about-btn {
+                margin: 0;
+                width: 72px;
+                height: 72px;
+                min-width: 0;
+                max-width: none;
+                padding: 5px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                background: linear-gradient(135deg, #7c3aed, #4c1d95);
+                color: #fff;
+                border: none;
+                border-radius: 50%;
+                font-size: 0.7rem;
+                font-weight: 700;
+                line-height: 1.1;
+                box-shadow: 0 4px 10px rgba(124, 58, 237, 0.3);
+                align-self: center;
+                justify-self: center;
+                white-space: normal;
+            }
+
+            .app-icon-wrap { width: 56px; height: 56px; font-size: 1.9rem; border-radius: 16px; }
+            .app-title { font-size: 0.9rem; }
+            .app-desc { font-size: 0.7rem; line-height: 1.3; opacity: 0.8; max-width: 100%; }
+        }
+        @media (max-width: 380px) {
+            #homeView { padding-top: 10px; padding-bottom: 40px; }
+            .mascot-wrapper { width: 100px; height: 100px; }
+            .mascot-shadow { width: 50px; height: 8px; }
+            .logo-text { font-size: 1.7rem; }
+            .cards-container { gap: 12px; width: 95%; }
+            .app-card { padding: 14px 8px 12px; gap: 8px; border-radius: 20px; }
+            .app-icon-wrap { width: 50px; height: 50px; font-size: 1.7rem; border-radius: 14px; }
+            .app-title { font-size: 0.85rem; }
+            .app-desc { font-size: 0.65rem; }
+            .visit-counter { width: 95%; }
+            .about-btn { width: 64px; height: 64px; font-size: 0.65rem; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .mascot-rabbit, .mascot-shadow { animation: none !important; }
+            * { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-scene" aria-hidden="true"><div class="blob blob-1"></div><div class="blob blob-2"></div><div class="blob blob-3"></div></div>
+    <div class="bg-grid" aria-hidden="true"></div>
+
+    <main id="homeView">
+        <div class="logo-area">
+            <div class="mascot-wrapper">
+                
+                <!-- CONEJO 1 (RESTAURADO) -->
+                <svg class="mascot-rabbit" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="rabbitDark1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#7c3aed"/><stop offset="100%" stop-color="#4c1d95"/></linearGradient>
+                        <linearGradient id="rabbitLight1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#f3e8ff"/><stop offset="100%" stop-color="#c4b5fd"/></linearGradient>
+                    </defs>
+                    <path d="M889.8 685.1c39 5.4 69.1 38.9 69.1 79.4 0 44.2-36 80.2-80.2 80.2-8 0-15.8-1.2-23.3-3.5-8.9 14-19.5 27.1-31.5 39.1-43.9 43.8-102.1 68-164.1 68h-528c-36.2 0-65.7-29.5-65.7-65.7s29.5-65.7 65.7-65.7h40.9c-15.1-31.2-23-65.5-23-100.7 0-29.6 5.4-58.2 16.1-85.2-43.3-18.7-73.9-62.5-73.9-109.4 0-11 1.7-21.9 5.2-32.3 32.5-98.3 116.8-165.2 220-177.6 4.5-24.3 11.6-50.1 20.8-75.4C371.3 144.3 431.4 60.8 482 79c23.7 8.6 36.2 36 36.5 78.5 5.5-3.1 10.9-5.9 16.2-8.4 51.1-24.3 77-14.3 89.6-1.7 12.7 12.7 22.7 38.5-1.7 89.6-16.3 34.2-44.6 72.3-79.7 107.5-23 23-47.5 43.2-71.4 59 2 8.3 3 16.7 3 25 0 11-1.7 21.9-5.2 32.3-2.6 8-5.6 15.7-8.9 23.3h199.4c117.5 0 214.8 87.7 230 201z" fill="url(#rabbitDark1)" />
+                    <path d="M891.8 723.2c17.5 5.6 30.3 22 30.3 41.3 0 23.9-19.4 43.3-43.3 43.3-1.8 0-3.7-0.1-5.5-0.4 11.3-26.3 17.6-54.8 18.5-84.2z" fill="url(#rabbitLight1)" />
+                    <path d="M855 716.2c0 45.7-23.8 93.5-24.1 94.1-8.8 15.9-19.9 30.7-33 43.9-36.9 36.9-85.9 57.2-138 57.2H457c-15.9 0-28.8-12.9-28.8-28.8s12.9-28.8 28.8-28.8h83.5c10.2 0 18.4-8.3 18.4-18.4v-31.3c0-51.5 41.9-93.4 93.4-93.4h24.4c10.2 0 18.4-8.3 18.4-18.4 0-10.2-8.3-18.4-18.4-18.4h-24.4c-71.8 0-130.3 58.4-130.3 130.3V817h-65c-36.2 0-65.7 29.5-65.7 65.7 0 10.3 2.4 20.1 6.7 28.8H131.8c-15.9 0-28.8-12.9-28.8-28.8s12.9-28.8 28.8-28.8h72.7c3.5 0 7.1-1 10.3-3.2 8.5-5.7 10.7-17.2 5-25.6-21.7-32.2-33.2-69.9-33.2-108.9 0-31 7-60.6 20.9-88 4.6-9.1 1-20.2-8.1-24.8-1.4-0.7-2.9-1.2-4.4-1.5-18.5-4.1-35.1-15-47-29.4-11.7-14.5-19-32.5-19-50.9 0-7.1 1.1-14.1 3.3-20.7 15.3-46.2 43.9-85.1 82.9-112.5 39.1-27.5 86.5-42 137.2-42 1.3 0 12.1 0.5 16.2 1.2 7.9 1.4 15.6-2.5 19.3-9.1 15.2-26.9 38.4-56.6 65.5-83.7 17.9-17.9 36.5-33.8 54.8-46.9 0.4-0.3 0.8-0.5 1.1-0.8 14.2-10.1 28.2-18.5 41.4-24.8 28.1-13.4 43.9-12.7 47.7-8.9 3.8 3.8 4.5 19.6-8.9 47.7-14.5 30.4-40.2 65-72.5 97.2-24 24-49.4 44.5-73.8 59.6l0.2 0.3c-7.4 2.8-11.9 9.8-11.9 17.2 0 2.2 0.4 4.4 1.2 6.5 3.3 8.8 5 17.7 5 26.5 0 7.1-1.1 14.1-3.3 20.7-5.1 15.5-11.8 30.3-19.9 44-5.2 8.8-2.2 20.1 6.5 25.3 2.9 1.7 6.2 2.5 9.3 2.5h229.4C767.5 521 855 608.6 855 716.2z" fill="url(#rabbitLight1)" />
+                    <path d="M827.3 716.2c0 10.2-8.3 18.4-18.4 18.4-10.2 0-18.4-8.3-18.4-18.4 0-72-58.6-130.6-130.6-130.6-10.2 0-18.4-8.3-18.4-18.4 0-10.2 8.2-18.4 18.4-18.4 92.3-0.1 167.4 75 167.4 167.4z" fill="url(#rabbitDark1)" />
+                    <path d="M469.5 113.6c5.9 2.1 15.7 21.8 10.9 68.9-17.9 13.3-35.9 28.9-53.1 46.2-26.3 26.3-48.6 54.1-65.2 81-1.8-0.1-6.3-0.2-6.8-0.2 4.2-19.7 10.1-40.3 17.5-60.7 35.9-99.3 84.1-139.7 96.7-135.2z" fill="url(#rabbitLight1)" />
+                    <path d="M244.6 433.3c12.3 0 22.4 10 22.4 22.4 0 12.3-10 22.4-22.4 22.4-12.4 0-22.4-10-22.4-22.4 0-12.4 10-22.4 22.4-22.4z" fill="url(#rabbitDark1)" />
+                </svg>
+
+                <!-- CONEJO 2 -->
+                <svg class="mascot-rabbit hidden-rabbit" viewBox="0 0 190.434 190.434" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="rabbitDark2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#7c3aed"/><stop offset="100%" stop-color="#4c1d95"/></linearGradient>
+                    </defs>
+                    <g>
+                        <g>
+                            <path d="M141.379,87.465c4.917-17.926,13.507-36.279,10.459-55.157c-2.221-13.756-13.026-31.581-29.314-28.693c-12.943,2.295-16.801,23.475-18.777,33.486c-2.613,13.242-4.075,28.038-2.873,41.746c-0.245-0.012-0.48-0.046-0.745-0.007c-2.223,0.429-4.466,0.549-6.721,0.528C92.518,57.778,98.586,0.165,70.049,0C33.268-0.21,48.299,59.693,51.452,84.188c-28.642,1.609-44.138,26.72-30.339,53.909c7.068,13.927,22.585,21.356,39.272,25.579c-7.228,7.947-8.513,20.104,3.668,25.148c10.134,4.196,18.468-0.288,23.101-7.967c1.462,1.247,3.355,2.141,5.885,2.411c4.506,0.483,7.891-2.004,10.224-5.431c3.31,8.004,11.048,13.306,20.871,12.265c5.331-0.564,10.089-3.274,12.863-7.914c2.521-4.213,2.612-11.021,0.261-15.762c16.036-4.578,29.676-14.273,35.356-31.988C179.566,112.756,166.003,83.112,141.379,87.465z M83.728,168.103c-0.003,0-0.006-0.001-0.009-0.001c-0.558,9.055-6.109,17.142-16.036,14.356c-10.093-2.831-5.079-11.727-0.566-17.241c5.622,1.138,11.247,1.967,16.647,2.601C83.749,167.913,83.74,168.008,83.728,168.103z M95.399,175.527c-3.868,2.347-4.74-1.69-4.631-4.738c0.112-0.726,0.183-1.459,0.241-2.194c3.015,0.285,5.867,0.518,8.573,0.732C98.973,171.865,97.849,174.042,95.399,175.527z M131.194,177.97c-1.01,3.244-4.811,4.957-7.904,5.327c-8.234,0.984-14.483-4.849-17.048-12.031c0.139-0.507,0.296-1.018,0.399-1.514c7.841,0.268,15.88-0.223,23.585-1.692C130.927,171.367,132.327,174.33,131.194,177.97z M149.782,152.784c-14.869,10.593-36.717,9.739-54.035,8.412c-17.419-1.335-35.534-4.91-51.345-12.477c-9.801-4.69-16.607-12.356-20.042-22.606c-7.079-21.13,11.638-32.95,28.737-36.262c0.903,0.464,2.046,0.318,2.713-0.461c0.082-0.012,0.166-0.031,0.248-0.042c2.746-0.379,2.358-4.185,0.2-5.093C55.091,63.939,44.572,3.494,71.188,7.849c20.49,3.353,13.144,60.563,14.85,75.201c0.263,2.254,1.553,3.563,3.816,3.816c4.982,0.556,8.321,0.566,12.459-2.26c1.151,0.83,2.889,0.791,3.138-0.995c3.04-21.766,1.856-45.843,12.172-65.861c2.785-5.405,6.982-8.483,12.948-5.741c11.029,5.068,14.056,17.721,14.145,28.626c0.139,16.88-7.808,32.696-11.673,48.804c-0.729,3.042,1.998,4.934,4.358,4.672c0.863,1.14,2.264,1.865,4.06,1.439c17.643-4.195,22.799,11.561,24.324,24.431C167.389,133.527,160.521,145.134,149.782,152.784z" fill="url(#rabbitDark2)"/>
+                            <path d="M78.659,48.317c-0.802-8.035-1.17-24.085-9.669-28.425c-6.701-3.422-10.263,3.88-11.88,10.333c-0.57,0.4-0.699,1.114-0.39,1.704c-0.4,1.946-0.629,3.717-0.702,4.934c-0.98,16.37,3.286,34.622,7.602,50.321c0.5,1.819,3.167,1.4,3.225-0.436c0.001-0.047-0.003-0.094-0.001-0.141c0.186,0.363,0.449,0.702,0.859,0.957c3.213,2,7.067,1.157,10.559,0.607c1.187-0.187,2.029-1.537,2.022-2.656C80.209,73.086,79.895,60.692,78.659,48.317z M71.1,34.542c-1.405,0.069-2.849,0.494-4.164,0.751c-1.354,0.265-2.709,0.524-4.068,0.76c-0.452,0.079-0.904,0.156-1.355,0.235c0.07-1.131,0.26-2.248,0.409-3.37c3.016,0.228,6.01,0.552,9.034,1.083c0.002,0,0.004,0,0.006,0C71.004,34.183,71.054,34.361,71.1,34.542z M69.979,30.62c-2.499-0.548-5.032-0.749-7.585-0.763C64.125,22.785,68.072,25.832,69.979,30.62z M61.414,39.192c0.518-0.016,1.029-0.064,1.45-0.096c2.78-0.212,6.515-0.424,9.062-1.105c0.326,1.649,0.619,3.311,0.851,4.99c-1.634-0.134-3.502,0.228-4.981,0.287c-2.098,0.083-4.199,0.109-6.3,0.148C61.421,42.008,61.402,40.6,61.414,39.192z M61.702,46.267c2.031,0.047,4.062,0.095,6.094,0.142c1.637,0.038,3.682,0.451,5.418,0.195c0.05,0.471,0.112,0.94,0.157,1.412c-2.036-0.155-4.135,0.102-6.161,0.178c-1.718,0.065-3.549,0.025-5.339,0.136C61.8,47.646,61.759,46.955,61.702,46.267z M63.162,57.903c-0.376-2.246-0.714-4.474-0.984-6.677c1.692,0.087,3.413,0.056,5.032,0.117c2.129,0.081,4.339,0.35,6.473,0.141c0.13,1.815,0.245,3.631,0.333,5.439c-1.955-0.45-3.896-0.009-5.859,0.263C66.489,57.417,64.818,57.626,63.162,57.903z M63.73,61.158c1.473-0.032,2.96-0.216,4.4-0.321c2.05-0.149,4.126-0.149,6.019-0.979c0.066,1.561,0.129,3.115,0.195,4.652c-0.597-0.221-1.326-0.089-1.762,0.554c0.417-0.615,1.05-0.629-0.075-0.433c-0.4,0.07-0.784,0.176-1.177,0.279c-1.131,0.297-2.365,0.339-3.525,0.447c-1.095,0.102-2.194,0.161-3.293,0.21C64.247,64.091,63.99,62.625,63.73,61.158z M65.02,68.443c1.74,0.023,3.48,0.022,5.217-0.038c1.153-0.04,3.091-0.098,4.197-0.909c0.014,0.643,0.032,1.286,0.051,1.929c-0.056,0.018-0.112-0.004-0.168,0.02c-1.475,0.649-2.699,1.42-4.338,1.635c-1.525,0.201-3.058-0.004-4.553-0.338C65.3,69.975,65.151,69.211,65.02,68.443z M65.881,73.992c2.869,0.609,6.357,0.712,8.703-0.781c0.024,1.212,0.075,2.423,0.095,3.635c-0.112,0.022-0.23-0.011-0.337,0.039c-2.425,1.135-5.186,1.771-7.88,1.57C66.318,76.971,66.089,75.48,65.881,73.992z M68.9,83.142c-1.008,0.039-1.72,0.629-2.075,1.379c-0.01-1.127-0.074-2.261-0.144-3.396c1.544,0.12,3.104,0.043,4.663-0.14c1.181-0.139,2.382-0.352,3.407-0.875C74.816,85.892,74.489,82.922,68.9,83.142z" fill="url(#rabbitDark2)"/>
+                            <path d="M138.974,36.396c-0.575-0.542-1.229-0.882-1.909-1.166c-1.065-3.826-2.964-7.011-6.013-9.016c-18.411-12.11-19.846,50.229-19.305,58.067c0.093,1.351,1.386,1.699,2.262,1.203c3.682,1.998,7.995-0.612,11.951-5.684c0.885,0.058,1.748,0.037,2.504-0.24c1.46-0.535,1.377-2.323,0-2.884c-0.083-0.034-0.179-0.042-0.264-0.072c1.146-1.803,2.238-3.8,3.254-5.925c0.144-0.132,0.312-0.244,0.397-0.418c0.157-0.325,0.16-0.579,0.167-0.836c1.041-2.295,1.973-4.731,2.795-7.225c0.8-0.455,1.012-1.392,0.669-2.099c2.151-7.247,3.132-14.828,2.295-21.207c0.182-0.023,0.361,0.018,0.543-0.026C139.392,38.615,139.769,37.146,138.974,36.396z M115.071,80.656c0.092-1.272,0.182-2.587,0.271-3.893c1.632,0.695,3.297,1.305,5.01,1.799C118.79,79.771,117.043,80.55,115.071,80.656z M123.008,75.889c-0.335-0.033-0.676-0.058-0.993-0.115c-2.211-0.394-4.37-1.066-6.47-1.874c0.089-1.266,0.188-2.55,0.286-3.833c0.237,0.037,0.493,0.092,0.697,0.12c1.889,0.258,3.781,0.444,5.68,0.609c0.741,0.065,2.138,0.332,3.648,0.516C125.014,72.975,124.073,74.541,123.008,75.889z M127.593,67.404c-1.463-0.057-2.859,0.021-3.429-0.003c-2.028-0.081-4.054-0.201-6.082-0.277c-0.33-0.012-0.659-0.032-0.989-0.048c-0.051-0.007-0.067-0.052-0.121-0.054c-0.239-0.007-0.553-0.032-0.884-0.052c0.258-2.981,0.565-5.982,0.961-8.96c0.112,0.135,0.257,0.26,0.449,0.361c3.278,1.718,7.54,3.914,11.668,4.461C128.701,64.337,128.195,65.872,127.593,67.404z M131.149,55.337c-0.247,1.114-0.573,2.446-0.939,3.85c-3.91-0.368-7.435-1.452-11.299-3.23c-0.607-0.28-1.188-0.124-1.588,0.223c0.164-1.12,0.381-2.219,0.575-3.327c0.105,0.017,0.189,0.064,0.307,0.066c2.261,0.033,4.521,0.078,6.778,0.221c2.135,0.136,4.345,0.875,6.478,0.765C131.357,54.387,131.252,54.872,131.149,55.337z M132.142,50.545c-3.638-2.22-9.439-1.573-13.521-1.475c0.283-1.319,0.597-2.622,0.938-3.91c3.095,0.162,6.202,0.48,9.26,0.928c1.126,0.165,2.576,0.539,3.908,0.532C132.573,47.94,132.38,49.255,132.142,50.545z M128.439,42.68c-2.677-0.152-5.341-0.368-8.017-0.458c0.952-3.066,2.087-6.014,3.52-8.752c2.23,1.152,4.458,2.307,6.751,3.336c0.586,0.263,1.185,0.559,1.791,0.846c0.355,1.688,0.507,3.44,0.48,5.228C131.451,42.608,129.683,42.75,128.439,42.68z" fill="url(#rabbitDark2)"/>
+                            <g>
+                                <path d="M113.102,141.906c-3.233,4.462-5.526,10.909-10.9,5.031c-3.171-3.469-5.266-8.48-6.306-13.309c0.228-0.114,0.47-0.174,0.678-0.366c0.589-0.546,0.78-1.259,0.846-2.027c0,0,0.001,0.005,0.002,0.006c-0.021,0.597-0.153,0.969-0.245,1.157c0.031-0.053,0.039-0.08,0.109-0.173c0.287-0.384,0.437-0.858,0.532-1.322c0.199-0.973,0.414-1.933,0.672-2.893c0.26-0.965,0.558-1.919,0.867-2.868c0.257-0.788,0.676-1.9,0.808-2.179c1.066-2.249-0.188-5.084-2.914-5.077l-9.86,0.024c-2.698,0.007-3.964,2.801-2.893,5.042c0.142,0.299,0.286,0.598,0.431,0.896l0.521,0.674c0.829,0.628,0.9,0.692,0.214,0.192c0.495,0.93,0.902,1.913,1.37,2.856c0.859,1.73,2.005,3.377,3.402,4.727c-0.125,3.605-0.563,7.128-3.509,9.701c-2.148,1.876-5.756,1.959-8.197,1.474c-3.037-0.604-5.448-1.981-6.551-4.153c-0.212-0.418-0.223-1.317,0.229-2.583c0.627-1.753,2.716-3.728,3.88-5.41c1.368-1.978-0.912-5.064-3.212-4.18c-5.538,2.13-9.798,8.013-8.167,14.076c1.362,5.064,6.617,8.216,11.421,9.293c5.319,1.192,10.945,0.243,15.093-3.4c1.048-0.922,1.821-2.016,2.449-3.187c1.376,3.773,3.449,7.225,6.421,9.719c7.639,6.409,16.41-1.56,18.395-9.388C119.581,140.731,115.073,139.185,113.102,141.906z" fill="url(#rabbitDark2)"/>
+                                <path d="M97.176,132.399C97.088,132.55,97.098,132.562,97.176,132.399L97.176,132.399z" fill="url(#rabbitDark2)"/>
+                            </g>
+                            <path d="M124.474,104.462c-3.155-0.815-6.79,0.176-8.946,2.652c-2.991,3.436-2.979,8.13-2.312,12.378c0.479,3.054,4.991,2.098,5.142-0.696c0.111-2.101,0.315-4.835,1.784-6.486c0.907-1.021,1.478-1,2.753-0.655c1.194,0.323,2.479,1.546,3.326,2.979c1.09,1.848,1.215,4.153,0.822,6.22c-0.901,4.756,6.392,6.774,7.27,2.004C135.699,115.319,132.569,106.554,124.474,104.462z" fill="url(#rabbitDark2)"/>
+                            <path d="M65.828,98.986c-8.356,2.212-8.126,12.22-4.774,18.329c1.111,2.026,3.991,0.588,3.565-1.503c-0.498-2.442-0.698-5.022,0.105-7.417c0.502-1.495,1.646-2.355,2.583-2.666c1.071-0.354,2.104-0.188,2.94,0.492c1.701,1.382,1.972,3.408,2.567,5.48c1.104,3.84,6.963,3.093,6.96-0.942C79.771,103.502,73.184,97.041,65.828,98.986z" fill="url(#rabbitDark2)"/>
+                        </g>
+                    </g>
+                </svg>
+
+                <!-- CONEJO 3 -->
+                <svg class="mascot-rabbit hidden-rabbit" viewBox="0 0 459.469 459.469" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="rabbitDark3" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#7c3aed"/><stop offset="100%" stop-color="#4c1d95"/></linearGradient>
+                    </defs>
+                    <path d="M390.052,183.518c-14.224-6.208-34.583-11.552-58.878-15.455c-4.906-0.789-9.525,2.55-10.314,7.459c-0.788,4.907,2.551,9.525,7.458,10.313c22.821,3.666,41.679,8.569,54.534,14.18c13.098,5.717,15.967,10.42,15.967,11.75c0,2.177-7.676,12.119-45.229,20.991c-4.855,1.147-15.772,3.295-16.027,3.354c-30.598,5.659-68.175,8.727-107.828,8.727c-39.653,0-77.23-3.069-107.829-8.728c-0.254-0.059-11.171-2.207-16.026-3.354c-37.553-8.872-45.229-18.814-45.229-20.991c0-1.33,2.869-6.033,15.967-11.75c12.854-5.61,31.711-10.514,54.532-14.18c4.907-0.789,8.247-5.406,7.458-10.314c-0.789-4.908-5.406-8.247-10.313-7.458c-24.295,3.903-44.655,9.248-58.877,15.455c-17.761,7.752-26.767,17.256-26.767,28.247c0,16.289,19.881,29.245,59.091,38.508c2.959,0.699,6.002,1.372,9.123,2.016v172.224c0,33.975,106.703,34.956,118.87,34.956s118.871-0.981,118.871-34.956V252.289c3.121-0.645,6.164-1.317,9.124-2.016c39.21-9.263,59.091-22.219,59.091-38.508C416.819,200.773,407.813,191.27,390.052,183.518z M330.604,423.834c-1.52,1.932-9.119,6.972-30.019,11.332c-19.485,4.064-44.647,6.303-70.852,6.303s-51.367-2.238-70.852-6.303c-20.9-4.36-28.499-9.4-30.019-11.332v-168.27c29.636,4.73,64.458,7.272,100.87,7.272s71.235-2.542,100.871-7.271V423.834z M153.749,205.151c-2.498-0.866-4.404-1.75-5.664-2.625c-4.081-2.837-9.69-1.828-12.527,2.254c-2.836,4.082-1.827,9.69,2.254,12.527c15.001,10.425,58.893,14.125,91.921,14.125s76.92-3.699,91.922-14.125c4.082-2.836,5.091-8.445,2.254-12.526c-2.837-4.083-8.445-5.091-12.526-2.255c-1.26,0.875-3.165,1.759-5.663,2.625l19.203-167.66c1.137-9.923-1.75-19.327-8.129-26.477C310.46,3.911,301.535,0,291.662,0c-19.573,0-37.317,15.9-39.555,35.442L231.72,213.427c-1.317,0.005-2.654,0.005-3.971,0L207.362,35.443C205.124,15.899,187.379,0,167.807,0c-9.872,0-18.797,3.911-25.132,11.012c-6.378,7.15-9.266,16.554-8.13,26.479L153.749,205.151z M269.99,37.491C271.2,26.926,281.125,18,291.663,18c4.672,0,8.827,1.774,11.701,4.995c2.917,3.27,4.223,7.691,3.679,12.448l-19.93,174.003c-3.123,0.506-6.49,0.979-10.087,1.41l14.374-125.49c0.566-4.938-2.979-9.4-7.917-9.965c-4.929-0.567-9.4,2.979-9.965,7.917l-14.799,129.204c-2.857,0.187-5.8,0.347-8.83,0.479L269.99,37.491z M156.107,22.994c2.873-3.22,7.028-4.994,11.701-4.994c10.537,0,20.462,8.926,21.672,19.491L209.582,213c-3.029-0.132-5.971-0.292-8.828-0.479L185.955,83.317c-0.566-4.938-5.029-8.484-9.965-7.917c-4.938,0.565-8.483,5.027-7.917,9.965l14.374,125.49c-3.595-0.431-6.965-0.904-10.087-1.41l-19.93-174.003C151.883,30.686,153.19,26.264,156.107,22.994z" fill="url(#rabbitDark3)"/>
+                </svg>
+
+                <div class="mascot-shadow"></div>
+            </div>
+            <h1 class="logo-text">CONEJO</h1>
+            <p class="logo-sub">Agiliza tu labor docente</p>
+        </div>
+
+        <div class="cards-container">
+            <nav class="cards-row" aria-label="Aplicaciones disponibles">
+                <!-- RUBRICAT (SVG Original restaurado) -->
+                <div class="liquid-glass app-card" role="button" tabindex="0" aria-label="Abrir Rubricat" onclick="openApp('rubricat.html','Rubricat')">
+                    <div class="app-icon-wrap">
+                        <svg class="brand-rubrica" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <linearGradient id="rubricaGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#7c3aed"/>
+                                    <stop offset="100%" stop-color="#4c1d95"/>
+                                </linearGradient>
+                            </defs>
+                            <path d="M209.202 314C295.069 302.118 353.793 218.418 308.045 135.024C251.513 31.9842 61.8269 106.438 76.8437 219.371C86.6957 293.444 213.097 315.568 234.512 236.857C238.297 222.936 236.714 157.821 218.141 153.168C216.406 152.73 194.202 175.825 184.417 175.825C176.731 175.825 159.616 137.959 141.484 175.825" stroke="url(#rubricaGrad)" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <div class="app-info">
+                        <h2 class="app-title">Rubricat</h2>
+                        <p class="app-desc">Evaluación flexible y rápida</p>
+                    </div>
+                </div>
+
+                <!-- AUTOEMILIO (SVG Original restaurado) -->
+                <div class="liquid-glass app-card" role="button" tabindex="0" aria-label="Abrir Autoemilio" onclick="openApp('autoemilio.html','Autoemilio')">
+                    <div class="app-icon-wrap">
+                        <svg class="brand-autoemilio" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <linearGradient id="autoemilioGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#7c3aed"/>
+                                    <stop offset="100%" stop-color="#4c1d95"/>
+                                </linearGradient>
+                            </defs>
+                            <path d="M183.967 86.9455C252.62 12.0977 244.517 75.8891 263.023 85.1447C268.275 87.7725 275.324 85.0069 279.193 83.347" stroke="url(#autoemilioGrad)" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M219.968 106.121C241.931 80.0587 278.638 143.309 281.516 119.913" stroke="url(#autoemilioGrad)" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M157.258 63.7549C121.516 74.7106 105.852 117.17 121.513 148.401" stroke="url(#autoemilioGrad)" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M110.544 171.591C97.2219 190.533 110.121 194.598 125.903 188.961" stroke="url(#autoemilioGrad)" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M125.988 193.171C121.915 260.485 266.13 345.452 275.71 186.666" stroke="url(#autoemilioGrad)" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M176.84 149.305C192.345 148.711 256.228 140.836 268.06 147.641C290.76 160.692 276.999 199.124 249.499 202.832C225.999 206 214.898 146.506 217.717 146.902C224.482 147.853 222.319 190.253 209.856 202.832C182.676 230.265 152.592 179.295 168.142 153.514" stroke="url(#autoemilioGrad)" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M79 346.16C109.376 314.794 132.649 289 175.228 289C180.405 298.068 196.368 316.205 218.81 316.205C241.252 316.205 246.862 298.068 246.862 289C302.967 289 307.115 331.849 321 349" stroke="url(#autoemilioGrad)" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <div class="app-info">
+                        <h2 class="app-title">Autoemilio</h2>
+                        <p class="app-desc">Correos automáticos personalizados</p>
+                    </div>
+                </div>
+
+                <!-- PROGRAMADOG -->
+                <div class="liquid-glass app-card" role="button" tabindex="0" aria-label="Abrir Programadog" onclick="openApp('programadog.html','Programadog')">
+                    <div class="app-icon-wrap">
+                        <svg class="brand-dog" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <linearGradient id="dogGrad" x1="74" y1="211.658" x2="325" y2="176" gradientUnits="userSpaceOnUse">
+                                    <stop offset="0%" stop-color="#7c3aed"/>
+                                    <stop offset="1" stop-color="#4c1d95"/>
+                                </linearGradient>
+                            </defs>
+                            <path d="M74 211.658C99.0457 142.251 155.836 87.1314 226.717 108.765C276.177 123.861 255.428 151.992 274.648 170.486C285.492 178.829 314.933 167.631 322.548 178.047C329.28 187.259 324.416 204.065 322.548 215.097C315.179 258.597 265.313 265 223.065 265" stroke="url(#dogGrad)" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M325 194C321.518 187.392 313.572 181.214 304 176" stroke="url(#dogGrad)" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M132.242 181.22C129.728 194.908 90.9731 288.143 131.095 296.086C205.608 306.73 196.665 221.971 196.665 169" stroke="url(#dogGrad)" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M234 168V173" stroke="url(#dogGrad)" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <div class="app-info">
+                        <h2 class="app-title">Programadog</h2>
+                        <p class="app-desc">Creación de programaciones didácticas</p>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- BOTÓN ACERCA DE -->
+            <button id="aboutBtn" class="about-btn" aria-label="Acerca de">Acerca de</button>
+        </div>
+    </main>
+
+    <!-- POPUP ACERCA DE -->
+    <div id="aboutModal" class="about-modal-overlay">
+        <div class="about-modal-content liquid-glass">
+            <button class="close-modal-btn" id="closeModalBtn">&times;</button>
+            <h3>Acerca de CONEJO</h3>
+            <p>Creado por Alberto Benavides y multitud de IAs. Puedes contactar conmigo <a href="mailto:zulykat@gmail.com" class="modal-link">AQUÍ</a> para comunicarme cualquier error, duda o sugerencia. También puedes hacer una donación mediante Paypal si te sobran unas monedas, irán destinadas a mejorar las aplicaciones.</p>
+            <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=zulykat@gmail.com&currency_code=EUR" target="_blank" class="paypal-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21s-6.5-4.35-9.5-8.5C.7 9.7 1.4 6 4.6 4.7 7 3.7 9.6 4.7 12 7.5 14.4 4.7 17 3.7 19.4 4.7 22.6 6 23.3 9.7 21.5 12.5 18.5 16.65 12 21 12 21z"/></svg> Donar con PayPal
+            </a>
+            <p class="modal-legal">Conejo no almacena datos de usuario y es totalmente libre. Descárgalo desde <a href="https://github.com/conejoapps/conejoapps.github.io" target="_blank" class="modal-link">GitHub</a> para usarlo de forma local.</p>
+        </div>
+    </div>
+
+    <div class="visit-counter">
+        <div class="counter-text">Ya han pasado por aquí <span id="counter-number">...</span> conejos.</div>
+    </div>
+
+    <div id="appView"><iframe id="appFrame" title="Aplicación embebida"></iframe></div>
+
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loader-ring"></div>
+        <span class="loader-text" id="loadingText">Cargando...</span>
+    </div>
+
+    <button class="close-fab" id="closeFab" aria-label="Volver a CONEJO">
+        <div class="fab-content">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            <span>CONEJO</span>
+        </div>
+    </button>
+
+    <script>
+        /* LOGO ALEATORIO */
+        (function() {
+            var rabbits = document.querySelectorAll('.mascot-rabbit');
+            if (rabbits.length > 0) {
+                var randomIndex = Math.floor(Math.random() * rabbits.length);
+                rabbits.forEach(function(r) { r.classList.add('hidden-rabbit'); });
+                rabbits[randomIndex].classList.remove('hidden-rabbit');
+            }
+        })();
+
+        /* Variables y lógica de la aplicación */
+        var currentApp = null;
+        var homeView = document.getElementById('homeView');
+        var appView = document.getElementById('appView');
+        var appFrame = document.getElementById('appFrame');
+        var closeFab = document.getElementById('closeFab');
+        var loadingOverlay = document.getElementById('loadingOverlay');
+        var loadingText = document.getElementById('loadingText');
+        var isTouchDevice = !window.matchMedia('(hover: hover)').matches;
+
+        function openApp(url, name) {
+            currentApp = { url: url, name: name };
+            homeView.classList.add('hidden-view');
+            loadingText.textContent = 'Cargando ' + name + '...';
+            loadingOverlay.classList.add('active');
+            appView.style.display = 'block';
+
+            // [FIX] Registra un estado de historial al abrir una app. Sin esto, en
+            // móvil el gesto nativo de "volver atrás" no tenía a dónde ir (todo
+            // ocurría dentro de la misma página, sin navegación real) y el sistema
+            // se quedaba en blanco en vez de devolver a CONEJO. Con este estado,
+            // el gesto dispara 'popstate' (ver más abajo) y cerramos la app nosotros.
+            try { history.pushState({ conejoApp: true }, '', '#' + encodeURIComponent(name)); } catch (e) {}
+
+            var appLoaded = false;
+
+            function showError() {
+                if (appLoaded) return;
+                appLoaded = true;
+                loadingText.textContent = 'Error: No se encontró el archivo';
+                setTimeout(function() {
+                    loadingOverlay.classList.remove('active');
+                    appView.classList.remove('active-view');
+                    appView.style.display = 'none';
+                    appFrame.src = 'about:blank';
+                    homeView.classList.remove('hidden-view');
+                    currentApp = null;
+                    // Retira el estado de historial que habíamos empujado, para no
+                    // dejar una entrada "fantasma" que luego confunda al gesto de atrás.
+                    if (history.state && history.state.conejoApp) history.back();
+                }, 2000);
+            }
+
+            function showApp() {
+                if (appLoaded) return;
+                appLoaded = true;
+                setTimeout(function() {
+                    loadingOverlay.classList.remove('active');
+                    void appView.offsetWidth;
+                    appView.classList.add('active-view');
+                    setTimeout(function() { closeFab.classList.add('visible'); }, 250);
+                }, 200);
+            }
+
+            function startLoad() {
+                appFrame.onload = function() {
+                    if (appLoaded) return;
+                    var isError = false;
+                    try {
+                        if (appFrame.contentWindow && appFrame.contentWindow.location.href === 'about:blank') isError = true;
+                    } catch (e) { /* origen cruzado: no se puede inspeccionar, se asume correcto */ }
+                    if (isError) { showError(); return; }
+                    showApp();
+                };
+                // [FIX] Gesto nativo de "atrás" en móvil: asignar `appFrame.src`
+                // directamente hace que la navegación del iframe añada SU PROPIA
+                // entrada al historial conjunto (joint session history) del
+                // navegador, por encima de la que acabamos de empujar con
+                // history.pushState() más arriba. El primer gesto de "atrás"
+                // consumía entonces esa entrada del iframe (que queda en blanco)
+                // en vez de la nuestra, y el 'popstate' se disparaba dentro del
+                // iframe, no en la ventana principal, así que teardownApp() nunca
+                // se llamaba y CONEJO no volvía a aparecer.
+                // location.replace() SUSTITUYE la entrada del iframe en vez de
+                // crear una nueva, así que deja de interferir: la primera entrada
+                // que consume el gesto de atrás vuelve a ser la nuestra.
+                // En file:// el acceso a contentWindow puede lanzar una excepción
+                // de origen cruzado; en ese caso se recurre al método anterior
+                // (poco relevante ahí, ya que file:// se usa sobre todo en
+                // escritorio, donde no hay gestos de navegación).
+                try {
+                    appFrame.contentWindow.location.replace(url);
+                } catch (e) {
+                    appFrame.src = url;
+                }
+                // [FIX] Red de seguridad: si la carga real tarda más de lo esperado
+                // (recursos externos pesados, red lenta), se revela la app igualmente
+                // en vez de dejar el loader girando indefinidamente. A diferencia de
+                // antes, esto ya no oculta un error real: ese caso se descarta ANTES,
+                // en la comprobación previa de red (ver más abajo).
+                setTimeout(function() { if (!appLoaded) showApp(); }, 6000);
+            }
+
+            if (/^https?:$/.test(window.location.protocol)) {
+                // [FIX] Comprobación previa por red: fiable solo sobre http/https
+                // (fetch a file:// está bloqueado por el navegador). Así se detecta
+                // un 404 real ANTES de mostrar nada, en vez de confiar en la
+                // heurística de "location === about:blank" del iframe, que en la
+                // práctica casi nunca llegaba a dispararse (ni en GitHub Pages, que
+                // sirve una página 404 con su propia URL, ni en local, donde el
+                // acceso cross-origin lanza una excepción que quedaba silenciada).
+                fetch(url, { method: 'HEAD', cache: 'no-store' })
+                    .then(function(res) { if (res.ok) startLoad(); else showError(); })
+                    .catch(function() { startLoad(); }); // si la comprobación falla (CORS, etc.) no bloqueamos al usuario
+            } else {
+                // Uso local vía file://: fetch a rutas locales está bloqueado por el
+                // navegador, así que no hay forma fiable de precomprobar. Se carga
+                // directamente; el listener onload y el timeout de seguridad de
+                // arriba son la única red de protección en este caso.
+                startLoad();
+            }
+        }
+
+        // Teardown visual real: oculta la app y vuelve a mostrar CONEJO. No toca
+        // el historial; quien la llama decide si hace falta mover el historial.
+        function teardownApp() {
+            closeFab.classList.remove('visible');
+            appView.classList.remove('active-view');
+            // [FIX] Reset total y forzoso de CUALQUIER estado visual que
+            // pudiera haber quedado a medias en una tarjeta (pulsación sin
+            // terminar, tilt de ratón sin limpiar, foco sin soltar...), venga
+            // de donde venga. Se ejecuta siempre al volver, sin intentar
+            // adivinar la causa exacta cada vez. Se hace INSTANTÁNEO (sin la
+            // transition de 0.5s de .liquid-glass) para que no se vea como
+            // una animación de "soltar" la tarjeta, sino un cambio limpio.
+            document.querySelectorAll('.app-card').forEach(function(c) {
+                c.style.transition = 'none';
+                c.classList.remove('pressed');
+                c.style.transform = '';
+                if (document.activeElement === c) c.blur();
+                void c.offsetWidth; // fuerza a aplicar los cambios ya, sin animar
+                c.style.transition = '';
+            });
+            setTimeout(function() {
+                appView.style.display = 'none';
+                // Mismo criterio que en startLoad(): replace() en vez de src
+                // para no dejar entradas de historial sueltas al cerrar.
+                try { appFrame.contentWindow.location.replace('about:blank'); }
+                catch (e) { appFrame.src = 'about:blank'; }
+                currentApp = null;
+                homeView.classList.remove('hidden-view');
+            }, 460);
+        }
+
+        // Cierre "manual" (botón o Escape): si hay un estado de historial de app
+        // abierta (lo normal), retrocedemos; eso dispara 'popstate', que es quien
+        // realmente llama a teardownApp(). Así el botón y el gesto nativo de
+        // "atrás" usan exactamente el mismo camino y el historial queda coherente.
+        function closeApp() {
+            if (history.state && history.state.conejoApp) {
+                history.back();
+            } else {
+                teardownApp();
+            }
+        }
+
+        // [FIX] Gesto nativo de "atrás" en móvil (y botón atrás del navegador en
+        // escritorio): dispara 'popstate' en vez de dejar la página en blanco.
+        window.addEventListener('popstate', function() {
+            if (currentApp) {
+                // Había una app abierta y el usuario acaba de retroceder: cerrarla.
+                teardownApp();
+            }
+        });
+
+        // [MEJORA] Si la URL trae un hash de una app conocida (compartido o
+        // recargado con una app abierta), la abre directamente en vez de
+        // dejarlo como un hash huérfano sin función. Reemplaza el hash por
+        // una entrada limpia antes de abrir, así el historial arranca
+        // coherente en vez de heredar uno posiblemente obsoleto.
+        (function () {
+            var apps = { rubricat: ['rubricat.html', 'Rubricat'], autoemilio: ['autoemilio.html', 'Autoemilio'], programadog: ['programadog.html', 'Programadog'] };
+            var slug = decodeURIComponent(location.hash.slice(1)).toLowerCase();
+            if (apps[slug]) {
+                history.replaceState(null, '', location.pathname + location.search);
+                openApp(apps[slug][0], apps[slug][1]);
+            }
+        })();
+
+
+        closeFab.addEventListener('click', function(e) {
+            e.stopPropagation();
+            closeApp();
+        });
+
+        document.addEventListener('keydown', function(e) { 
+            if (e.key === 'Escape' && currentApp) { closeApp(); } 
+        });
+
+        document.querySelectorAll('.app-card').forEach(function(card) {
+            card.addEventListener('keydown', function(e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); card.click(); } });
+
+            if (isTouchDevice) {
+                // [FIX] Sustituye :active (poco fiable en touch, ver comentario
+                // CSS más arriba) por una clase que añadimos y quitamos
+                // nosotros mismos. touchcancel cubre el caso de que el gesto
+                // se interrumpa a medias; teardownApp() es la red de
+                // seguridad final por si ni touchend ni touchcancel llegan a
+                // procesarse a tiempo.
+                card.addEventListener('touchstart', function() { card.classList.add('pressed'); }, { passive: true });
+                ['touchend', 'touchcancel'].forEach(function(evt) {
+                    card.addEventListener(evt, function() { card.classList.remove('pressed'); }, { passive: true });
+                });
+                return;
+            }
+
+            card.addEventListener('mousemove', function(e) {
+                var r = card.getBoundingClientRect();
+                var rx = ((e.clientY - r.top - r.height / 2) / (r.height / 2)) * -3.5;
+                var ry = ((e.clientX - r.left - r.width / 2) / (r.width / 2)) * 3.5;
+                card.style.transform = 'translateY(-10px) scale(1.02) perspective(800px) rotateX(' + rx + 'deg) rotateY(' + ry + 'deg)';
+            });
+            card.addEventListener('mouseleave', function() { card.style.transform = ''; });
+        });
+
+        /* Lógica del Modal "Acerca de" */
+        var aboutBtn = document.getElementById('aboutBtn');
+        var aboutModal = document.getElementById('aboutModal');
+        var closeModalBtn = document.getElementById('closeModalBtn');
+
+        aboutBtn.addEventListener('click', function() {
+            aboutModal.classList.add('active');
+        });
+        closeModalBtn.addEventListener('click', function() {
+            aboutModal.classList.remove('active');
+        });
+        aboutModal.addEventListener('click', function(e) {
+            if (e.target === aboutModal) {
+                aboutModal.classList.remove('active');
+            }
+        });
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && aboutModal.classList.contains('active')) {
+                aboutModal.classList.remove('active');
+            }
+        });
+
+        /* Contador de visitas */
+        var counterController = new AbortController();
+        var counterTimeout = setTimeout(function() { counterController.abort(); }, 3000);
+
+        fetch('https://api.counterapi.dev/v1/conejo-docentes-2024/visitas/up', { signal: counterController.signal })
+            .then(function(res) { 
+                clearTimeout(counterTimeout);
+                if (!res.ok) throw new Error('Error de API');
+                return res.json();
+            })
+            .then(function(data) { 
+                document.getElementById('counter-number').innerText = data.count;
+            })
+            .catch(function() { 
+                document.getElementById('counter-number').innerText = "algunos"; 
+            });
+    </script>
+</body>
+</html>
