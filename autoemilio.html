@@ -507,6 +507,19 @@ hr { border: none; border-top: 1px solid rgba(255,255,255,0.5); margin: 0.85rem 
 .cj-btn:hover{background:#6d28d9}
 .cj-btn-ghost{background:transparent;color:#6b7280;border:1px solid #d8dae0}
 .cj-btn-ghost:hover{background:#f3f4f6;color:#1a1a2e}
+/* Linea de estado SIEMPRE visible junto a la pastilla de Google (punto 1). */
+.cj-status-line{display:inline-block;font-family:'Outfit',sans-serif;font-size:.72rem;
+  font-weight:600;margin-left:8px;white-space:nowrap;vertical-align:middle}
+.cj-status-line.ok{color:#16a34a}
+.cj-status-line.err{color:#dc2626}
+.cj-status-line.off{color:#d97706}
+/* En barras estrechas (movil) la linea de estado se oculta para no apretar las pestanas;
+   el icono de la pastilla (visto/giro/aspa) ya indica el estado ahi. */
+@media (max-width:900px){ .cj-status-line{display:none} }
+/* Modal de eleccion con botones reales (punto 3): centra el texto y reparte los botones. */
+.cj-modal-choice{max-width:460px;text-align:center}
+.cj-modal-choice .cj-modal-sub{text-align:center}
+.cj-modal-choice .cj-modal-actions{justify-content:center;margin-top:6px}
 
 </style>
 <script>/* Se ejecuta ANTES que la app: anota si este navegador tenia datos.
@@ -3392,6 +3405,8 @@ var CJDrive = (function(){
   var FOLDER_KEY = "cj_drive_folder";       /* compartida por las cuatro apps */
   var SYNC_KEY = "cj_sync_" + APP;
   var MIGRATED_KEY = "cj_migrated_" + APP;
+  var DIRTY_KEY = "cj_dirty_" + APP;   /* "1" si se edito estando DESLOGUEADO (progreso sin subir) */
+  var SEEN_KEY  = "cj_seen_" + APP;    /* "1" si alguna vez se vio Drive CON datos de esta app */
   var KEEP_DAYS = 7;
   var _folderId = null, _liveId = null;
   /* Dia (AAAA-MM-DD) del ultimo guardado del archivo vivo, para saber que fecha ponerle
@@ -3399,6 +3414,13 @@ var CJDrive = (function(){
      funcione igual desde varios dispositivos. */
   var _liveDay = null;
   var _timer = null, _busy = false, _status = "";
+  var _lastSavedAt = 0;   /* momento del ultimo guardado CONFIRMADO en Drive (para "hace X min") */
+  /* CERROJO DE ARRANQUE. Empieza cerrado (false) y solo se abre cuando startupInner ha
+     terminado y ha dejado el estado local coherente con Drive (o ha confirmado que Drive
+     esta genuinamente vacio). Mientras este cerrado, NINGUNA subida automatica (schedule,
+     flushNow al cerrar/segundo plano, guardar-ahora) puede tocar Drive. Es lo que impide
+     que, en un dispositivo nuevo, un guardado local pise lo de Drive antes de cargarlo. */
+  var _ready = false;
   var _state = "idle";   /* idle | saving | saved | error, para el boton de estado */
 
   function busy(){ return _busy; }
@@ -3797,6 +3819,7 @@ var CJDrive = (function(){
     }).then(function(){
       _liveDay = todayStr();
       writeSync(Date.now());
+      _lastSavedAt = Date.now();
       _state = "saved";
       _status = "Guardado a las " + new Date().toLocaleTimeString("es-ES");
       return true;
@@ -3900,43 +3923,40 @@ var CJDrive = (function(){
      aparte por si hiciera falta recuperarlo desde el desplegable del panel. */
   function resolveLocalVsDrive(cand){
     var driveWhen = cand.modifiedTime ? new Date(cand.modifiedTime).toLocaleString("es-ES") : "";
-    var choice = "";
-    try{
-      choice = window.prompt(
-        "Tienes trabajo en ESTE equipo sin guardar en tu cuenta, y en Google Drive hay otra " +
-        "version" + (driveWhen ? (" (" + driveWhen + ")") : "") + ".\n\n" +
-        "Escribe una opcion:\n" +
-        "  D = usar la de DRIVE (recomendado; descarta lo de este equipo)\n" +
-        "  E = usar la de ESTE EQUIPO (se sube a Drive)\n" +
-        "  A = conservar AMBAS (Drive como principal + copia de rescate de lo de este equipo)",
-        "D"
-      );
-    }catch(e){ choice = "D"; }
-    choice = (choice || "").trim().toUpperCase().charAt(0);
+    var ask = (typeof window.cjModalChoice === "function")
+      ? window.cjModalChoice({
+          title: "Tienes trabajo en dos sitios",
+          message: "Hay trabajo en ESTE equipo sin guardar en tu cuenta, y en Google Drive hay otra " +
+                   "version" + (driveWhen ? (" (" + driveWhen + ")") : "") + ". Elige cual conservar:",
+          buttons: [
+            {key:"drive", label:"Usar la de Drive", primary:true},
+            {key:"local", label:"Usar la de este equipo"},
+            {key:"both",  label:"Conservar ambas"}
+          ]
+        })
+      : Promise.resolve(window.confirm("Hay trabajo en este equipo y en Drive.\n\nAceptar = usar Drive\nCancelar = usar este equipo") ? "drive" : "local");
 
-    if(choice === "E"){
-      // Este equipo manda: subir lo local (sobrescribe el archivo vivo de Drive).
-      return push(false).then(function(){
-        CJHooks.notify("Subido el trabajo de este equipo a Drive");
+    return ask.then(function(choice){
+      if(choice === "local"){
+        return push(false).then(function(){ CJHooks.notify("Subido el trabajo de este equipo a Drive"); });
+      }
+      if(choice === "both"){
+        var rescueName = APP + "_rescate-local_" + stampNow() + ".json";
+        var body = JSON.stringify({app:APP, savedAt:Date.now(), rescue:true, data:CJHooks.getData()});
+        return uploadNew(rescueName, body, false).then(function(){
+          return restoreInner(cand.id, true);
+        }).then(function(){
+          CJHooks.notify("Guardada copia de rescate y cargado Drive. Esta en el panel de Drive.");
+        });
+      }
+      // "drive" o cerrar el dialogo: Drive manda.
+      return restoreInner(cand.id, true).then(function(){
+        try{ localStorage.removeItem(DIRTY_KEY); }catch(e){}
+        CJHooks.notify("Cargado tu trabajo desde Google Drive");
       });
-    }
-    if(choice === "A"){
-      // Conservar ambas: primero rescatar lo local como copia aparte, luego cargar Drive.
-      var rescueName = APP + "_rescate-local_" + stampNow() + ".json";
-      var body = JSON.stringify({app:APP, savedAt:Date.now(), rescue:true, data:CJHooks.getData()});
-      return uploadNew(rescueName, body, false).then(function(){
-        return restoreInner(cand.id, true);
-      }).then(function(){
-        CJHooks.notify("Guardada copia de rescate y cargado Drive. La copia local esta en el panel de Drive.");
-      });
-    }
-    // Por defecto (D o cualquier otra cosa): Drive manda.
-    return restoreInner(cand.id, true).then(function(){
-      /* Lo local se descarta a proposito: se limpia la marca para no volver a preguntar. */
-      try{ localStorage.removeItem(DIRTY_KEY); }catch(e){}
-      CJHooks.notify("Cargado tu trabajo desde Google Drive");
     });
   }
+
   /* Sello de fecha-hora para el nombre de la copia de rescate. */
   function stampNow(){
     var d = new Date();
@@ -3946,64 +3966,97 @@ var CJDrive = (function(){
 
   function startupInner(){
     if(!CJAuth.signedIn()) return null;
+    _ready = false;                       // cerrojo cerrado hasta decidir
     _status = "Comprobando Drive…"; CJHooks.repaint();
     return migrate().then(scan).then(function(s){
       var cand = s.live || s.daily[0] || s.legacy[0] || null;
       if(s.live){ _liveId = s.live.id; _liveDay = dayOfISO(s.live.modifiedTime); }
 
-      // (1) Drive NO tiene nada de esta app -> es el unico caso donde sube lo local.
+      var sy = readSync();
+      var syncedHere = !!(sy && sy.hash);      // este navegador ya sincronizo antes con esta cuenta
+      var seenBefore = false, dirty = false;
+      try{ seenBefore = localStorage.getItem(SEEN_KEY) === "1"; }catch(e){}
+      try{ dirty = localStorage.getItem(DIRTY_KEY) === "1"; }catch(e){}
+
+      // Si Drive tiene datos, se recuerda PARA SIEMPRE en este navegador: un "vacio" futuro
+      // se tratara como sospechoso (fallo de lectura), nunca como permiso para sobrescribir.
+      if(cand){ try{ localStorage.setItem(SEEN_KEY, "1"); }catch(e){} seenBefore = true; }
+
+      // ================= CASO A: Drive PARECE vacio =================
+      // Un "vacio" puede ser Drive realmente vacio, PERO tambien un fallo de red, una
+      // carpeta recien duplicada, o la latencia de Google tras autorizar en un movil. Por
+      // eso aqui NUNCA se sube local a la ligera: se subiria encima de datos que si existen.
       if(!cand){
-        _status = "Drive vacio: subiendo lo de este equipo";
-        return push(false);
+        if(seenBefore || syncedHere){
+          // Antes vimos datos aqui, o este navegador ya sincronizo: un vacio es ANOMALO.
+          // No se toca NADA. La proxima lectura probablemente ya devuelva los datos.
+          _state = "error";
+          _status = "Drive no devolvio datos (posible fallo temporal); no se ha subido nada.";
+          CJHooks.notify("No aparecen tus datos de Drive ahora mismo. NO se ha sobrescrito nada. Reintenta en unos segundos.");
+          /* Cerrojo CERRADO a proposito: los datos no se pudieron leer, asi que se prohibe
+             cualquier subida hasta que recargues y Drive responda bien. */
+          return null;
+        }
+        if(dirty){
+          // Dispositivo genuinamente sin estrenar + trabajo hecho sin loguear: primer guardado.
+          _status = "Drive vacio: subiendo el trabajo de este equipo";
+          return push(false).then(function(v){ _ready = true; return v; });
+        }
+        // Sin estrenar y sin trabajo local: nada que subir, nada que arriesgar.
+        _state = "saved"; _status = "Sin datos en Drive todavia";
+        _ready = true;
+        return null;
       }
 
-      var sy = readSync();
-      var syncedHere = !!(sy && sy.hash);     // este navegador ya sincronizo antes con esta cuenta
+      // ================= CASO B: Drive TIENE datos =================
       var localClean = syncedHere && (dataHash() === sy.hash);
       var remoteAt = Date.parse(cand.modifiedTime) || 0;
 
-      // (2) Navegador NUEVO (nunca sincronizo aqui con esta cuenta).
+      // B1) Navegador NUEVO (nunca sincronizo aqui): Drive es la principal, se CARGA. En un
+      //     dispositivo nuevo lo local no sube NUNCA por encima de Drive.
       if(!syncedHere){
-        var dirty = false;
-        try{ dirty = localStorage.getItem(DIRTY_KEY) === "1"; }catch(e){}
-        // (2a) Ademas hay progreso hecho SIN loguearse: no se descarta en silencio ni se
-        //      sobrescribe Drive. Decide el usuario, con opcion de conservar AMBAS.
-        if(dirty){
-          return resolveLocalVsDrive(cand);
-        }
-        // (2b) Sin progreso local: Drive manda, se carga sin preguntar ni subir nada.
+        if(dirty) return resolveLocalVsDrive(cand).then(function(v){ _ready = true; return v; });
         return restoreInner(cand.id, true).then(function(){
+          _ready = true;
           CJHooks.notify("Cargado tu trabajo desde Google Drive");
         });
       }
 
-      // (3) Ya sincronizado aqui y sin cambios locales pendientes: traer Drive si es mas
-      //     nuevo; si no, ya estamos al dia (no se sube nada innecesario).
+      // B2) Sincronizado aqui y sin cambios locales: traer Drive si es mas nuevo; si no, al dia.
       if(localClean){
         if(remoteAt > sy.at + 1000){
           return restoreInner(cand.id, true).then(function(){
+            _ready = true;
             CJHooks.notify("Cargado lo ultimo guardado en Drive");
           });
         }
         _state = "saved"; _status = "Al dia con Drive";
+        _ready = true;
         return null;
       }
 
-      // (4) Hay cambios locales sin sincronizar Y ademas Drive es mas nuevo (otro
-      //     dispositivo lo toco entretanto): conflicto real, decide el usuario.
+      // B3) Cambios locales sin sincronizar Y Drive es mas nuevo (lo tocaste desde otro sitio):
+      //     conflicto real, decide el usuario.
       if(remoteAt > sy.at + 1000){
         var when = new Date(remoteAt).toLocaleString("es-ES");
-        if(confirm("En Google Drive hay una version mas reciente (" + when + ") y en este " +
-                   "navegador hay cambios sin sincronizar.\n\n" +
-                   "Aceptar = usar la de Drive (se descartan los cambios de este equipo)\n" +
-                   "Cancelar = conservar los de este equipo y subirlos a Drive")){
-          return restoreInner(cand.id, true);
-        }
-        return push(false);
+        var ask = (typeof window.cjModalChoice === "function")
+          ? window.cjModalChoice({
+              title: "Hay una version mas reciente en Drive",
+              message: "En Google Drive hay una version mas reciente (" + when + ") y en este " +
+                       "navegador tienes cambios sin sincronizar. Elige cual conservar:",
+              buttons: [
+                {key:"drive", label:"Usar la de Drive", primary:true},
+                {key:"local", label:"Conservar los de este equipo"}
+              ]
+            })
+          : Promise.resolve(window.confirm("En Drive hay una version mas reciente.\n\nAceptar = usar Drive\nCancelar = usar este equipo") ? "drive" : "local");
+        return ask.then(function(choice){
+          return (choice === "local") ? push(false) : restoreInner(cand.id, true);
+        }).then(function(v){ _ready = true; return v; });
       }
 
-      // (5) Cambios locales y Drive NO es mas nuevo: este equipo va por delante, se sube.
-      return push(false);
+      // B4) Cambios locales y Drive NO es mas nuevo: este equipo va por delante, se sube.
+      return push(false).then(function(v){ _ready = true; return v; });
     });
   }
 
@@ -4013,6 +4066,7 @@ var CJDrive = (function(){
      4 segundos. No crea copias fechadas: esas las genera el cambio de dia. */
   function saveNowInner(){
     if(!CJAuth.signedIn()) return null;
+    if(!_ready){ CJHooks.notify("Espera un momento: aun estoy comprobando Drive…"); return null; }
     return push(false).then(function(){
       CJHooks.notify("Guardado en Drive");
     });
@@ -4024,34 +4078,137 @@ var CJDrive = (function(){
     if(!CJAuth.signedIn()) return;
     clearTimeout(_timer);
     _timer = setTimeout(function(){
-      if(_busy){ schedule(); return; }   /* ocupado: se reintenta en 4 s */
+      /* Si el arranque aun no ha decidido (cerrojo cerrado) o hay algo en curso, NO se sube:
+         se espera y se reintenta. Asi un guardado local nunca adelanta a la carga de Drive. */
+      if(_busy || !_ready){ schedule(); return; }
       run(function(){ return push(false); });
     }, 4000);
   }
   function flushNow(){
     if(!CJAuth.signedIn()) return;
+    /* CLAVE: al cerrar la pestana o pasar a segundo plano (visibilitychange), si el arranque
+       todavia no ha cargado Drive (cerrojo cerrado), NO se sube nada. Antes esto subia el
+       estado local aunque no se hubiera cargado Drive: es lo que borraba Drive en el movil
+       al minimizar la app nada mas abrirla. */
+    if(!_ready) return;
     clearTimeout(_timer);
     push(true).catch(function(){});
   }
 
+  /* True si lo que hay en este navegador aun no esta subido a Drive (hash local != hash
+     de la ultima sincronizacion, o progreso hecho sin loguear). Sirve para el aviso al salir. */
+  function hasUnsyncedChanges(){
+    try{
+      if(localStorage.getItem(DIRTY_KEY) === "1") return true;
+      var sy = readSync();
+      if(!sy || !sy.hash) return false;   // nunca sincronizo aqui: no afirmamos nada
+      return dataHash() !== sy.hash;
+    }catch(e){ return false; }
+  }
+  function lastSaved(){ return _lastSavedAt; }
+  /* Descarga el estado actual como fichero JSON en el ordenador del usuario. Copia de
+     seguridad "de mano", independiente de Google. */
+  function exportLocal(){
+    try{
+      var payload = {app:APP, exportedAt:new Date().toISOString(), data:CJHooks.getData()};
+      var blob = new Blob([JSON.stringify(payload, null, 2)], {type:"application/json"});
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url;
+      a.download = APP + "_copia_" + stampNow() + ".json";
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+      CJHooks.notify("Copia descargada a tu ordenador");
+    }catch(e){ CJHooks.notify("No se pudo exportar: " + (e.message||e)); }
+  }
   return {startup:function(){ return run(startupInner); },
           saveNowManual:function(){ return run(saveNowInner); },
           restore:function(id, silent){ return run(function(){ return restoreInner(id, silent); }); },
           schedule:schedule, flushNow:flushNow,
           listForPanel:function(){ return retry1(listForPanel); },
-          busy:busy, status:status, state:state,
+          busy:busy, status:status, state:state, lastSaved:lastSaved, lock:function(){ _ready=false; },
+          hasUnsyncedChanges:hasUnsyncedChanges, exportLocal:exportLocal,
           prettyName:prettyName, folderLink:folderLink, keepDays:keepDays};
 })();
 
-window.addEventListener("beforeunload", function(){ try{ CJDrive.flushNow(); }catch(e){} });
+window.addEventListener("beforeunload", function(ev){
+  try{
+    CJDrive.flushNow();
+    if(CJAuth.signedIn() && CJDrive.hasUnsyncedChanges()){
+      ev.preventDefault(); ev.returnValue = "Tienes cambios que quiza no se han guardado en Google Drive.";
+      return ev.returnValue;
+    }
+  }catch(e){}
+});
 document.addEventListener("visibilitychange", function(){
   if(document.visibilityState === "hidden"){ try{ CJDrive.flushNow(); }catch(e){} }
 });
 
+window.cjModalChoice = function(opts){
+  return new Promise(function(resolve){
+    var back = document.createElement("div");
+    back.className = "cj-modal-back";
+    var btns = (opts.buttons || []).map(function(b){
+      return '<button type="button" class="cj-btn' + (b.primary ? '' : ' cj-btn-ghost') +
+             '" data-k="' + b.key + '">' + b.label + '</button>';
+    }).join("");
+    back.innerHTML =
+      '<div class="cj-modal cj-modal-choice">' +
+        '<h3>' + (opts.title || "") + '</h3>' +
+        '<p class="cj-modal-sub">' + (opts.message || "") + '</p>' +
+        '<div class="cj-modal-actions">' + btns + '</div>' +
+      '</div>';
+    document.body.appendChild(back);
+    var done = false;
+    function finish(k){ if(done) return; done = true; back.remove(); resolve(k); }
+    back.addEventListener("click", function(e){
+      var b = e.target.closest("[data-k]");
+      if(b){ finish(b.getAttribute("data-k")); return; }
+      if(e.target === back) finish("");
+    });
+  });
+};
+
 /* ---------------- panel de Drive ---------------- */
+function cjRelTime(ts){
+  if(!ts) return "";
+  var secs = Math.round((Date.now() - ts) / 1000);
+  if(secs < 10) return "ahora mismo";
+  if(secs < 60) return "hace " + secs + " s";
+  var mins = Math.round(secs/60);
+  if(mins < 60) return "hace " + mins + " min";
+  var hrs = Math.round(mins/60);
+  if(hrs < 24) return "hace " + hrs + " h";
+  return "hace " + Math.round(hrs/24) + " d";
+}
 function cjPaintAuth(){
   CJAuth.renderPill("cjAuthSlot", {state: CJDrive.state(), status: CJDrive.status(),
                                    onManage: cjOpenDrivePanel});
+  cjPaintStatusLine();
+}
+function cjPaintStatusLine(){
+  var slot = document.getElementById("cjAuthSlot");
+  if(!slot) return;
+  var line = document.getElementById("cjStatusLine");
+  if(!line){
+    line = document.createElement("span");
+    line.id = "cjStatusLine"; line.className = "cj-status-line";
+    if(slot.parentNode) slot.parentNode.insertBefore(line, slot.nextSibling);
+  }
+  if(!CJAuth.signedIn()){ line.textContent = ""; line.className = "cj-status-line"; return; }
+  var st = CJDrive.state();
+  var offline = (typeof navigator !== "undefined" && navigator.onLine === false);
+  if(offline){ line.textContent = "Sin conexion (guardado solo aqui)"; line.className = "cj-status-line off"; return; }
+  if(st === "saving"){ line.textContent = "Guardando…"; line.className = "cj-status-line"; return; }
+  if(st === "error"){ line.textContent = "Sin guardar en Drive"; line.className = "cj-status-line err"; return; }
+  var t = CJDrive.lastSaved();
+  line.textContent = t ? ("Guardado en Drive " + cjRelTime(t)) : "Conectado";
+  line.className = "cj-status-line ok";
+}
+setInterval(function(){ try{ cjPaintStatusLine(); }catch(e){} }, 20000);
+if(typeof window !== "undefined"){
+  window.addEventListener("online",  function(){ try{ cjPaintStatusLine(); }catch(e){} });
+  window.addEventListener("offline", function(){ try{ cjPaintStatusLine(); }catch(e){} });
 }
 function cjOpenDrivePanel(){
   var a = CJAuth.read() || {};
@@ -4086,6 +4243,7 @@ function cjOpenDrivePanel(){
       '<div class="cj-modal-actions">' +
         '<button type="button" class="cj-btn" data-a="load">Cargar seleccionada</button>' +
         '<button type="button" class="cj-btn cj-btn-ghost" data-a="save">Guardar ahora</button>' +
+        '<button type="button" class="cj-btn cj-btn-ghost" data-a="export">Exportar copia a mi ordenador</button>' +
       '</div>' +
     '</div>';
   document.body.appendChild(back);
@@ -4122,12 +4280,17 @@ function cjOpenDrivePanel(){
       back.remove(); CJDrive.restore(id, false);
       return;
     }
+    if(act === "export"){ CJDrive.exportLocal(); return; }   /* no cierra el panel */
     back.remove();
     if(act === "save") CJDrive.saveNowManual();
     else if(act === "out") CJAuth.signOut();
   });
 }
-CJAuth.onChange(function(){ cjPaintAuth(); if(CJAuth.signedIn()) CJDrive.startup(); });
+CJAuth.onChange(function(){
+  cjPaintAuth();
+  if(CJAuth.signedIn()) CJDrive.startup();
+  else { try{ CJDrive.lock(); }catch(e){} }   /* sin sesion: cerrojo cerrado */
+});
 cjPaintAuth();
 setTimeout(function(){
   cjPaintAuth();
