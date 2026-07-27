@@ -454,6 +454,19 @@
 .cj-btn:hover{background:#6d28d9}
 .cj-btn-ghost{background:transparent;color:#6b7280;border:1px solid #d8dae0}
 .cj-btn-ghost:hover{background:#f3f4f6;color:#1a1a2e}
+/* Linea de estado SIEMPRE visible junto a la pastilla de Google (punto 1). */
+.cj-status-line{display:inline-block;font-family:'Outfit',sans-serif;font-size:.72rem;
+  font-weight:600;margin-left:8px;white-space:nowrap;vertical-align:middle}
+.cj-status-line.ok{color:#16a34a}
+.cj-status-line.err{color:#dc2626}
+.cj-status-line.off{color:#d97706}
+/* En barras estrechas (movil) la linea de estado se oculta para no apretar las pestanas;
+   el icono de la pastilla (visto/giro/aspa) ya indica el estado ahi. */
+@media (max-width:900px){ .cj-status-line{display:none} }
+/* Modal de eleccion con botones reales (punto 3): centra el texto y reparte los botones. */
+.cj-modal-choice{max-width:460px;text-align:center}
+.cj-modal-choice .cj-modal-sub{text-align:center}
+.cj-modal-choice .cj-modal-actions{justify-content:center;margin-top:6px}
 
 /* ESCRITORIO: "Acerca de" y el boton de Google comparten una fila centrada, Google
    primero (order:-1). No se toca en esta pasada: ya confirmado por captura de pantalla. */
