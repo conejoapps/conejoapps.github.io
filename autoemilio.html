@@ -3403,10 +3403,8 @@ var CJDrive = (function(){
   var RESCUE_RE = new RegExp("^" + APP + "_rescate-local_");
   var FOLDER_NAME = "CONEJO";
   var FOLDER_KEY = "cj_drive_folder";       /* compartida por las cuatro apps */
-  var SYNC_KEY = "cj_sync_" + APP;
-  var MIGRATED_KEY = "cj_migrated_" + APP;
-  var DIRTY_KEY = "cj_dirty_" + APP;   /* "1" si se edito estando DESLOGUEADO (progreso sin subir) */
-  var SEEN_KEY  = "cj_seen_" + APP;    /* "1" si alguna vez se vio Drive CON datos de esta app */
+  /* Todo el estado local de esta app en UNA sola clave (ver readState/writeState). */
+  var STATE_KEY = "cj_state_" + APP;
   var KEEP_DAYS = 7;
   var _folderId = null, _liveId = null;
   /* Dia (AAAA-MM-DD) del ultimo guardado del archivo vivo, para saber que fecha ponerle
@@ -3414,18 +3412,21 @@ var CJDrive = (function(){
      funcione igual desde varios dispositivos. */
   var _liveDay = null;
   var _timer = null, _busy = false, _status = "";
-  var _lastSavedAt = 0;   /* momento del ultimo guardado CONFIRMADO en Drive (para "hace X min") */
+  /* La hora del ultimo guardado se lee del registro, asi sobrevive a recargas. */
   /* CERROJO DE ARRANQUE. Empieza cerrado (false) y solo se abre cuando startupInner ha
      terminado y ha dejado el estado local coherente con Drive (o ha confirmado que Drive
      esta genuinamente vacio). Mientras este cerrado, NINGUNA subida automatica (schedule,
      flushNow al cerrar/segundo plano, guardar-ahora) puede tocar Drive. Es lo que impide
      que, en un dispositivo nuevo, un guardado local pise lo de Drive antes de cargarlo. */
   var _ready = false;
+  var _editedBeforeReady = false;  /* hubo ediciones antes de que el cerrojo se abriera */
+  var _retries = 0;
   var _state = "idle";   /* idle | saving | saved | error, para el boton de estado */
 
   function busy(){ return _busy; }
   function status(){ return _status; }
   function state(){ return _state; }
+  function lastSaved(){ return readState().lastSave || 0; }
   function keepDays(){ return KEEP_DAYS; }
   function folderId(){ return _folderId || localStorage.getItem(FOLDER_KEY) || null; }
   function folderLink(){
@@ -3461,15 +3462,61 @@ var CJDrive = (function(){
   function dataHash(){
     try{ return hashStr(JSON.stringify(CJHooks.getData())); }catch(e){ return ""; }
   }
-  function readSync(){
-    try{ return JSON.parse(localStorage.getItem(SYNC_KEY) || "null") || {at:0, hash:""}; }
-    catch(e){ return {at:0, hash:""}; }
+
+  /* ---------------------------------------------------------------------------
+     UN SOLO REGISTRO de estado por app en el navegador (antes habia 5 claves
+     independientes: sync, dirty, seen, migrated y lastsave). Tenerlas separadas fue
+     justo la causa de un fallo real: al reescribir una parte, la marca "dirty" se
+     quedo sin escribirse en ningun sitio y el rescate de trabajo offline dejo de
+     funcionar en silencio. Con un unico objeto se escribe todo de una vez y es
+     imposible que unas marcas queden desfasadas respecto a otras.
+
+       at       : cuando se sincronizo por ultima vez con Drive
+       hash     : huella del contenido en esa sincronizacion (para saber si hay cambios)
+       dirty    : hay progreso local que Drive no conoce (editado sin sesion)
+       seen     : alguna vez se vieron datos de esta app en Drive (un "vacio" posterior
+                  se trata como fallo temporal, no como permiso para sobrescribir)
+       lastSave : hora del ultimo guardado confirmado (para "guardado hace X min")
+     --------------------------------------------------------------------------- */
+  var _st = null;
+  function readState(){
+    if(_st) return _st;
+    try{ _st = JSON.parse(localStorage.getItem(STATE_KEY) || "null"); }catch(e){}
+    if(!_st || typeof _st !== "object"){
+      /* Conversion unica desde las claves antiguas, para no perder el estado de
+         sincronizacion de quien ya venia usando la app (si se perdiera, la proxima
+         apertura se veria como "navegador nuevo": seguro, pero preguntaria sin motivo). */
+      var old = {at:0, hash:"", dirty:false, seen:false, lastSave:0};
+      try{
+        var os = JSON.parse(localStorage.getItem("cj_sync_" + APP) || "null");
+        if(os && typeof os === "object"){ old.at = os.at || 0; old.hash = os.hash || ""; }
+        if(localStorage.getItem("cj_dirty_" + APP) === "1") old.dirty = true;
+        if(localStorage.getItem("cj_seen_" + APP) === "1") old.seen = true;
+        old.lastSave = parseInt(localStorage.getItem("cj_lastsave_" + APP) || "0", 10) || 0;
+      }catch(e){}
+      _st = old;
+      try{ localStorage.setItem(STATE_KEY, JSON.stringify(_st)); }catch(e){}
+      /* Se limpian las antiguas para no dejar restos que confundan mas adelante. */
+      try{
+        ["cj_sync_", "cj_dirty_", "cj_seen_", "cj_lastsave_", "cj_migrated_"].forEach(function(p){
+          localStorage.removeItem(p + APP);
+        });
+      }catch(e){}
+    }
+    return _st;
   }
+  function writeState(patch){
+    var st = readState();
+    for(var k in patch){ if(Object.prototype.hasOwnProperty.call(patch, k)) st[k] = patch[k]; }
+    _st = st;
+    try{ localStorage.setItem(STATE_KEY, JSON.stringify(st)); }catch(e){}
+    return st;
+  }
+
+  function readSync(){ var st = readState(); return {at: st.at || 0, hash: st.hash || ""}; }
+  /* Sincronizado: se apunta la hora y la huella, y deja de haber progreso "suelto". */
   function writeSync(at){
-    try{
-      localStorage.setItem(SYNC_KEY, JSON.stringify({at:at, hash:dataHash()}));
-      localStorage.removeItem(DIRTY_KEY);   /* ya sincronizado: deja de ser progreso "suelto" */
-    }catch(e){}
+    writeState({at: at, hash: dataHash(), dirty: false, lastSave: at});
   }
 
   function headers(){
@@ -3818,8 +3865,7 @@ var CJDrive = (function(){
       return archivePreviousDay().then(function(){ return overwrite(id, bodyStr, false); });
     }).then(function(){
       _liveDay = todayStr();
-      writeSync(Date.now());
-      _lastSavedAt = Date.now();
+      writeSync(Date.now());   /* apunta hora, huella y limpia "dirty" de una vez */
       _state = "saved";
       _status = "Guardado a las " + new Date().toLocaleTimeString("es-ES");
       return true;
@@ -3847,53 +3893,17 @@ var CJDrive = (function(){
     });
   }
 
-  /* Trae de la carpeta oculta antigua lo que hubiera y lo reescribe aqui. Una sola vez
-     por app. Google no permite mover archivos entre appDataFolder y Mi unidad, asi que
-     hay que descargarlos y volverlos a subir. No se aplica retencion en la migracion. */
-  function migrate(){
-    if(localStorage.getItem(MIGRATED_KEY)) return Promise.resolve(0);
-    var h = headers(); if(!h) return Promise.resolve(0);
-    /* En la carpeta oculta antigua los backups se llamaban "<app>_backup_...": ese prefijo
-       es APP + "_backup_". (Antes se usaba una variable PREFIX que se elimino al pasar a la
-       rotacion diaria; por eso saltaba "PREFIX is not defined" nada mas loguear.) */
-    var q = encodeURIComponent("name contains '" + APP + "_backup_' and trashed=false");
-    return fetch(API + "/files?spaces=appDataFolder&pageSize=100&fields=files(id,name)&q=" + q,
-                 {headers:h})
-      .then(check).then(function(r){ return r.json(); })
-      .then(function(j){
-        var old = j.files || [];
-        if(!old.length){
-          try{ localStorage.setItem(MIGRATED_KEY, "1"); }catch(e){}
-          return 0;
-        }
-        _status = "Migrando " + old.length + " copia(s) a la carpeta visible…";
-        CJHooks.repaint();
-        var done = 0;
-        return old.reduce(function(chain, f){
-          return chain.then(function(){
-            return download(f.id)
-              .then(function(c){ return uploadNew(f.name, JSON.stringify(c), false); })
-              .then(function(){ done++; })
-              .catch(function(e){ console.warn("No se pudo migrar " + f.name, e); });
-          });
-        }, Promise.resolve()).then(function(){
-          try{ localStorage.setItem(MIGRATED_KEY, "1"); }catch(e){}
-          if(done) CJHooks.notify("Migradas " + done + " copia(s) a la carpeta CONEJO");
-          return done;
-        });
-      })
-      .catch(function(e){
-        /* Si falla (p.ej. permiso appdata no concedido) no se marca como hecha, para
-           reintentarlo. No es motivo para bloquear nada. */
-        console.warn("Migracion no realizada:", e);
-        return 0;
-      });
-  }
-
 
   /* Las funciones *Inner no tocan el indicador de "ocupado": lo gestiona run() en el
      nivel publico, garantizando que se libera siempre. */
-  function restoreInner(id, silent){
+  /* opts.writeBack:
+       false -> lo descargado YA es el archivo vivo (arranque normal): no se vuelve a subir.
+                Antes se subia siempre una copia identica: una peticion de mas, una version
+                nueva en Drive y un modifiedTime falseado en cada apertura.
+       true  -> se ha cargado una version ANTIGUA (copia diaria o rescate elegidos por el
+                usuario): hay que escribirla en el archivo vivo para que quede como actual. */
+  function restoreInner(id, silent, opts){
+    var writeBack = !!(opts && opts.writeBack);
     return download(id).then(function(remote){
       var d = (remote && remote.data !== undefined) ? remote.data : remote;
       CJHooks.applyData(d);
@@ -3901,7 +3911,7 @@ var CJDrive = (function(){
       _state = "saved";
       _status = "Cargado desde Drive";
       if(!silent) CJHooks.notify("Datos cargados desde Drive");
-      /* El archivo vivo pasa a contener lo restaurado; la copia diaria usada no se toca. */
+      if(!writeBack) return true;
       return push(false).catch(function(){});
     });
   }
@@ -3921,6 +3931,22 @@ var CJDrive = (function(){
      carga Drive, de modo que no se pierde ninguna de las dos versiones. Google sigue
      siendo la principal: el archivo vivo queda con lo de Drive; lo local queda archivado
      aparte por si hiciera falta recuperarlo desde el desplegable del panel. */
+  /* Si el usuario escribio algo en los segundos previos a que Drive terminara de cargar,
+     esas ediciones estan a punto de ser sustituidas. Se suben como copia de rescate (queda
+     en el desplegable del panel) para no perderlas. Drive sigue mandando: el archivo vivo
+     se queda con la version de Drive. */
+  function rescueIfEdited(){
+    if(!_editedBeforeReady) return Promise.resolve();
+    _editedBeforeReady = false;
+    var name = APP + "_rescate-local_" + stampNow() + ".json";
+    var body = JSON.stringify({app:APP, savedAt:Date.now(), rescue:true, data:CJHooks.getData()});
+    return uploadNew(name, body, false).then(function(){
+      CJHooks.notify("Se guardo una copia de rescate de lo que escribiste antes de cargar Drive.");
+    }).catch(function(e){
+      console.warn("No se pudo guardar la copia de rescate:", e);
+    });
+  }
+
   function resolveLocalVsDrive(cand){
     var driveWhen = cand.modifiedTime ? new Date(cand.modifiedTime).toLocaleString("es-ES") : "";
     var ask = (typeof window.cjModalChoice === "function")
@@ -3951,7 +3977,7 @@ var CJDrive = (function(){
       }
       // "drive" o cerrar el dialogo: Drive manda.
       return restoreInner(cand.id, true).then(function(){
-        try{ localStorage.removeItem(DIRTY_KEY); }catch(e){}
+        writeState({dirty:false});
         CJHooks.notify("Cargado tu trabajo desde Google Drive");
       });
     });
@@ -3968,19 +3994,18 @@ var CJDrive = (function(){
     if(!CJAuth.signedIn()) return null;
     _ready = false;                       // cerrojo cerrado hasta decidir
     _status = "Comprobando Drive…"; CJHooks.repaint();
-    return migrate().then(scan).then(function(s){
+    return scan().then(function(s){
       var cand = s.live || s.daily[0] || s.legacy[0] || null;
       if(s.live){ _liveId = s.live.id; _liveDay = dayOfISO(s.live.modifiedTime); }
 
       var sy = readSync();
       var syncedHere = !!(sy && sy.hash);      // este navegador ya sincronizo antes con esta cuenta
-      var seenBefore = false, dirty = false;
-      try{ seenBefore = localStorage.getItem(SEEN_KEY) === "1"; }catch(e){}
-      try{ dirty = localStorage.getItem(DIRTY_KEY) === "1"; }catch(e){}
+      var st0 = readState();
+      var seenBefore = !!st0.seen, dirty = !!st0.dirty;
 
       // Si Drive tiene datos, se recuerda PARA SIEMPRE en este navegador: un "vacio" futuro
       // se tratara como sospechoso (fallo de lectura), nunca como permiso para sobrescribir.
-      if(cand){ try{ localStorage.setItem(SEEN_KEY, "1"); }catch(e){} seenBefore = true; }
+      if(cand && !seenBefore){ writeState({seen:true}); seenBefore = true; }
 
       // ================= CASO A: Drive PARECE vacio =================
       // Un "vacio" puede ser Drive realmente vacio, PERO tambien un fallo de red, una
@@ -4016,7 +4041,9 @@ var CJDrive = (function(){
       //     dispositivo nuevo lo local no sube NUNCA por encima de Drive.
       if(!syncedHere){
         if(dirty) return resolveLocalVsDrive(cand).then(function(v){ _ready = true; return v; });
-        return restoreInner(cand.id, true).then(function(){
+        return rescueIfEdited().then(function(){
+          return restoreInner(cand.id, true);
+        }).then(function(){
           _ready = true;
           CJHooks.notify("Cargado tu trabajo desde Google Drive");
         });
@@ -4025,7 +4052,9 @@ var CJDrive = (function(){
       // B2) Sincronizado aqui y sin cambios locales: traer Drive si es mas nuevo; si no, al dia.
       if(localClean){
         if(remoteAt > sy.at + 1000){
-          return restoreInner(cand.id, true).then(function(){
+          return rescueIfEdited().then(function(){
+            return restoreInner(cand.id, true);
+          }).then(function(){
             _ready = true;
             CJHooks.notify("Cargado lo ultimo guardado en Drive");
           });
@@ -4075,14 +4104,31 @@ var CJDrive = (function(){
   /* Subida diferida. Los errores SI se avisan (antes se tragaban y parecia que no pasaba
      nada). */
   function schedule(){
-    if(!CJAuth.signedIn()) return;
+    /* SIN sesion: se marca que este navegador tiene progreso que Drive no conoce. Es lo que
+       permite, al loguearse mas tarde, ofrecer el rescate en vez de descartarlo en silencio.
+       (Esta linea se perdio al introducir el cerrojo y dejo muerto todo el rescate offline.) */
+    if(!CJAuth.signedIn()){
+      writeState({dirty:true});
+      return;
+    }
+    /* CON sesion pero con el cerrojo aun cerrado: son ediciones que estan compitiendo con la
+       carga de Drive. Se anotan en memoria para poder rescatarlas antes de que Drive las pise. */
+    if(!_ready) _editedBeforeReady = true;
+
     clearTimeout(_timer);
-    _timer = setTimeout(function(){
-      /* Si el arranque aun no ha decidido (cerrojo cerrado) o hay algo en curso, NO se sube:
-         se espera y se reintenta. Asi un guardado local nunca adelanta a la carga de Drive. */
-      if(_busy || !_ready){ schedule(); return; }
-      run(function(){ return push(false); });
-    }, 4000);
+    _retries = 0;
+    _timer = setTimeout(tick, 4000);
+  }
+  /* Reintento acotado: si el cerrojo sigue cerrado (p.ej. Drive no respondio), no se
+     reintenta indefinidamente cada 4 s gastando bateria; se para y lo resolvera el
+     siguiente arranque. */
+  function tick(){
+    if(_busy || !_ready){
+      if(_retries++ < 15){ _timer = setTimeout(tick, 4000); }
+      else { _status = "Cambios pendientes de subir; se subiran al recargar"; CJHooks.repaint(); }
+      return;
+    }
+    run(function(){ return push(false); });
   }
   function flushNow(){
     if(!CJAuth.signedIn()) return;
@@ -4099,13 +4145,12 @@ var CJDrive = (function(){
      de la ultima sincronizacion, o progreso hecho sin loguear). Sirve para el aviso al salir. */
   function hasUnsyncedChanges(){
     try{
-      if(localStorage.getItem(DIRTY_KEY) === "1") return true;
-      var sy = readSync();
-      if(!sy || !sy.hash) return false;   // nunca sincronizo aqui: no afirmamos nada
-      return dataHash() !== sy.hash;
+      var st = readState();
+      if(st.dirty) return true;
+      if(!st.hash) return false;          // nunca sincronizo aqui: no afirmamos nada
+      return dataHash() !== st.hash;
     }catch(e){ return false; }
   }
-  function lastSaved(){ return _lastSavedAt; }
   /* Descarga el estado actual como fichero JSON en el ordenador del usuario. Copia de
      seguridad "de mano", independiente de Google. */
   function exportLocal(){
@@ -4123,7 +4168,7 @@ var CJDrive = (function(){
   }
   return {startup:function(){ return run(startupInner); },
           saveNowManual:function(){ return run(saveNowInner); },
-          restore:function(id, silent){ return run(function(){ return restoreInner(id, silent); }); },
+          restore:function(id, silent){ return run(function(){ return restoreInner(id, silent, {writeBack:true}); }); },
           schedule:schedule, flushNow:flushNow,
           listForPanel:function(){ return retry1(listForPanel); },
           busy:busy, status:status, state:state, lastSaved:lastSaved, lock:function(){ _ready=false; },
