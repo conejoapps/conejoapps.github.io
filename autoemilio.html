@@ -515,6 +515,27 @@ hr { border: none; border-top: 1px solid rgba(255,255,255,0.5); margin: 0.85rem 
 .cj-modal-choice .cj-modal-sub{text-align:center}
 .cj-modal-choice .cj-modal-actions{justify-content:center;margin-top:6px}
 
+
+/* Menu "3 puntos" al final de la pildora: guarda export/import (y Excel en rubricat),
+   igual que en programadog, para no ocupar sitio en los paneles. */
+.cj-more-wrap{position:relative;flex-shrink:0;display:flex;align-items:center}
+.cj-more-btn{width:34px;height:34px;border:none;background:transparent;border-radius:9px;
+  cursor:pointer;display:inline-flex;align-items:center;justify-content:center;color:#5f6368}
+.cj-more-btn:hover{background:rgba(0,0,0,.06)}
+.cj-more-menu{display:none;position:fixed;background:#fff;
+  border-radius:14px;box-shadow:0 12px 30px rgba(0,0,0,.28);padding:6px;min-width:215px;
+  max-width:calc(100vw - 20px);z-index:100000;flex-direction:column;gap:2px}
+.cj-more-menu.open{display:flex}
+.cj-more-menu button,.cj-more-menu label{display:flex;align-items:center;gap:10px;width:100%;
+  text-align:left;border:none;background:transparent;padding:10px 12px;border-radius:9px;
+  font-family:'Outfit',sans-serif;font-size:.82rem;font-weight:600;color:#1a1a2e;cursor:pointer;
+  box-sizing:border-box;margin:0}
+.cj-more-menu button:hover,.cj-more-menu label:hover{background:rgba(124,58,237,.08)}
+.cj-more-sep{height:1px;background:rgba(124,58,237,.12);margin:4px 2px}
+.cj-more-lbl{font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;
+  color:#9aa0a6;padding:7px 12px 2px}
+.cj-more-menu select{width:100%;font-family:'Outfit',sans-serif;font-size:.8rem;padding:7px 8px;
+  border-radius:8px;border:1px solid #d8dae0;margin:0 0 4px;box-sizing:border-box}
 </style>
 <script>/* Se ejecuta ANTES que la app: anota si este navegador tenia datos.
    Si no los tenia, al sincronizar se puede cargar Drive sin preguntar. */
@@ -569,6 +590,7 @@ try{window.__cjBootEmpty=!localStorage.getItem("automail_v4");}catch(e){window._
         <span>Correos</span>
       </button>
     </nav>
+        <div class="cj-more-wrap"><button type="button" class="cj-more-btn" title="Mas opciones" aria-label="Mas opciones" onclick="cjToggleMore()"><svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="3" r="1.5"/><circle cx="8" cy="8" r="1.5"/><circle cx="8" cy="13" r="1.5"/></svg></button><div class="cj-more-menu" id="cjMoreMenu"><button type="button" onclick="exportData(); cjCloseMore()">Exportar copia (JSON)</button><input type="file" id="import-file-input" accept=".json" style="display:none" onchange="importData(event)"><button type="button" onclick="document.getElementById('import-file-input').click(); cjCloseMore()">Importar copia (JSON)</button></div></div>
     </div>
   </div>
 </header>
@@ -684,17 +706,6 @@ try{window.__cjBootEmpty=!localStorage.getItem("automail_v4");}catch(e){window._
           </div>
         </div>
 
-        <div style="display:flex;gap:8px">
-          <button class="btn btn-sm" onclick="exportData()" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;height:36px">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            Exportar copia
-          </button>
-          <input type="file" id="import-file-input" accept=".json" style="display:none" onchange="importData(event)">
-          <button class="btn btn-sm" onclick="document.getElementById('import-file-input').click()" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;height:36px">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-            Importar copia
-          </button>
-        </div>
       </div>
 
       <!-- INNER: PLANTILLAS -->
@@ -3164,6 +3175,33 @@ updateTopbarSub();
 showPage('general');
 showInnerTab('config');
 
+/* Menu de 3 puntos (export/import). Compartido; se cierra al pulsar fuera. */
+function cjPositionMore(){
+  var m=document.getElementById('cjMoreMenu');
+  var btn=document.querySelector('.cj-more-btn');
+  if(!m||!btn) return;
+  var r=btn.getBoundingClientRect();
+  m.style.top=(r.bottom+8)+'px';
+  /* Alineado a la derecha del boton, sin salirse por la izquierda de la pantalla. */
+  var w=m.offsetWidth||215;
+  var left=Math.max(10, r.right-w);
+  m.style.left=left+'px';
+}
+function cjToggleMore(){
+  var m=document.getElementById('cjMoreMenu'); if(!m) return;
+  var opening=!m.classList.contains('open');
+  m.classList.toggle('open');
+  if(opening) cjPositionMore();
+}
+function cjCloseMore(){ var m=document.getElementById('cjMoreMenu'); if(m) m.classList.remove('open'); }
+document.addEventListener('click', function(e){
+  var w = e.target.closest && e.target.closest('.cj-more-wrap');
+  if(!w && !(e.target.closest && e.target.closest('.cj-more-menu'))) cjCloseMore();
+});
+/* Si cambia el tamano o se hace scroll con el menu abierto, se recoloca (o se cierra). */
+window.addEventListener('resize', function(){ var m=document.getElementById('cjMoreMenu'); if(m&&m.classList.contains('open')) cjPositionMore(); });
+window.addEventListener('scroll', function(){ cjCloseMore(); }, true);
+
 
 /* ============================================================================
    CUENTA DE GOOGLE COMPARTIDA (lanzador CONEJO)
@@ -4150,28 +4188,13 @@ var CJDrive = (function(){
       return dataHash() !== st.hash;
     }catch(e){ return false; }
   }
-  /* Descarga el estado actual como fichero JSON en el ordenador del usuario. Copia de
-     seguridad "de mano", independiente de Google. */
-  function exportLocal(){
-    try{
-      var payload = {app:APP, exportedAt:new Date().toISOString(), data:CJHooks.getData()};
-      var blob = new Blob([JSON.stringify(payload, null, 2)], {type:"application/json"});
-      var url = URL.createObjectURL(blob);
-      var a = document.createElement("a");
-      a.href = url;
-      a.download = APP + "_copia_" + stampNow() + ".json";
-      document.body.appendChild(a); a.click(); a.remove();
-      setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
-      CJHooks.notify("Copia descargada a tu ordenador");
-    }catch(e){ CJHooks.notify("No se pudo exportar: " + (e.message||e)); }
-  }
   return {startup:function(){ return run(startupInner); },
           saveNowManual:function(){ return run(saveNowInner); },
           restore:function(id, silent){ return run(function(){ return restoreInner(id, silent, {writeBack:true}); }); },
           schedule:schedule, flushNow:flushNow,
           listForPanel:function(){ return retry1(listForPanel); },
           busy:busy, status:status, state:state, lastSaved:lastSaved, lock:function(){ _ready=false; },
-          hasUnsyncedChanges:hasUnsyncedChanges, exportLocal:exportLocal,
+          hasUnsyncedChanges:hasUnsyncedChanges,
           prettyName:prettyName, folderLink:folderLink, keepDays:keepDays};
 })();
 
@@ -4281,7 +4304,6 @@ function cjOpenDrivePanel(){
       '<div class="cj-modal-actions">' +
         '<button type="button" class="cj-btn" data-a="load">Cargar seleccionada</button>' +
         '<button type="button" class="cj-btn cj-btn-ghost" data-a="save">Guardar ahora</button>' +
-        '<button type="button" class="cj-btn cj-btn-ghost" data-a="export">Exportar copia a mi ordenador</button>' +
       '</div>' +
     '</div>';
   document.body.appendChild(back);
@@ -4318,7 +4340,6 @@ function cjOpenDrivePanel(){
       back.remove(); CJDrive.restore(id, false);
       return;
     }
-    if(act === "export"){ CJDrive.exportLocal(); return; }   /* no cierra el panel */
     back.remove();
     if(act === "save") CJDrive.saveNowManual();
     else if(act === "out") CJAuth.signOut();

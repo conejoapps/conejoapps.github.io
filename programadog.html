@@ -526,7 +526,7 @@ body.focus-mode #normalPanel,body.focus-mode #portadaPanel{top:14px;height:calc(
    Formato pildora (border-radius 100px) y 38px de alto, para que encaje con las
    barras y botones de las apps, que usan ese mismo lenguaje visual. */
 .cj-pill-group{display:flex;align-items:center;gap:8px;flex-shrink:0}
-.cj-gsi{display:inline-flex;align-items:center;gap:9px;height:38px;padding:0 16px 0 12px;
+.cj-gsi{display:inline-flex;align-items:center;gap:9px;height:36px;padding:0 16px 0 12px;
   border:1px solid #dadce0;border-radius:100px;background:#fff;cursor:pointer;flex-shrink:0;
   font-family:'Roboto','Outfit',sans-serif;font-size:.82rem;font-weight:500;color:#3c4043;
   white-space:nowrap;transition:box-shadow .2s,background .2s,border-color .2s}
@@ -536,7 +536,7 @@ body.focus-mode #normalPanel,body.focus-mode #portadaPanel{top:14px;height:calc(
 /* Boton de estado: la G de Google y un indicativo (visto = guardado, giro = guardando,
    aspa = error). Misma forma de pastilla blanca que el de entrar, para que se reconozca
    como el mismo control. */
-.cj-gbtn{display:inline-flex;align-items:center;gap:8px;height:38px;padding:0 12px;
+.cj-gbtn{display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 12px;
   border:1px solid #dadce0;border-radius:100px;background:#fff;cursor:pointer;flex-shrink:0;
   transition:box-shadow .2s,border-color .2s,background .2s}
 .cj-gbtn:hover{background:#f7f8f8;border-color:#d2d5d9;box-shadow:0 1px 3px rgba(60,64,67,.24)}
@@ -588,6 +588,18 @@ body.focus-mode #normalPanel,body.focus-mode #portadaPanel{top:14px;height:calc(
 .cj-btn:hover{background:#6d28d9}
 .cj-btn-ghost{background:transparent;color:#6b7280;border:1px solid #d8dae0}
 .cj-btn-ghost:hover{background:#f3f4f6;color:#1a1a2e}
+/* Modal de eleccion con botones reales (punto 3): centra el texto y reparte los botones. */
+.cj-modal-choice{max-width:460px;text-align:center}
+.cj-modal-choice .cj-modal-sub{text-align:center}
+.cj-modal-choice .cj-modal-actions{justify-content:center;margin-top:6px}
+/* Modal de eleccion con botones reales (punto 3): centra el texto y reparte los botones. */
+.cj-modal-choice{max-width:460px;text-align:center}
+.cj-modal-choice .cj-modal-sub{text-align:center}
+.cj-modal-choice .cj-modal-actions{justify-content:center;margin-top:6px}
+/* Modal de eleccion con botones reales (punto 3): centra el texto y reparte los botones. */
+.cj-modal-choice{max-width:460px;text-align:center}
+.cj-modal-choice .cj-modal-sub{text-align:center}
+.cj-modal-choice .cj-modal-actions{justify-content:center;margin-top:6px}
 /* Modal de eleccion con botones reales (punto 3): centra el texto y reparte los botones. */
 .cj-modal-choice{max-width:460px;text-align:center}
 .cj-modal-choice .cj-modal-sub{text-align:center}
@@ -4290,6 +4302,9 @@ tinymce.init({
 
 
 
+
+
+
 /* ============================================================================
    CUENTA DE GOOGLE COMPARTIDA (lanzador CONEJO)
    ----------------------------------------------------------------------------
@@ -5269,28 +5284,13 @@ var CJDrive = (function(){
       return dataHash() !== st.hash;
     }catch(e){ return false; }
   }
-  /* Descarga el estado actual como fichero JSON en el ordenador del usuario. Copia de
-     seguridad "de mano", independiente de Google. */
-  function exportLocal(){
-    try{
-      var payload = {app:APP, exportedAt:new Date().toISOString(), data:CJHooks.getData()};
-      var blob = new Blob([JSON.stringify(payload, null, 2)], {type:"application/json"});
-      var url = URL.createObjectURL(blob);
-      var a = document.createElement("a");
-      a.href = url;
-      a.download = APP + "_copia_" + stampNow() + ".json";
-      document.body.appendChild(a); a.click(); a.remove();
-      setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
-      CJHooks.notify("Copia descargada a tu ordenador");
-    }catch(e){ CJHooks.notify("No se pudo exportar: " + (e.message||e)); }
-  }
   return {startup:function(){ return run(startupInner); },
           saveNowManual:function(){ return run(saveNowInner); },
           restore:function(id, silent){ return run(function(){ return restoreInner(id, silent, {writeBack:true}); }); },
           schedule:schedule, flushNow:flushNow,
           listForPanel:function(){ return retry1(listForPanel); },
           busy:busy, status:status, state:state, lastSaved:lastSaved, lock:function(){ _ready=false; },
-          hasUnsyncedChanges:hasUnsyncedChanges, exportLocal:exportLocal,
+          hasUnsyncedChanges:hasUnsyncedChanges,
           prettyName:prettyName, folderLink:folderLink, keepDays:keepDays};
 })();
 
@@ -5400,7 +5400,6 @@ function cjOpenDrivePanel(){
       '<div class="cj-modal-actions">' +
         '<button type="button" class="cj-btn" data-a="load">Cargar seleccionada</button>' +
         '<button type="button" class="cj-btn cj-btn-ghost" data-a="save">Guardar ahora</button>' +
-        '<button type="button" class="cj-btn cj-btn-ghost" data-a="export">Exportar copia a mi ordenador</button>' +
       '</div>' +
     '</div>';
   document.body.appendChild(back);
@@ -5437,7 +5436,6 @@ function cjOpenDrivePanel(){
       back.remove(); CJDrive.restore(id, false);
       return;
     }
-    if(act === "export"){ CJDrive.exportLocal(); return; }   /* no cierra el panel */
     back.remove();
     if(act === "save") CJDrive.saveNowManual();
     else if(act === "out") CJAuth.signOut();
