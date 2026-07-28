@@ -408,15 +408,18 @@
   border:1px solid #dadce0;border-radius:100px;background:#fff;cursor:pointer;flex-shrink:0;
   transition:box-shadow .2s,border-color .2s,background .2s}
 .cj-gbtn:hover{background:#f7f8f8;border-color:#d2d5d9;box-shadow:0 1px 3px rgba(60,64,67,.24)}
+.cj-gbtn-text{font-family:'Roboto','Outfit',sans-serif;font-size:.82rem;font-weight:500;
+  color:#3c4043;white-space:nowrap}
 .cj-gbtn-mark{display:flex;align-items:center;flex:0 0 auto}
 .cj-gbtn-saving{cursor:progress}
 .cj-gbtn-error{border-color:#f3b4ae;background:#fef6f5}
 .cj-spin{animation:cjSpin .9s linear infinite;transform-origin:50% 50%}
 @keyframes cjSpin{to{transform:rotate(360deg)}}
-/* En estrecho se queda solo el logo, y la altura baja a la de las barras compactas. */
+/* En estrecho se queda solo el logo con su indicador (tick/giro/aspa); el texto de dentro
+   de la pildora se oculta, igual que el texto del boton de "Iniciar sesion". */
 @media (max-width:820px){
-  .cj-gsi-text{display:none}
-  .cj-gsi{padding:0 11px}
+  .cj-gsi-text, .cj-gbtn-text{display:none}
+  .cj-gsi, .cj-gbtn{padding:0 11px}
   .cj-gsi,.cj-gbtn{height:34px}
 }
 
@@ -454,15 +457,6 @@
 .cj-btn:hover{background:#6d28d9}
 .cj-btn-ghost{background:transparent;color:#6b7280;border:1px solid #d8dae0}
 .cj-btn-ghost:hover{background:#f3f4f6;color:#1a1a2e}
-/* Linea de estado SIEMPRE visible junto a la pastilla de Google (punto 1). */
-.cj-status-line{display:inline-block;font-family:'Outfit',sans-serif;font-size:.72rem;
-  font-weight:600;margin-left:8px;white-space:nowrap;vertical-align:middle}
-.cj-status-line.ok{color:#16a34a}
-.cj-status-line.err{color:#dc2626}
-.cj-status-line.off{color:#d97706}
-/* En barras estrechas (movil) la linea de estado se oculta para no apretar las pestanas;
-   el icono de la pastilla (visto/giro/aspa) ya indica el estado ahi. */
-@media (max-width:900px){ .cj-status-line{display:none} }
 /* Modal de eleccion con botones reales (punto 3): centra el texto y reparte los botones. */
 .cj-modal-choice{max-width:460px;text-align:center}
 .cj-modal-choice .cj-modal-sub{text-align:center}
@@ -1097,10 +1091,15 @@ var CJAuth = (function(){
         title = (opts.status ? opts.status : "Al dia con Google Drive") +
                 (a.email ? (" (" + a.email + ")") : "") + ". Pulsa para opciones.";
       }
+      /* El texto de estado (opts.text: "Guardado hace 1 min", "Conectado", etc.) va DENTRO
+         de la propia pildora, entre el logo y el indicador: G -> texto -> tick/giro/aspa.
+         En movil el texto se oculta (regla en CSS) y solo quedan el logo y el indicador. */
+      var text = opts.text || (st === "saving" ? "Guardando…" : (st === "error" ? "Error" : "Conectado"));
       slot.innerHTML = '<button type="button" class="cj-gbtn cj-gbtn-' + st + '" title="' +
         String(title).replace(/"/g,"&quot;") + '" aria-label="' +
         String(title).replace(/"/g,"&quot;") + '">' +
         '<span class="cj-gsi-icon">' + G_SVG + '</span>' +
+        '<span class="cj-gbtn-text">' + String(text).replace(/</g,"&lt;") + '</span>' +
         '<span class="cj-gbtn-mark">' + mark + '</span></button>';
       slot.firstChild.onclick = opts.onManage || function(){};
     }else{
