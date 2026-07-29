@@ -134,7 +134,9 @@ input[type="color"]::-moz-color-swatch{border:2px solid rgba(124,58,237,.3);bord
 body.focus-mode .topbar{display:none}
 body.focus-mode .index-panel{display:none}
 body.focus-mode .workspace{grid-template-columns:1fr;padding:14px}
-body.focus-mode #normalPanel,body.focus-mode #portadaPanel{top:14px;height:calc(100vh - 32px);max-height:calc(100vh - 32px)}
+body.focus-mode #normalPanel,body.focus-mode #portadaPanel,body.focus-mode #unitsPanel{top:14px;height:calc(100vh - 32px);max-height:calc(100vh - 32px)}
+body.focus-mode .units-config-band{display:none}
+.units-tabs-actions{display:flex;gap:4px;margin-left:auto;flex-shrink:0}
 .editor-col{display:flex;flex-direction:column;gap:14px;min-width:0}
 
 /* Índice lateral (scroll interno) */
@@ -165,9 +167,8 @@ body.focus-mode #normalPanel,body.focus-mode #portadaPanel{top:14px;height:calc(
 .idx-foot{flex-shrink:0;padding-top:12px;margin-top:6px;border-top:1px solid rgba(124,58,237,.12)}
 .idx-add{display:flex;gap:8px}
 .idx-add .btn{flex:1;justify-content:center;padding-left:8px;padding-right:8px}
-.idx-units-open{margin-top:8px}
-.idx-units-open .btn{width:100%;justify-content:center}
-.idx-restore{margin-top:8px}
+.idx-foot-row{margin-top:8px;display:flex;gap:8px}
+.idx-foot-row .btn{flex:1;justify-content:center;padding-left:6px;padding-right:6px}
 .idx-add-anexo{margin-top:6px;padding-top:8px;border-top:1px dashed rgba(124,58,237,.15);display:flex;justify-content:center}
 /* ===== Unidades: índice ===== */
 .idx-item.idx-container{background:rgba(124,58,237,.06)}
@@ -356,7 +357,7 @@ body.focus-mode #normalPanel,body.focus-mode #portadaPanel{top:14px;height:calc(
 .idx-item.idx-anexo .idx-label{font-style:italic;color:#1a1a2e}
 .idx-item.idx-anexo .idx-num{color:#1a1a2e}
 .idx-item.active.idx-anexo .idx-label,.idx-item.active.idx-anexo .idx-num{color:#fff}
-.idx-restore .btn{width:100%;justify-content:center}
+/* .idx-restore ya no existe: fusionado en .idx-foot-row (ver arriba) */
 .idx-tip{font-size:.68rem;color:var(--muted);text-align:center;margin-top:10px;line-height:1.4;padding:0 4px}
 .idx-tip-warn{color:var(--danger);font-weight:700}
 
@@ -518,6 +519,12 @@ body.focus-mode #normalPanel,body.focus-mode #portadaPanel{top:14px;height:calc(
      no se fuerza a nada a ocupar la línea entera (eso estiraba la caja de botones y dejaba
      un hueco vacío, mandando el desplegable a una segunda línea con sitio de sobra arriba). */
   .units-tabs-row{flex-wrap:wrap;row-gap:8px}
+  /* El desplegable "ir a unidad" y los botones de vista previa/expandir SIEMPRE
+     comparten la primera línea (van juntos en el HTML y sin forzar ancho): si algo
+     tiene que bajar a la segunda línea por falta de sitio, son los botones fijos de
+     añadir/mover/duplicar/eliminar (unitsTabsFixed), que se fuerzan a ocupar su
+     propia línea entera en vez de intentar caber a su lado y empujarlos. */
+  /* No se fuerza flex-basis:100% aqui: como ya se aprendio antes en esta misma app (ver el comentario de arriba), forzar el ancho completo estira la caja de botones y deja un hueco vacio feo. Basta con el ORDEN del HTML (el desplegable y estos dos botones van juntos, antes que los botones fijos): el ajuste natural de flex-wrap ya los deja cada uno en su sitio sin forzar nada. */
   .units-modules-btn{flex:1 1 100%;justify-content:center}
 }
 @media (prefers-reduced-motion:reduce){*{transition-duration:.01ms!important;animation-duration:.01ms!important}}
@@ -603,7 +610,23 @@ body.focus-mode #normalPanel,body.focus-mode #portadaPanel{top:14px;height:calc(
 /* Modal de eleccion con botones reales (punto 3): centra el texto y reparte los botones. */
 .cj-modal-choice{max-width:460px;text-align:center}
 .cj-modal-choice .cj-modal-sub{text-align:center}
-.cj-modal-choice .cj-modal-actions{justify-content:center;margin-top:6px}.idx-collapse-btn{margin-left:auto;border:none;background:transparent;color:var(--muted);cursor:pointer;width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s,transform .2s}.idx-collapse-btn:hover{background:rgba(0,0,0,.06)}.index-panel.idx-collapsed .index-scroll,.index-panel.idx-collapsed .idx-foot{display:none}.idx-collapse-btn.is-collapsed i{transform:rotate(180deg)}.um-row-bundled{opacity:.72}.um-bundled-note{font-family:'Outfit',sans-serif;font-size:.72rem;font-weight:600;color:var(--muted);font-style:italic;white-space:nowrap}.index-panel.idx-collapsed{padding-top:13px;padding-bottom:13px}.index-panel.idx-collapsed .index-title{padding-bottom:0}.units-modules-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}.units-modules-head h3{margin:0}.units-modules-x{border:none;background:transparent;color:#dc2626;cursor:pointer;width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;transition:background .15s}.units-modules-x:hover{background:rgba(220,38,38,.1)}
+.cj-modal-choice .cj-modal-actions{justify-content:center;margin-top:6px}
+/* Modal de eleccion con botones reales (punto 3): centra el texto y reparte los botones. */
+.cj-modal-choice{max-width:460px;text-align:center}
+.cj-modal-choice .cj-modal-sub{text-align:center}
+.cj-modal-choice .cj-modal-actions{justify-content:center;margin-top:6px}
+/* Modal de eleccion con botones reales (punto 3): centra el texto y reparte los botones. */
+.cj-modal-choice{max-width:460px;text-align:center}
+.cj-modal-choice .cj-modal-sub{text-align:center}
+.cj-modal-choice .cj-modal-actions{justify-content:center;margin-top:6px}
+/* Modal de eleccion con botones reales (punto 3): centra el texto y reparte los botones. */
+.cj-modal-choice{max-width:460px;text-align:center}
+.cj-modal-choice .cj-modal-sub{text-align:center}
+.cj-modal-choice .cj-modal-actions{justify-content:center;margin-top:6px}
+/* Modal de eleccion con botones reales (punto 3): centra el texto y reparte los botones. */
+.cj-modal-choice{max-width:460px;text-align:center}
+.cj-modal-choice .cj-modal-sub{text-align:center}
+.cj-modal-choice .cj-modal-actions{justify-content:center;margin-top:6px}.idx-collapse-btn{margin-left:auto;border:none;background:transparent;color:var(--muted);cursor:pointer;width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s,transform .2s}.idx-collapse-btn:hover{background:rgba(0,0,0,.06)}.index-panel.idx-collapsed .index-scroll,.index-panel.idx-collapsed .idx-foot{display:none}.idx-collapse-btn.is-collapsed i{transform:rotate(180deg)}.um-row-bundled{opacity:.72}.um-bundled-note{font-family:'Outfit',sans-serif;font-size:.72rem;font-weight:600;color:var(--muted);font-style:italic;white-space:nowrap}.index-panel.idx-collapsed{padding-top:13px;padding-bottom:13px}.index-panel.idx-collapsed .index-title{padding-bottom:0}.units-modules-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}.units-modules-head h3{margin:0}.units-modules-x{border:none;background:transparent;color:#dc2626;cursor:pointer;width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;transition:background .15s}.units-modules-x:hover{background:rgba(220,38,38,.1)}@media(max-width:900px){.units-tabs-scroll{order:0}.units-tabs-actions{order:1}.units-tabs-fixed{order:2}}
 /* Modal de eleccion con botones reales (punto 3): centra el texto y reparte los botones. */
 .cj-modal-choice{max-width:460px;text-align:center}
 .cj-modal-choice .cj-modal-sub{text-align:center}
@@ -765,11 +788,9 @@ try{window.__cjBootEmpty=!localStorage.getItem("programadog_v3");}catch(e){windo
           <button class="btn btn-ghost btn-sm" onclick="addMainSection()">Nuevo Epígrafe</button>
           <button class="btn btn-ghost btn-sm" onclick="addSubSection()">Nuevo Subapartado</button>
         </div>
-        <div class="idx-units-open">
-          <button class="btn btn-ghost btn-sm" onclick="openUnitsPanel()"><i class="fa-solid fa-layer-group"></i> Unidades de la programación</button>
-        </div>
-        <div class="idx-restore">
-          <button class="btn btn-ghost btn-sm" onclick="restoreIndex()"><i class="fa-solid fa-rotate-left"></i> Restaurar índice original</button>
+        <div class="idx-foot-row">
+          <button class="btn btn-ghost btn-sm" onclick="openUnitsPanel()"><i class="fa-solid fa-layer-group"></i> Unidades</button>
+          <button class="btn btn-ghost btn-sm" onclick="restoreIndex()"><i class="fa-solid fa-rotate-left"></i> Restaurar índice</button>
         </div>
         <p class="idx-tip" id="pageCountTip">Llevas 0 de un máximo de 60.</p>
       </div>
@@ -1018,6 +1039,10 @@ try{window.__cjBootEmpty=!localStorage.getItem("programadog_v3");}catch(e){windo
           <div class="units-tabs-row" id="unitsTabsRow">
             <div class="units-tabs-scroll" id="unitsTabsScroll"></div>
             <div class="units-tabs-fixed" id="unitsTabsFixed"></div>
+            <div class="units-tabs-actions">
+              <button class="tool-btn tool-btn-icon" id="previewUnitsBtn" onclick="previewUnits()" title="Vista previa de este apartado"><i class="fa-solid fa-eye"></i></button>
+              <button class="tool-btn tool-btn-icon focus-toggle-btn" id="unitsFocusModeBtn" onclick="toggleFocusMode()" title="Ocultar barra e índice para más espacio"><i class="fa-solid fa-compress"></i></button>
+            </div>
           </div>
           <div class="units-min-detail" id="unitsMinDetail"></div>
           <div class="units-scroll" id="unitsScroll">
@@ -1046,7 +1071,7 @@ try{window.__cjBootEmpty=!localStorage.getItem("programadog_v3");}catch(e){windo
               <input class="title-input" id="titleInput" type="text" placeholder="Título del apartado">
               <div class="tmce-title-actions" id="tmceTitleActions">
                 <button class="tool-btn tool-btn-icon" id="previewSectionBtn" onclick="previewSection()" title="Vista previa de este apartado"><i class="fa-solid fa-eye"></i></button>
-                <button class="tool-btn tool-btn-icon" id="focusModeBtn" title="Ocultar barra e índice para más espacio"><i class="fa-solid fa-compress"></i></button>
+                <button class="tool-btn tool-btn-icon focus-toggle-btn" id="focusModeBtn" title="Ocultar barra e índice para más espacio"><i class="fa-solid fa-compress"></i></button>
               </div>
               <div class="tmce-kebab-wrap">
                 <button class="tool-btn tool-btn-icon tmce-kebab" id="tmceKebabBtn" onclick="toggleTitleKebab()" title="Más opciones"><i class="fa-solid fa-ellipsis-vertical"></i></button>
@@ -3378,10 +3403,13 @@ function cancelImgAdjustBack(){ cancelImgAdjustGeneric("contraportada"); }
 function toggleMoreMenu(){ document.getElementById("moreMenu").classList.toggle("open"); }
 function toggleFocusMode(){
   const active = document.body.classList.toggle("focus-mode");
-  const btn = document.getElementById("focusModeBtn");
-  btn.classList.toggle("active", active);
-  btn.querySelector("i").className = active ? "fa-solid fa-expand" : "fa-solid fa-compress";
-  btn.title = active ? "Mostrar barra e índice" : "Ocultar barra e índice para más espacio";
+  /* Actualiza TODOS los botones de expandir (el de cada apartado y el de Unidades),
+     no solo el que se acaba de pulsar, para que ambos reflejen el mismo estado. */
+  document.querySelectorAll(".focus-toggle-btn").forEach(btn=>{
+    btn.classList.toggle("active", active);
+    const ic = btn.querySelector("i"); if(ic) ic.className = active ? "fa-solid fa-expand" : "fa-solid fa-compress";
+    btn.title = active ? "Mostrar barra e índice" : "Ocultar barra e índice para más espacio";
+  });
   setTimeout(()=>{ scheduleGuides(); updatePillOverflow(); }, 50);
 }
 document.getElementById("focusModeBtn").addEventListener("click", toggleFocusMode);
@@ -4224,6 +4252,15 @@ async function previewPDF(){
   flushEditor(); computeNumbers();
   await openPdfInNewTab();
 }
+/* Vista previa del apartado de "Unidades de la programación": el apartado vinculado
+   más sus unidades (renderList ya las inserta justo después de él, ver isContainer). */
+async function previewUnits(){
+  flushEditor(); computeNumbers();
+  const cId = unitsContainerId();
+  const s = cId!=null ? sections().find(x=>x.id===cId) : null;
+  if(!s){ toast("Vincula antes un apartado para poder previsualizar"); return; }
+  await openPdfInNewTab({onlySection:s});
+}
 
 /* ============= EXPORTAR PDF (jsPDF, para el archivo descargable) ============= */
 async function generatePDF(){
@@ -4362,6 +4399,10 @@ tinymce.init({
     });
   }
 });
+
+
+
+
 
 
 
