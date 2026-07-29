@@ -595,6 +595,10 @@ body.focus-mode #normalPanel,body.focus-mode #portadaPanel{top:14px;height:calc(
 /* Modal de eleccion con botones reales (punto 3): centra el texto y reparte los botones. */
 .cj-modal-choice{max-width:460px;text-align:center}
 .cj-modal-choice .cj-modal-sub{text-align:center}
+.cj-modal-choice .cj-modal-actions{justify-content:center;margin-top:6px}
+/* Modal de eleccion con botones reales (punto 3): centra el texto y reparte los botones. */
+.cj-modal-choice{max-width:460px;text-align:center}
+.cj-modal-choice .cj-modal-sub{text-align:center}
 .cj-modal-choice .cj-modal-actions{justify-content:center;margin-top:6px}.idx-collapse-btn{margin-left:auto;border:none;background:transparent;color:var(--muted);cursor:pointer;width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s,transform .2s}.idx-collapse-btn:hover{background:rgba(0,0,0,.06)}.index-panel.idx-collapsed .index-scroll,.index-panel.idx-collapsed .idx-foot{display:none}.idx-collapse-btn.is-collapsed i{transform:rotate(180deg)}.um-row-bundled{opacity:.72}.um-bundled-note{font-family:'Outfit',sans-serif;font-size:.72rem;font-weight:600;color:var(--muted);font-style:italic;white-space:nowrap}.index-panel.idx-collapsed{padding-top:9px;padding-bottom:9px}.units-modules-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}.units-modules-head h3{margin:0}.units-modules-x{border:none;background:transparent;color:#dc2626;cursor:pointer;width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;transition:background .15s}.units-modules-x:hover{background:rgba(220,38,38,.1)}
 /* Modal de eleccion con botones reales (punto 3): centra el texto y reparte los botones. */
 .cj-modal-choice{max-width:460px;text-align:center}
@@ -1275,7 +1279,30 @@ function ensureSystems(){
   return lv;
 }
 function currentSystem(){ const lv=ensureSystems(); return lv.systems[lv.activeSystem]; }
-function unitModules(){ const sys=currentSystem(); return sys.modules || (sys.modules=defaultUnitModules()); }
+function unitModules(){
+  const sys=currentSystem();
+  if(!sys.modules) sys.modules = defaultUnitModules();
+  normalizeActividadesGroupOrder(sys.modules);
+  return sys.modules;
+}
+/* Actividades, Refuerzo, Ampliacion y Recursos didacticos tienen que aparecer SIEMPRE
+   en ese orden relativo (donde estuviera "Actividades" es donde queda el bloque), sea
+   cual sea el orden en que se hayan guardado, quitado o vuelto a anadir. Se reordena
+   in-place, sin tocar la posicion de ningun otro modulo. Autocura datos antiguos que
+   pudieran tener el orden descolocado de antes. */
+function normalizeActividadesGroupOrder(mods){
+  const order = ["actividades","refuerzo","ampliacion","recursos_didacticos"];
+  const present = order.filter(k=>mods.some(m=>m.key===k));
+  if(present.length<2) return;
+  const idxs = present.map(k=>mods.findIndex(m=>m.key===k));
+  const anchor = Math.min(...idxs);
+  const yaOrdenado = idxs.every((v,i)=>i===0||v>idxs[i-1]);
+  if(yaOrdenado) return;
+  const items = present.map(k=>mods.find(m=>m.key===k));
+  let cursor = 0;
+  for(let i=mods.length-1;i>=0;i--){ if(present.includes(mods[i].key)) mods.splice(i,1); }
+  mods.splice(anchor, 0, ...items);
+}
 /* Devuelve la definición completa de un módulo para pintarlo/exportarlo. Para los
    desplegables, las opciones salen SIEMPRE del CURRÍCULO del nivel (una opción por línea
    pegada en el campo con esa misma clave). Si ese campo del currículo está vacío, el
@@ -4331,6 +4358,7 @@ tinymce.init({
     });
   }
 });
+
 
 
 
