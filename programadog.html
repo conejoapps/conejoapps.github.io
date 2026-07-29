@@ -49,7 +49,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--fg);min-he
 .brand span{font-weight:800;font-size:1.7rem;letter-spacing:.01em}
 .topbar .brand{gap:8px}
 .topbar .brand .brand-dog{width:2.7rem;height:2.7rem;margin:-9px 0}
-.topbar .brand span{font-size:1.2rem}
+.topbar .brand span{font-size:.88rem;letter-spacing:.06em;text-transform:uppercase;color:var(--fg)}
 
 /* ===== Botones ===== */
 .btn{font-family:'Outfit',sans-serif;font-weight:600;font-size:.86rem;letter-spacing:.01em;cursor:pointer;border:none;border-radius:14px;padding:11px 18px;display:inline-flex;align-items:center;gap:9px;transition:all .25s cubic-bezier(.23,1,.32,1);white-space:nowrap}
@@ -592,6 +592,10 @@ body.focus-mode #normalPanel,body.focus-mode #portadaPanel{top:14px;height:calc(
 .cj-btn:hover{background:#6d28d9}
 .cj-btn-ghost{background:transparent;color:#6b7280;border:1px solid #d8dae0}
 .cj-btn-ghost:hover{background:#f3f4f6;color:#1a1a2e}
+/* Modal de eleccion con botones reales (punto 3): centra el texto y reparte los botones. */
+.cj-modal-choice{max-width:460px;text-align:center}
+.cj-modal-choice .cj-modal-sub{text-align:center}
+.cj-modal-choice .cj-modal-actions{justify-content:center;margin-top:6px}
 /* Modal de eleccion con botones reales (punto 3): centra el texto y reparte los botones. */
 .cj-modal-choice{max-width:460px;text-align:center}
 .cj-modal-choice .cj-modal-sub{text-align:center}
@@ -4298,6 +4302,7 @@ tinymce.init({
     });
   }
 });
+
 
 
 
