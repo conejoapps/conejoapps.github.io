@@ -183,7 +183,7 @@ body.focus-mode #normalPanel,body.focus-mode #portadaPanel{top:14px;height:calc(
    a qué apartado van, qué sistema son, la estructura de la tabla) y "Unidades"
    (pestañas + contenido de la unidad activa). Separarlos evita que se mezclen dos
    cosas de nivel distinto en la misma fila. */
-.units-config-band{flex-shrink:0;background:var(--glass-bg-solid);border:1px solid var(--glass-border);border-radius:22px;box-shadow:0 8px 32px rgba(0,0,0,.04),0 2px 8px rgba(124,58,237,.04),inset 0 1px 0 rgba(255,255,255,.6);padding:20px 24px;margin-bottom:18px;display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap}
+.units-config-band{flex-shrink:0;background:var(--glass-bg-solid);border:1px solid var(--glass-border);border-radius:22px;box-shadow:0 8px 32px rgba(0,0,0,.04),0 2px 8px rgba(124,58,237,.04),inset 0 1px 0 rgba(255,255,255,.6);padding:10px 24px;margin-bottom:18px;display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap}
 .units-config-field{display:flex;flex-direction:column;gap:4px;flex:1 1 200px;min-width:160px}
 .units-config-field label{font-family:'Outfit',sans-serif;font-size:.72rem;font-weight:700;color:var(--muted)}
 .units-body-band{flex:1 1 auto;display:flex;flex-direction:column;min-height:0;background:var(--glass-bg-solid);border:1px solid var(--glass-border);border-radius:22px;box-shadow:0 8px 32px rgba(0,0,0,.04),0 2px 8px rgba(124,58,237,.04),inset 0 1px 0 rgba(255,255,255,.6);padding:20px 24px;container-type:inline-size;container-name:unitsband}
@@ -595,6 +595,14 @@ body.focus-mode #normalPanel,body.focus-mode #portadaPanel{top:14px;height:calc(
 /* Modal de eleccion con botones reales (punto 3): centra el texto y reparte los botones. */
 .cj-modal-choice{max-width:460px;text-align:center}
 .cj-modal-choice .cj-modal-sub{text-align:center}
+.cj-modal-choice .cj-modal-actions{justify-content:center;margin-top:6px}.idx-collapse-btn{margin-left:auto;border:none;background:transparent;color:var(--muted);cursor:pointer;width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s,transform .2s}.idx-collapse-btn:hover{background:rgba(0,0,0,.06)}.index-panel.idx-collapsed .index-scroll,.index-panel.idx-collapsed .idx-foot{display:none}.idx-collapse-btn.is-collapsed i{transform:rotate(180deg)}.um-row-bundled{opacity:.72}.um-bundled-note{font-family:'Outfit',sans-serif;font-size:.72rem;font-weight:600;color:var(--muted);font-style:italic;white-space:nowrap}.index-panel.idx-collapsed{padding-top:9px;padding-bottom:9px}.units-modules-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}.units-modules-head h3{margin:0}.units-modules-x{border:none;background:transparent;color:#dc2626;cursor:pointer;width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;transition:background .15s}.units-modules-x:hover{background:rgba(220,38,38,.1)}
+/* Modal de eleccion con botones reales (punto 3): centra el texto y reparte los botones. */
+.cj-modal-choice{max-width:460px;text-align:center}
+.cj-modal-choice .cj-modal-sub{text-align:center}
+.cj-modal-choice .cj-modal-actions{justify-content:center;margin-top:6px}
+/* Modal de eleccion con botones reales (punto 3): centra el texto y reparte los botones. */
+.cj-modal-choice{max-width:460px;text-align:center}
+.cj-modal-choice .cj-modal-sub{text-align:center}
 .cj-modal-choice .cj-modal-actions{justify-content:center;margin-top:6px}
 /* Modal de eleccion con botones reales (punto 3): centra el texto y reparte los botones. */
 .cj-modal-choice{max-width:460px;text-align:center}
@@ -712,7 +720,7 @@ try{window.__cjBootEmpty=!localStorage.getItem("programadog_v3");}catch(e){windo
     <!-- Hueco de la cuenta de Google: sin sesion muestra la pastilla de "Iniciar sesion
          con Google"; con sesion, la pastilla de Drive. Lo rellena cjPaintAuth(). -->
     <div id="cjAuthSlot"></div>
-    <button class="btn btn-primary btn-sm" id="normativaBtn" onclick="openNormativa()"><i class="fa-solid fa-scale-balanced"></i> Normativa</button>
+    <button class="btn btn-primary btn-sm" id="normativaBtn" style="border-radius:100px" onclick="openNormativa()"><i class="fa-solid fa-scale-balanced"></i> Normativa</button>
     <input type="file" id="importFile" accept="application/json" style="display:none">
     <button class="icon-plain-btn" onclick="previewPDF()" title="Vista previa" id="previewBtnTop"><i class="fa-solid fa-eye"></i></button>
     <div class="export-group" id="exportGroupTop">
@@ -740,7 +748,7 @@ try{window.__cjBootEmpty=!localStorage.getItem("programadog_v3");}catch(e){windo
   <div class="workspace">
     <!-- Índice a la izquierda -->
     <nav class="liquid-glass index-panel" aria-label="Índice">
-      <div class="index-title"><i class="fa-solid fa-list-ol"></i> Índice</div>
+      <div class="index-title"><i class="fa-solid fa-list-ol"></i> Índice<button type="button" class="idx-collapse-btn" id="idxCollapseBtn" onclick="toggleIndexCollapse()" title="Reducir/expandir el índice" aria-label="Reducir/expandir el índice"><i class="fa-solid fa-chevron-up"></i></button></div>
       <div class="index-scroll" id="indexScroll">
         <div id="indexList"></div>
       </div>
@@ -1012,11 +1020,11 @@ try{window.__cjBootEmpty=!localStorage.getItem("programadog_v3");}catch(e){windo
 
       <div class="modal-back" id="unitsModulesModal">
         <div class="liquid-glass modal units-modules-modal">
-          <h3>Estructura de la tabla</h3>
-          <div class="units-modules-panel" id="unitsModulesPanel"></div>
-          <div class="modal-actions">
-            <button class="btn btn-primary" onclick="closeUnitsModulesModal()"><i class="fa-solid fa-check"></i> Cerrar</button>
+          <div class="units-modules-head">
+            <h3>Estructura de la tabla</h3>
+            <button type="button" class="units-modules-x" onclick="closeUnitsModulesModal()" title="Cerrar" aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
           </div>
+          <div class="units-modules-panel" id="unitsModulesPanel"></div>
         </div>
       </div>
 
@@ -2232,31 +2240,52 @@ function renderUnitsModulesPanel(){
 
   const list = document.createElement("div");
   list.className = "um-list";
+  const hasActividadesRow = mods.some(m=>m.key==="actividades");
   mods.forEach((mod0,i)=>{
     const mod = resolveModule(mod0); /* nombre/tipo en vivo desde el currículo */
     const fromCurriculo = (state.levels[state.meta.nivel].curriculoFields||[]).some(f=>f.key===mod.key);
+    /* Refuerzo, Ampliación y Recursos didácticos se imprimen SIEMPRE dentro de la celda
+       de Actividades cuando esta existe (ver BUNDLED_INTO_ACTIVIDADES): su ancho y su
+       orden individuales no se usan para nada en la tabla final. Antes se mostraban con
+       los mismos botones de ancho/subir/bajar que el resto, dando la falsa impresión de
+       que se podían controlar por separado -de ahí que "contaran como un solo módulo"-.
+       Ahora, en ese caso, se sustituyen por un aviso claro y solo queda el botón de quitar
+       (que sí funciona: los saca de la tabla). El ancho de todo el bloque combinado se
+       controla desde el botón de ancho de la propia fila "Actividades". */
+    const isBundled = hasActividadesRow && BUNDLED_INTO_ACTIVIDADES.includes(mod.key);
     const row = document.createElement("div");
-    row.className = "um-row";
+    row.className = "um-row"+(isBundled?" um-row-bundled":"");
 
     const name = document.createElement("span");
     name.className = "um-name"; name.textContent = mod.label;
     if(fromCurriculo) name.title = "Definido en Inicio › Datos del currículo";
 
-    /* Ancho como etiqueta legible en vez de un icono críptico: se ve de un vistazo si
-       el módulo ocupa la fila entera o media, y se cambia pulsándola. */
     const ctrls = document.createElement("span");
     ctrls.className = "um-ctrls";
-    if(mod.input!=="header"){
+    const mk=(icon,title,fn,danger)=>{ const b=document.createElement("button"); b.className="um-btn"+(danger?" um-btn-danger":""); b.title=title; b.innerHTML='<i class="fa-solid fa-'+icon+'"></i>'; b.addEventListener("click",fn); return b; };
+
+    if(isBundled){
+      const note = document.createElement("span");
+      note.className = "um-bundled-note";
+      note.textContent = "Incluido en Actividades";
+      note.title = "Se imprime dentro de la celda de Actividades. Para cambiar el ancho de todo el bloque, usa el botón de ancho de la fila «Actividades».";
+      ctrls.appendChild(note);
+    }else if(mod.input!=="header"){
+      /* Ancho como etiqueta legible en vez de un icono críptico: se ve de un vistazo si
+         el módulo ocupa la fila entera o media, y se cambia pulsándola. */
       const wBtn = document.createElement("button");
       wBtn.className = "um-width"+(mod.width==="half"?" um-width-half":"");
       wBtn.textContent = mod.width==="half" ? "½ fila" : "Fila entera";
-      wBtn.title = "Pulsa para cambiar el ancho";
+      wBtn.title = (mod.key==="actividades" && hasActividadesRow)
+        ? "Pulsa para cambiar el ancho (afecta también a Refuerzo, Ampliación y Recursos didácticos, que se imprimen dentro de esta misma celda)"
+        : "Pulsa para cambiar el ancho";
       wBtn.addEventListener("click", ()=>toggleUnitModuleWidth(i));
       ctrls.appendChild(wBtn);
     }
-    const mk=(icon,title,fn,danger)=>{ const b=document.createElement("button"); b.className="um-btn"+(danger?" um-btn-danger":""); b.title=title; b.innerHTML='<i class="fa-solid fa-'+icon+'"></i>'; b.addEventListener("click",fn); return b; };
-    ctrls.appendChild(mk("arrow-up","Subir",()=>moveUnitModule(i,-1)));
-    ctrls.appendChild(mk("arrow-down","Bajar",()=>moveUnitModule(i,1)));
+    if(!isBundled){
+      ctrls.appendChild(mk("arrow-up","Subir",()=>moveUnitModule(i,-1)));
+      ctrls.appendChild(mk("arrow-down","Bajar",()=>moveUnitModule(i,1)));
+    }
     ctrls.appendChild(mk("trash-can","Quitar de la tabla",()=>removeUnitModule(mod.key),true));
 
     row.appendChild(name);
@@ -4334,6 +4363,8 @@ tinymce.init({
 
 
 
+
+
 /* ============================================================================
    CUENTA DE GOOGLE COMPARTIDA (lanzador CONEJO)
    ----------------------------------------------------------------------------
@@ -5504,6 +5535,6 @@ setTimeout(function(){
      La libreria de Google carga con "async", de ahi el pequeno margen de espera. */
   cjPaintAuth();
 })();
-</script>
+function toggleIndexCollapse(){var panel=document.querySelector('.index-panel');var btn=document.getElementById('idxCollapseBtn');if(!panel||!btn) return;var collapsed=panel.classList.toggle('idx-collapsed');btn.classList.toggle('is-collapsed',collapsed);}</script>
 </body>
 </html>
