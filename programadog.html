@@ -353,6 +353,8 @@ body.focus-mode .units-config-band{display:none}
 .uf-eval-cat-label{display:block;font-size:.72rem;font-weight:700;color:var(--muted);margin-bottom:3px}
 .anexo-inline-warn{display:flex;gap:8px;align-items:center;margin-top:8px;padding:8px 12px;border-radius:10px;background:rgba(225,29,72,.08);border:1px solid rgba(225,29,72,.24);color:var(--danger);font-size:.8rem;line-height:1.35}
 .anexo-inline-warn i{flex-shrink:0}
+.unit-overflow-warn{display:flex;gap:8px;align-items:flex-start;margin:0 0 12px;padding:9px 13px;border-radius:11px;background:rgba(217,119,6,.10);border:1px solid rgba(217,119,6,.28);color:#92400e;font-size:.82rem;line-height:1.4}
+.unit-overflow-warn i{flex-shrink:0;margin-top:2px;color:#d97706}
 .idx-item.idx-anexo{padding-left:24px}
 .idx-item.idx-anexo .idx-label{font-style:italic;color:#1a1a2e}
 .idx-item.idx-anexo .idx-num{color:#1a1a2e}
@@ -1545,14 +1547,20 @@ const UNIT_TABLE_MARGIN_MM = 14; /* debe coincidir con TABLE_M (PDF) y @page uni
 const MM_PX = 96/25.4;
 /* PAGE_W/PAGE_H se declaran más abajo en el archivo; se calculan de forma perezosa (a la
    primera medición) para no depender del orden de las declaraciones. */
-let _unitTableUsableWPx=null, _unitTableUsableHPx=null;
+let _unitTableUsableWPx=null, _unitTableUsableHFull=null, _unitTableUsableHHeading=null;
 function unitTableUsableWPx(){ if(_unitTableUsableWPx==null) _unitTableUsableWPx = PAGE_W - 2*Math.round(UNIT_TABLE_MARGIN_MM*MM_PX); return _unitTableUsableWPx; }
-function unitTableUsableHPx(){
-  // -60px de colchón: alto aproximado del título del apartado en la página de la 1ª unidad,
-  // para que el ajuste sea el mismo para todas las unidades independientemente de si son
-  // la primera (comparte página con el título) o no.
-  if(_unitTableUsableHPx==null) _unitTableUsableHPx = PAGE_H - 2*Math.round(UNIT_TABLE_MARGIN_MM*MM_PX) - 60;
-  return _unitTableUsableHPx;
+/* Alto útil de la tabla en una hoja. La 1ª unidad comparte página con el título del
+   apartado vinculado, así que reserva ~60px para ese título; el RESTO de unidades tienen
+   la hoja entera para ellas solas, por lo que NO reservan ese hueco (así aprovechan todo
+   el alto y el ajuste no las aprieta de más). */
+function unitTableUsableHPx(reserveHeading){
+  const base = PAGE_H - 2*Math.round(UNIT_TABLE_MARGIN_MM*MM_PX);
+  if(reserveHeading){
+    if(_unitTableUsableHHeading==null) _unitTableUsableHHeading = base - 60;
+    return _unitTableUsableHHeading;
+  }
+  if(_unitTableUsableHFull==null) _unitTableUsableHFull = base;
+  return _unitTableUsableHFull;
 }
 let _unitTableMeasureEl=null;
 function getUnitTableMeasurer(){
@@ -1573,7 +1581,7 @@ function measureUnitTableHeightPx(tableHtml){
 }
 const DEFAULT_UNIT_FIT = {fontPt:10.5, lineHeight:1.2, padPt:5, gapPt:4, usedRatio:0, overflow:false};
 function fitUnitTable(u, index, tpl){
-  const usableH = unitTableUsableHPx();
+  const usableH = unitTableUsableHPx(index===0); /* solo la 1ª unidad reserva sitio para el título */
   for(const fontPt of UNIT_FIT_FONTS){
     for(const profile of UNIT_FIT_PROFILES){
       const fit = {fontPt, lineHeight:profile.lineHeight, padPt:profile.padPt, gapPt:profile.gapPt};
@@ -1593,7 +1601,10 @@ function fitUnitTable(u, index, tpl){
    combinaciones en cada tecla o cada vez que se llama a renderList(). */
 const _unitFitCache = new Map();
 function getUnitFit(u, index, tpl){
-  const hash = tpl.abbr+"|"+JSON.stringify(unitModules())+"|"+JSON.stringify(u.fields||{});
+  /* El indice entra en la clave porque el ajuste de la 1ª unidad (index 0) reserva sitio
+     para el titulo del apartado y el del resto no; si una unidad cambia de posicion, hay
+     que recalcular. */
+  const hash = tpl.abbr+"|"+(index===0?"F":"N")+"|"+JSON.stringify(unitModules())+"|"+JSON.stringify(u.fields||{});
   const cached = _unitFitCache.get(u.id);
   if(cached && cached.hash===hash) return cached.fit;
   const fit = fitUnitTable(u, index, tpl);
@@ -2669,6 +2680,16 @@ function renderUnitsPanel(){
   colorInput.addEventListener("input", ()=>{ openUnit.accentColor = colorInput.value; paintSwatch(); scheduleSave(); });
   colorLabel.appendChild(colorInput);
   tabsFixed.appendChild(colorLabel);
+
+  // --- Aviso si esta unidad NO cabe en una sola hoja ni al tamaño más compacto: sin él,
+  //     la tabla se recortaría/desbordaría en silencio al exportar. ---
+  const openFit = getUnitFit(openUnit, openIdx, tpl);
+  if(openFit && openFit.overflow){
+    const warn = document.createElement("div");
+    warn.className = "unit-overflow-warn";
+    warn.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i><span>Esta unidad no cabe en una sola hoja ni al tamaño más compacto. Recorta texto o quita algún campo para que entre; si no, la tabla se recortará al exportar.</span>';
+    fieldsBox.appendChild(warn);
+  }
 
   // --- Todos los campos de la unidad, optimizando el espacio (agrupados, cortos
   //     comparten línea, largos rellenables directamente) ---
@@ -4122,6 +4143,13 @@ function preflightIssues(){
     out.push({sev:"grave",text:"El documento ocupa unas "+pages+" paginas y el maximo es 60. Penalizacion habitual: -5 puntos (y solo se evaluan las 60 primeras)."});
   }else if(pages>57){
     out.push({sev:"aviso",text:"Vas muy justo de extension: unas "+pages+" paginas de 60. La paginacion real de Word puede variar un poco."});
+  }
+  /* Unidades que no caben en una sola hoja ni al tamano mas compacto: al exportar se
+     recortan o desbordan, asi que se avisa (no bloquea). */
+  const noCaben=[];
+  units.forEach((u,i)=>{ const fit=getUnitFit(u,i,tpl); if(fit && fit.overflow) noCaben.push(i+1); });
+  if(noCaben.length){
+    out.push({sev:"aviso",text:(noCaben.length===1?"Una unidad no cabe":"Hay unidades que no caben")+" en una sola hoja ni al tamano mas compacto (n.º "+noCaben.join(", ")+"): al exportar se recortaran o desbordaran. Recorta texto o quita algun campo."});
   }
   /* -1 por dato que falte en la portada (DNI, nombre y apellidos, especialidad). */
   const faltan=[];
