@@ -452,6 +452,30 @@ body.focus-mode .units-config-band{display:none}
 .um-btn.um-btn-danger:hover{color:var(--danger);background:rgba(225,29,72,.1)}
 .um-origin{flex-shrink:0;font-size:.64rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--accent);background:rgba(124,58,237,.1);padding:2px 6px;border-radius:5px}
 .um-width{flex-shrink:0;font-family:'Outfit',sans-serif;font-size:.66rem;font-weight:700;padding:3px 7px;border-radius:6px;border:1px solid rgba(26,26,46,.16);background:#fff;color:var(--muted);cursor:pointer;white-space:nowrap;margin-right:4px}
+.act-list-builder{display:flex;flex-direction:column;gap:6px;padding:8px}
+.act-list{display:flex;flex-direction:column;gap:5px}
+.act-row{display:flex;align-items:flex-start;gap:6px;padding:6px 8px;border-radius:8px;background:#fff;border:1px solid var(--glass-border)}
+.act-row-num{flex-shrink:0;font-weight:700;color:var(--accent);font-size:.82rem}
+.act-row-label{flex:1;min-width:0;font-size:.82rem;line-height:1.4}
+.act-row-ctrls{flex-shrink:0;display:flex;gap:2px}
+.act-empty,.act-legacy-note{font-size:.78rem;color:var(--muted);padding:4px 2px}
+.act-legacy-note em{color:var(--fg)}
+.act-add-btn{align-self:flex-start;display:flex;align-items:center;gap:6px;border:1.5px dashed var(--accent-light,#a78bfa);background:transparent;color:var(--accent);font-family:'Outfit',sans-serif;font-weight:700;font-size:.8rem;padding:7px 12px;border-radius:9px;cursor:pointer}
+.act-add-btn:hover{background:rgba(124,58,237,.08)}
+.act-edit-modal{max-width:620px;width:100%;border-radius:16px!important;padding:28px 30px!important}
+.act-edit-body{display:flex;flex-direction:column;gap:5px;max-height:60vh;overflow-y:auto;padding:2px 2px 4px}
+.act-edit-label{font-family:'Outfit',sans-serif;font-size:.74rem;font-weight:700;color:var(--muted);margin-top:10px}
+.act-edit-input{width:100%;box-sizing:border-box;padding:9px 12px;border-radius:9px;border:1.5px solid var(--glass-border);font-family:'Outfit',sans-serif;font-size:.9rem}
+.act-edit-contenidos{display:flex;flex-direction:column;gap:4px;max-height:150px;overflow-y:auto;padding:6px;border:1px solid var(--glass-border);border-radius:8px;background:#fbfaff}
+.act-edit-contenido-row{display:flex;align-items:flex-start;gap:6px;font-size:.82rem;cursor:pointer}
+.act-edit-empty{font-size:.8rem;color:var(--muted)}
+.act-edit-modalidad,.act-edit-tags{display:flex;flex-wrap:wrap;gap:10px;font-size:.82rem}
+.act-edit-modalidad label,.act-edit-tags label{display:flex;align-items:center;gap:5px;cursor:pointer}
+.act-edit-two-col{display:flex;gap:10px}
+.act-edit-dropdown{flex:1;min-width:0}
+.act-trans-add-row{display:flex;gap:6px;margin-top:6px;padding-top:6px;border-top:1px dashed rgba(124,58,237,.15)}
+.act-trans-add-row input{flex:1;min-width:0}.act-edit-actions{justify-content:center}
+
 .um-width:hover{border-color:var(--accent);color:var(--accent)}
 .um-width-half{border-color:var(--accent-light,#a78bfa);color:var(--accent);background:rgba(124,58,237,.07)}
 .um-add{display:flex;flex-direction:column;gap:10px}
@@ -599,6 +623,22 @@ body.focus-mode .units-config-band{display:none}
 .cj-btn:hover{background:#6d28d9}
 .cj-btn-ghost{background:transparent;color:#6b7280;border:1px solid #d8dae0}
 .cj-btn-ghost:hover{background:#f3f4f6;color:#1a1a2e}
+/* Modal de eleccion con botones reales (punto 3): centra el texto y reparte los botones. */
+.cj-modal-choice{max-width:460px;text-align:center}
+.cj-modal-choice .cj-modal-sub{text-align:center}
+.cj-modal-choice .cj-modal-actions{justify-content:center;margin-top:6px}
+/* Modal de eleccion con botones reales (punto 3): centra el texto y reparte los botones. */
+.cj-modal-choice{max-width:460px;text-align:center}
+.cj-modal-choice .cj-modal-sub{text-align:center}
+.cj-modal-choice .cj-modal-actions{justify-content:center;margin-top:6px}
+/* Modal de eleccion con botones reales (punto 3): centra el texto y reparte los botones. */
+.cj-modal-choice{max-width:460px;text-align:center}
+.cj-modal-choice .cj-modal-sub{text-align:center}
+.cj-modal-choice .cj-modal-actions{justify-content:center;margin-top:6px}
+/* Modal de eleccion con botones reales (punto 3): centra el texto y reparte los botones. */
+.cj-modal-choice{max-width:460px;text-align:center}
+.cj-modal-choice .cj-modal-sub{text-align:center}
+.cj-modal-choice .cj-modal-actions{justify-content:center;margin-top:6px}
 /* Modal de eleccion con botones reales (punto 3): centra el texto y reparte los botones. */
 .cj-modal-choice{max-width:460px;text-align:center}
 .cj-modal-choice .cj-modal-sub{text-align:center}
@@ -1061,6 +1101,58 @@ try{window.__cjBootEmpty=!localStorage.getItem("programadog_v3");}catch(e){windo
         </div>
       </div>
 
+      <!-- Modal de añadir/editar actividad estructurada -->
+      <div class="modal-back" id="actEditModal">
+        <div class="liquid-glass modal act-edit-modal">
+          <div class="units-modules-head">
+            <h3 id="actEditTitle">Añadir actividad</h3>
+            <button type="button" class="units-modules-x" onclick="closeActivityEditor()" title="Cerrar" aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+          <div class="act-edit-body">
+            <label class="act-edit-label" for="actEditNombre">Nombre de la actividad</label>
+            <input type="text" id="actEditNombre" class="act-edit-input" placeholder="Nombre de la actividad">
+
+            <label class="act-edit-label">Contenidos vinculados</label>
+            <div id="actEditContenidos" class="act-edit-contenidos"></div>
+
+            <label class="act-edit-label">Modalidad de trabajo</label>
+            <div class="act-edit-modalidad">
+              <label><input type="radio" name="actModalidad" value="I"> Individual (I)</label>
+              <label><input type="radio" name="actModalidad" value="P"> Parejas (P)</label>
+              <label><input type="radio" name="actModalidad" value="G"> Grupo (G)</label>
+            </div>
+
+            <label class="act-edit-label">Contenido transversal</label>
+            <div class="act-edit-two-col">
+              <div class="uf-select-wrap act-edit-dropdown" id="actTransWrap">
+                <button type="button" class="uf-select-btn" id="actTransBtn" onclick="toggleActDropdown('actTrans')">
+                  <span class="uf-select-summary uf-select-placeholder" id="actTransSummary">Contenido transversal</span><i class="fa-solid fa-chevron-down"></i>
+                </button>
+                <div class="uf-select-panel" id="actTransPanel">
+                  <div id="actTransOptions"></div>
+                  <div class="act-trans-add-row">
+                    <input type="text" id="actTransCustomInput" class="act-edit-input" placeholder="Añadir uno personalizado…">
+                    <button type="button" class="btn btn-ghost btn-sm" onclick="addActTransversalCustom()">Añadir</button>
+                  </div>
+                </div>
+              </div>
+              <div class="uf-select-wrap act-edit-dropdown" id="actTagsWrap">
+                <button type="button" class="uf-select-btn" id="actTagsBtn" onclick="toggleActDropdown('actTags')">
+                  <span class="uf-select-summary uf-select-placeholder" id="actTagsSummary">Cultura andaluza / Interdisciplinariedad</span><i class="fa-solid fa-chevron-down"></i>
+                </button>
+                <div class="uf-select-panel" id="actTagsPanel">
+                  <label class="uf-select-opt"><input type="checkbox" id="actEditAndaluza" onchange="updateActTagsSummary()"> Cultura andaluza</label>
+                  <label class="uf-select-opt"><input type="checkbox" id="actEditInterdisciplinar" onchange="updateActTagsSummary()"> Interdisciplinariedad</label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-actions act-edit-actions">
+            <button type="button" class="btn btn-primary" onclick="saveActivityEditor()"><i class="fa-solid fa-check"></i> Guardar</button>
+          </div>
+        </div>
+      </div>
+
       <!-- Panel de edición: TinyMCE sobre una página A4 -->
       <section class="edit-panel-bare" id="normalPanel">
         <div class="tmce-page-viewport" id="paperViewport">
@@ -1194,7 +1286,7 @@ const UNIT_FIELDS = [
   {key:"objetivos_especificos", label:"Objetivos específicos y didácticos", type:"pick"},
   {key:"criterios_evaluacion", label:"Criterios de evaluación", type:"pick"},
   {key:"contenidos", label:"Contenidos", type:"pick"},
-  {key:"actividades", label:"Actividades", type:"rich"},
+  {key:"actividades", label:"Actividades", type:"actlist"},
   {key:"refuerzo", label:"Actividad de refuerzo", type:"rich"},
   {key:"ampliacion", label:"Actividad de ampliación", type:"rich"},
   {key:"recursos_didacticos", label:"Recursos didácticos", type:"pick"},
@@ -1227,7 +1319,7 @@ function defaultUnitModules(){
     {key:"objetivos_especificos", label:"Objetivos específicos y didácticos", input:"pick", width:"full"},
     {key:"criterios_evaluacion", label:"Criterios de evaluación", input:"pick", width:"full"},
     {key:"contenidos", label:"Contenidos", input:"pick", width:"full"},
-    {key:"actividades", label:"Actividades", input:"rich", width:"full"},
+    {key:"actividades", label:"Actividades", input:"actlist", width:"full"},
     {key:"refuerzo", label:"Actividad de refuerzo", input:"rich", width:"full"},
     {key:"ampliacion", label:"Actividad de ampliación", input:"rich", width:"full"},
     {key:"recursos_didacticos", label:"Recursos didácticos", input:"pick", width:"full"},
@@ -1311,8 +1403,21 @@ function currentSystem(){ const lv=ensureSystems(); return lv.systems[lv.activeS
 function unitModules(){
   const sys=currentSystem();
   if(!sys.modules) sys.modules = defaultUnitModules();
+  normalizeModuleInputs(sys.modules);
   normalizeActividadesGroupOrder(sys.modules);
   return sys.modules;
+}
+/* Autocura el tipo de entrada (input) de cualquier modulo "de fabrica" guardado ANTES de
+   que cambiara su tipo -sobre todo Actividades, que paso de texto libre a lista
+   estructurada (input:"actlist")-. Sin esto, un documento antiguo conserva el input viejo
+   y la vista previa/PDF no sabe pintar la lista de actividades (cae al caso de texto y sale
+   vacia). Solo toca modulos cuya key exista en los modulos por defecto; los del curriculo
+   ya resuelven su input en vivo en resolveModule, asi que forzarlos aqui es inocuo. */
+const BUILTIN_MODULE_INPUT = (function(){ const m={}; defaultUnitModules().forEach(d=>{ m[d.key]=d.input; }); return m; })();
+function normalizeModuleInputs(mods){
+  if(!Array.isArray(mods)) return mods;
+  mods.forEach(m=>{ if(m && BUILTIN_MODULE_INPUT[m.key] && m.input!==BUILTIN_MODULE_INPUT[m.key]) m.input = BUILTIN_MODULE_INPUT[m.key]; });
+  return mods;
 }
 /* Actividades, Refuerzo, Ampliacion y Recursos didacticos tienen que aparecer SIEMPRE
    en ese orden relativo (donde estuviera "Actividades" es donde queda el bloque), sea
@@ -1564,6 +1669,7 @@ function unitHTML(u, index, tpl, fit){
   const valueOf = (mod)=>{
     if(mod.input==="eval3") return formatEval3Value(f[mod.key]);
     if(mod.input==="pick"){ const v = formatPickValue(unitFieldDef(mod), f[mod.key]); return v?escapeHtml(v):""; }
+    if(mod.input==="actlist") return formatActList(u);
     return g(mod.key); /* text/rich: ya es HTML o texto plano escrito por el usuario */
   };
 
@@ -1848,7 +1954,16 @@ function buildUnitRichCell(u, tpl, f, index){
    patrón que el menú "⋮" del título). */
 let _ufOpenPanel = null;
 function closeAllUfSelectPanels(){
-  if(_ufOpenPanel){ _ufOpenPanel.panel.classList.remove("open"); _ufOpenPanel.btn.classList.remove("open"); _ufOpenPanel=null; }
+  if(_ufOpenPanel){
+    _ufOpenPanel.panel.classList.remove("open");
+    _ufOpenPanel.btn.classList.remove("open");
+    /* Limpia el posicionamiento fixed en linea que usan los desplegables del modal de
+       actividad (ver positionActDropdownPanel). En los demas desplegables no hay estilos
+       en linea, asi que vaciarlos es inocuo. */
+    const p = _ufOpenPanel.panel;
+    p.style.position = p.style.top = p.style.bottom = p.style.left = p.style.right = p.style.width = "";
+    _ufOpenPanel = null;
+  }
 }
 document.addEventListener("click", (e)=>{
   if(_ufOpenPanel && !_ufOpenPanel.wrap.contains(e.target)) closeAllUfSelectPanels();
@@ -2002,6 +2117,296 @@ function buildFieldAny(u, tpl, f, index, onTitleChange){
   if(f.type==="eval3") return buildUnitEval3Cell(u);
   return buildUnitRichCell(u, tpl, f, index);
 }
+/* ============= ACTIVIDADES ESTRUCTURADAS ============= */
+/* "Actividades" dejo de ser texto libre: ahora es una lista de actividades con nombre,
+   contenidos vinculados, modalidad de trabajo (individual/parejas/grupo) y hasta tres
+   etiquetas (transversal, cultura andaluza, interdisciplinar). El formato final impreso
+   es: "1. Nombre (1,5,6) (G) (transversal) (cultura andaluza) (interdisciplinar)".
+   Los numeros entre parentesis son la posicion (1, 2, 3...) que cada contenido vinculado
+   ocupa DENTRO de los contenidos ya seleccionados para esa unidad en el modulo
+   "Contenidos" (no el numero global del currículo): son los que el profesor ve ahí mismo.
+   Compatibilidad: los documentos antiguos tenían aquí texto libre (HTML). Ese texto NO
+   se borra ni se toca: mientras no se añada ninguna actividad nueva, se sigue exportando
+   tal cual (ver formatActList). En cuanto se añade la primera actividad estructurada, el
+   campo pasa a listar actividades y el texto antiguo deja de imprimirse (se avisa de esto
+   en el propio editor, no se pierde el dato: sigue en el archivo hasta que se guarda de
+   nuevo, pero ya no aparece en el documento). */
+let _actEditCtx = null; // {unitId, actId} - actId null = actividad nueva
+
+function activitiesOf(u){
+  const v = u.fields.actividades;
+  return Array.isArray(v) ? v : [];
+}
+function setActivitiesArray(u, arr){ u.fields.actividades = arr; }
+function unitContentsOf(u){
+  const v = u.fields.contenidos;
+  return Array.isArray(v) ? v : [];
+}
+/* Numeros (1-based) de los contenidos vinculados, SEGUN EL ORDEN en que estan
+   seleccionados para esta unidad. Un contenido vinculado que ya no este seleccionado
+   (se quito despues) se omite en vez de romper la numeracion. */
+function activityContentNumbers(u, linked){
+  const all = unitContentsOf(u);
+  return (linked||[]).map(c=>all.indexOf(c)+1).filter(n=>n>0).sort((a,b)=>a-b);
+}
+function formatActivityLabel(u, act){
+  const parts = [escapeHtml(act.nombre || "(sin nombre)")];
+  const nums = activityContentNumbers(u, act.contenidos);
+  if(nums.length) parts.push("("+nums.join(",")+")");
+  if(act.modalidad) parts.push("("+escapeHtml(act.modalidad)+")");
+  /* act.transversal es un ARRAY (se pueden marcar varios contenidos transversales a la
+     vez); el formato impreso es siempre la palabra fija "(transversal)" si hay al menos
+     uno marcado, sin decir cual -el desplegable es solo para registrarlo internamente-. */
+  const transArr = Array.isArray(act.transversal) ? act.transversal : (act.transversal ? [act.transversal] : []);
+  if(transArr.length) parts.push("(transversal)");
+  if(act.andaluza) parts.push("(cultura andaluza)");
+  if(act.interdisciplinar) parts.push("(interdisciplinar)");
+  return parts.join(" ");
+}
+/* HTML final para la tabla/exportacion: lista numerada, o el texto antiguo si aun no se
+   ha añadido ninguna actividad estructurada. */
+function formatActList(u){
+  const acts = activitiesOf(u);
+  if(!acts.length){
+    const legacy = u.fields.actividades;
+    return (typeof legacy==="string" && legacy.trim()) ? legacy : "";
+  }
+  return "<ol>" + acts.map(a=>"<li>"+formatActivityLabel(u,a)+"</li>").join("") + "</ol>";
+}
+
+/* Constructor de la caja "Actividades" en el formulario de la unidad: lista de
+   actividades ya creadas (con editar/subir/bajar/eliminar) + boton para añadir. */
+function buildActivityListBuilder(u){
+  const wrap = document.createElement("div");
+  wrap.className = "act-list-builder";
+  const titleLbl = document.createElement("label");
+  titleLbl.className = "unit-field-label"; titleLbl.textContent = "Actividades";
+  wrap.appendChild(titleLbl);
+  const list = document.createElement("div");
+  list.className = "act-list";
+  wrap.appendChild(list);
+
+  function renderList(){
+    list.innerHTML = "";
+    const acts = activitiesOf(u);
+    /* Ya no hay texto libre: el aviso de "texto antiguo" se retira de la vista (no se
+       vuelve a mostrar nunca, aunque exista un actividades_legado de sesiones previas). */
+    if(!acts.length){
+      const empty = document.createElement("div");
+      empty.className = "act-empty";
+      empty.textContent = "Sin actividades todavía.";
+      list.appendChild(empty);
+    }
+    acts.forEach((act,i)=>{
+      const row = document.createElement("div");
+      row.className = "act-row";
+      const num = document.createElement("span"); num.className = "act-row-num"; num.textContent = (i+1)+".";
+      const label = document.createElement("span"); label.className = "act-row-label";
+      label.innerHTML = formatActivityLabel(u, act);
+      const ctrls = document.createElement("span"); ctrls.className = "act-row-ctrls";
+      const mk=(icon,title,fn,danger)=>{ const b=document.createElement("button"); b.type="button"; b.className="um-btn"+(danger?" um-btn-danger":""); b.title=title; b.innerHTML='<i class="fa-solid fa-'+icon+'"></i>'; b.addEventListener("click",fn); return b; };
+      ctrls.appendChild(mk("pen","Editar",()=>openActivityEditor(u.id, act.id)));
+      ctrls.appendChild(mk("arrow-up","Subir",()=>{
+        const arr = activitiesOf(u).slice();
+        if(i>0){ const t=arr[i-1]; arr[i-1]=arr[i]; arr[i]=t; setActivitiesArray(u,arr); scheduleSave(); renderAll(); }
+      }));
+      ctrls.appendChild(mk("arrow-down","Bajar",()=>{
+        const arr = activitiesOf(u).slice();
+        if(i<arr.length-1){ const t=arr[i+1]; arr[i+1]=arr[i]; arr[i]=t; setActivitiesArray(u,arr); scheduleSave(); renderAll(); }
+      }));
+      ctrls.appendChild(mk("trash-can","Eliminar",()=>{
+        if(!confirm("¿Eliminar esta actividad?")) return;
+        setActivitiesArray(u, activitiesOf(u).filter(a=>a.id!==act.id));
+        scheduleSave(); renderAll();
+      }, true));
+      row.appendChild(num); row.appendChild(label); row.appendChild(ctrls);
+      list.appendChild(row);
+    });
+  }
+  renderList();
+
+  const addBtn = document.createElement("button");
+  addBtn.type = "button"; addBtn.className = "act-add-btn";
+  addBtn.innerHTML = '<i class="fa-solid fa-plus"></i> Añadir actividad';
+  addBtn.addEventListener("click", ()=>openActivityEditor(u.id, null));
+  wrap.appendChild(addBtn);
+  return wrap;
+}
+
+/* Modal de añadir/editar actividad. */
+/* Valores fijos de "Contenido transversal" (se pueden marcar varios a la vez, y se
+   puede añadir uno personalizado desde el propio desplegable). */
+const ACT_TRANSVERSAL_FIJOS = [
+  "Educación moral y cívica","Educación para la salud","Educación vial","Coeducación",
+  "Educación para la paz y la concienciación","Educación ambiental","Educación del consumidor",
+  "Educación intercultural y fomento en el uso de las TIC"
+];
+let _actTransCustomList = []; /* personalizados añadidos EN ESTA apertura del editor */
+
+function renderActTransOptions(selected){
+  const box = document.getElementById("actTransOptions");
+  box.innerHTML = "";
+  const all = ACT_TRANSVERSAL_FIJOS.concat(_actTransCustomList);
+  all.forEach(v=>{
+    const row = document.createElement("label");
+    row.className = "uf-select-opt";
+    const cb = document.createElement("input");
+    cb.type = "checkbox"; cb.value = v;
+    cb.checked = selected.includes(v);
+    cb.addEventListener("change", updateActTransSummary);
+    row.appendChild(cb);
+    row.appendChild(document.createTextNode(" "+v));
+    box.appendChild(row);
+  });
+}
+function addActTransversalCustom(){
+  const input = document.getElementById("actTransCustomInput");
+  const v = input.value.trim();
+  if(!v) return;
+  const all = ACT_TRANSVERSAL_FIJOS.concat(_actTransCustomList);
+  if(!all.includes(v)) _actTransCustomList.push(v);
+  const selected = [...document.querySelectorAll("#actTransOptions input:checked")].map(cb=>cb.value);
+  selected.push(v);
+  renderActTransOptions(selected);
+  input.value = "";
+  updateActTransSummary();
+}
+function updateActTransSummary(){
+  const sel = [...document.querySelectorAll("#actTransOptions input:checked")].map(cb=>cb.value);
+  const span = document.getElementById("actTransSummary");
+  span.textContent = sel.length ? sel.join(", ") : "Contenido transversal";
+  span.classList.toggle("uf-select-placeholder", !sel.length);
+}
+function updateActTagsSummary(){
+  const sel = [];
+  if(document.getElementById("actEditAndaluza").checked) sel.push("Cultura andaluza");
+  if(document.getElementById("actEditInterdisciplinar").checked) sel.push("Interdisciplinariedad");
+  const span = document.getElementById("actTagsSummary");
+  span.textContent = sel.length ? sel.join(", ") : "Cultura andaluza / Interdisciplinariedad";
+  span.classList.toggle("uf-select-placeholder", !sel.length);
+}
+/* Abre/cierra los desplegables del modal reutilizando el MISMO mecanismo que ya usan
+   los desplegables normales de la app (solo uno abierto a la vez, se cierra al clicar
+   fuera): basta con registrar el panel abierto en _ufOpenPanel. */
+function toggleActDropdown(which){
+  const wrap = document.getElementById(which+"Wrap");
+  const btn = document.getElementById(which+"Btn");
+  const panel = document.getElementById(which+"Panel");
+  const isOpen = panel.classList.contains("open");
+  closeAllUfSelectPanels();
+  if(!isOpen){
+    panel.classList.add("open"); btn.classList.add("open");
+    _ufOpenPanel={wrap,panel,btn};
+    /* El cuerpo del modal tiene overflow-y:auto; un panel position:absolute normal queda
+       recortado dentro de ese scroll (por eso "creaba scroll" en vez de flotar encima).
+       Lo sacamos con position:fixed anclado al boton, asi flota por encima de todo. */
+    positionActDropdownPanel(btn, panel);
+  }
+}
+/* Coloca el panel del desplegable como capa flotante (fixed) justo bajo su boton; si no
+   cabe abajo, lo abre hacia arriba. Se recalcula cada vez que se abre. */
+function positionActDropdownPanel(btn, panel){
+  const r = btn.getBoundingClientRect();
+  const vh = window.innerHeight;
+  panel.style.position = "fixed";
+  panel.style.left = r.left + "px";
+  panel.style.width = r.width + "px";
+  panel.style.right = "auto";
+  const spaceBelow = vh - r.bottom;
+  const needed = Math.min(panel.scrollHeight || 240, 240);
+  if(spaceBelow < needed && r.top > spaceBelow){
+    panel.style.top = "auto";
+    panel.style.bottom = (vh - r.top + 4) + "px";
+  }else{
+    panel.style.bottom = "auto";
+    panel.style.top = (r.bottom + 4) + "px";
+  }
+}
+
+function openActivityEditor(unitId, actId){
+  const u = unitsArr().find(x=>x.id===unitId); if(!u) return;
+  _actEditCtx = {unitId, actId};
+  const acts = activitiesOf(u);
+  const act = actId ? acts.find(a=>a.id===actId) : null;
+
+  document.getElementById("actEditTitle").textContent = act ? "Editar actividad" : "Añadir actividad";
+  document.getElementById("actEditNombre").value = act ? (act.nombre||"") : "";
+
+  const box = document.getElementById("actEditContenidos");
+  box.innerHTML = "";
+  const contents = unitContentsOf(u);
+  if(!contents.length){
+    box.innerHTML = '<div class="act-edit-empty">Aún no hay contenidos seleccionados para esta unidad en el módulo «Contenidos».</div>';
+  }else{
+    contents.forEach((c,i)=>{
+      const row = document.createElement("label");
+      row.className = "act-edit-contenido-row";
+      const cb = document.createElement("input");
+      cb.type = "checkbox"; cb.value = c;
+      cb.checked = !!(act && (act.contenidos||[]).includes(c));
+      row.appendChild(cb);
+      row.appendChild(document.createTextNode(" "+(i+1)+". "+c));
+      box.appendChild(row);
+    });
+  }
+
+  /* Modalidad SIEMPRE tiene un valor (I/P/G): en una actividad nueva, Individual por
+     defecto; al editar, se respeta la que tuviera guardada. */
+  const modVal = act ? (act.modalidad||"I") : "I";
+  document.querySelectorAll('input[name="actModalidad"]').forEach(r=>{ r.checked = (r.value===modVal); });
+
+  /* Contenido transversal: ahora es un ARRAY (se pueden marcar varios). Los valores
+     guardados que no estén entre los fijos (personalizados de antes) se re-crean como
+     casillas propias, para que se vean marcadas al editar. */
+  const transArr = act ? (Array.isArray(act.transversal) ? act.transversal : (act.transversal ? [act.transversal] : [])) : [];
+  _actTransCustomList = transArr.filter(v=>!ACT_TRANSVERSAL_FIJOS.includes(v));
+  renderActTransOptions(transArr);
+  updateActTransSummary();
+  document.getElementById("actTransCustomInput").value = "";
+
+  document.getElementById("actEditAndaluza").checked = !!(act && act.andaluza);
+  document.getElementById("actEditInterdisciplinar").checked = !!(act && act.interdisciplinar);
+  updateActTagsSummary();
+  closeAllUfSelectPanels();
+
+  document.getElementById("actEditModal").classList.add("open");
+  setTimeout(()=>{ const n=document.getElementById("actEditNombre"); if(n) n.focus(); }, 50);
+}
+function closeActivityEditor(){
+  const m = document.getElementById("actEditModal");
+  if(m) m.classList.remove("open");
+  _actEditCtx = null;
+}
+function saveActivityEditor(){
+  if(!_actEditCtx) return;
+  const u = unitsArr().find(x=>x.id===_actEditCtx.unitId); if(!u){ closeActivityEditor(); return; }
+  const nombre = document.getElementById("actEditNombre").value.trim();
+  if(!nombre){ toast("Escribe un nombre para la actividad"); return; }
+  const contenidos = [...document.querySelectorAll('#actEditContenidos input[type="checkbox"]:checked')].map(cb=>cb.value);
+  const modEl = document.querySelector('input[name="actModalidad"]:checked');
+  const modalidad = modEl ? modEl.value : "I"; /* siempre I/P/G; Individual si por algo no hay ninguno marcado */
+  /* Contenido transversal: ARRAY con todo lo marcado (fijos y/o personalizados). */
+  const transversal = [...document.querySelectorAll("#actTransOptions input:checked")].map(cb=>cb.value);
+  const andaluza = document.getElementById("actEditAndaluza").checked;
+  const interdisciplinar = document.getElementById("actEditInterdisciplinar").checked;
+
+  const acts = activitiesOf(u).slice();
+  /* Si "actividades" todavía era texto antiguo (string), esta es la conversión a lista
+     estructurada de verdad: hay que guardar ese texto ANTES de sobrescribirlo, o se
+     perdería sin avisar en cuanto se guarde la primera actividad nueva. */
+  const legacyText = (typeof u.fields.actividades==="string") ? u.fields.actividades : null;
+  if(_actEditCtx.actId){
+    const idx = acts.findIndex(a=>a.id===_actEditCtx.actId);
+    if(idx>=0) acts[idx] = Object.assign({}, acts[idx], {nombre, contenidos, modalidad, transversal, andaluza, interdisciplinar});
+  }else{
+    acts.push({id:"act_"+(uid++), nombre, contenidos, modalidad, transversal, andaluza, interdisciplinar});
+  }
+  setActivitiesArray(u, acts);
+  if(legacyText && legacyText.trim()) u.fields.actividades_legado = legacyText;
+  closeActivityEditor();
+  scheduleSave(); renderAll();
+}
+
 /* Actividades, Refuerzo, Ampliación y Recursos didácticos van todos en el MISMO módulo
    (así es como se juntan también en la celda de la tabla exportada): una sola caja, con
    una única barra de negrita/listas arriba -que actúa sobre el campo enriquecido que se
@@ -2010,30 +2415,21 @@ function buildActividadesComboCell(u, tpl, mods, index){
   const byKey = k => mods.find(m=>m.key===k);
   const cell = document.createElement("div");
   cell.className = "uf-cell uf-cell-full";
-  let currentEditable = null;
-  const trackFocus = inner => {
-    inner._editable.addEventListener("focus", ()=>{ currentEditable = inner._editable; });
-    if(!currentEditable) currentEditable = inner._editable; // por defecto, el primero
-  };
-  const bar = buildRichToolbar(()=>currentEditable);
-  cell.appendChild(bar);
 
   const actMod = byKey("actividades");
   if(actMod){
-    const inner = buildRichFieldInner(u, actMod, {noToolbar:true});
-    trackFocus(inner);
-    cell.appendChild(inner);
+    cell.appendChild(buildActivityListBuilder(u));
   }
 
-  /* Refuerzo, Ampliación y Recursos van en la misma línea para ahorrar espacio (siguen
-     dentro de la misma caja/barra de formato); si la pantalla se estrecha, se ajustan y
-     bajan de línea solos. */
+  /* Refuerzo y Ampliación ya no comparten una barra de formato externa (esa barra
+     dependia de que Actividades fuera texto libre, y ya no lo es): cada uno lleva su
+     propia mini-barra, igual que el resto de campos de texto de la app. Van en la
+     misma línea para ahorrar espacio; si la pantalla se estrecha, bajan de línea solos. */
   const row = document.createElement("div");
   row.className = "uf-combo-row";
   ["refuerzo","ampliacion"].forEach(k=>{
     const m = byKey(k); if(!m) return;
     const inner = buildRichFieldInner(u, m, {noToolbar:true});
-    trackFocus(inner);
     row.appendChild(inner);
   });
   const rec = byKey("recursos_didacticos");
@@ -3479,7 +3875,13 @@ document.getElementById("importFile").addEventListener("change",function(e){
 let toastTimer=null;
 function toast(msg){ document.getElementById("toastMsg").textContent=msg; const t=document.getElementById("toast"); t.classList.add("show"); clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove("show"),2800); }
 function download(blob,name){ const url=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=url; a.download=name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1500); }
-function fileName(ext){ const base=(state.meta.nombre||"Programacion_Didactica").trim().replace(/\s+/g,"_").replace(/[^\w\-áéíóúüñÁÉÍÓÚÜÑ]/g,""); return "Programacion_"+base+"."+ext; }
+function fileName(ext){
+  const sanitize = s => String(s||"").trim().replace(/\s+/g,"_").replace(/[^\w\-áéíóúüñÁÉÍÓÚÜÑ]/g,"");
+  const cursoSan = sanitize(normalizeCurso(state.meta.curso).replace(/\//g,"-"));
+  const parts = [sanitize(state.meta.nombre), sanitize(state.meta.especialidad), cursoSan].filter(Boolean);
+  const base = parts.length ? parts.join("_") : "Programacion_Didactica";
+  return base+"."+ext;
+}
 
 /* ============= EXPORTAR (Word / PDF) ============= */
 /* ============= PARSER HTML -> bloques (texto/imagen) ============= */
@@ -4399,6 +4801,10 @@ tinymce.init({
     });
   }
 });
+
+
+
+
 
 
 
