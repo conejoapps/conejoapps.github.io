@@ -3846,6 +3846,9 @@ function loadSectionIntoEditor(){
   _suppressFlush=false;
 }
 function flushEditor(){
+  /* Durante una importacion NO se vuelca: el editor aun contiene el texto del documento
+     anterior y lo escribiria encima del apartado recien importado. */
+  if(typeof _importing !== "undefined" && _importing) return;
   const s=current(); if(!s) return;
   const ed=getEditorInstance(); if(!ed) return;
   if(getCurrentId()==="PORTADA" || getCurrentId()==="NORMATIVA" || getCurrentId()==="UNITS") return;
@@ -4185,10 +4188,12 @@ document.getElementById("focusModeBtn").addEventListener("click", toggleFocusMod
    barra EN EL MISMO ORDEN en que aparecen colocados de izquierda a derecha cuando todo es
    visible, y aparece su "espejo" dentro del desplegable ⋮ -que permanece SIEMPRE visible-:
      1. Cuenta de Google
-     2. Botón de Normativa
-     3. Los dos botones de exportar (Word y PDF), juntos -se colocan en el menú justo
-        encima de "Exportar copia"/"Importar copia"-
+     2. Los dos botones de exportar (Word y PDF), juntos
+     3. Botón de Normativa
      4. El texto "Programadog" (el último; el SVG del logo nunca se oculta)
+   OJO: este es el orden en que DESAPARECEN de la barra. El orden DENTRO del menú ⋮ es otro
+   y no depende de este: allí siempre se listan Google, Normativa, Word y PDF (estos dos
+   justo encima de "Exportar copia"/"Importar copia").
    Al haber más espacio, se restauran en el orden inverso. El botón de vista previa (ojo)
    y el propio menú ⋮ quedan siempre visibles, fuera de este colapso. */
 function updatePillOverflow(){
@@ -4203,7 +4208,7 @@ function updatePillOverflow(){
   document.getElementById("mm_word_mirror").style.display="none";
   document.getElementById("mm_pdf_mirror").style.display="none";
 
-  const order=["cjAuthSlot","normativaBtn","exportGroupTop","brandText"];
+  const order=["cjAuthSlot","exportGroupTop","normativaBtn","brandText"];
   let guard=0;
   while(topbar.scrollWidth > topbar.clientWidth + 1 && guard<10){
     const remaining = order.filter(id=>document.getElementById(id).style.display!=="none");
@@ -4236,25 +4241,58 @@ function exportJSON(){
   download(blob, "programadog_backup_"+fecha+".json");
   toast("Copia descargada");
 }
+/* Durante una importacion se ignora cualquier volcado del editor: si no, el contenido que
+   TinyMCE tenia ANTES de importar se escribia encima del apartado recien importado (y se
+   guardaba asi), dando la sensacion de que "la copia no se restaura". */
+var _importing = false;
+function importDataObject(d){
+  _importing = true;
+  try{
+    applyLoadedData(d);
+    /* Caches y estado derivado del documento ANTERIOR: si no se limpian, las unidades se
+       siguen midiendo/pintando con los datos viejos. */
+    try{ _unitFitCache.clear(); }catch(e){}
+    try{ _pageCache.clear(); }catch(e){}
+    try{ _openUnitId = null; }catch(e){}
+    /* Los campos de portada y de curriculo NO se repintan con renderAll(): se refrescan
+       explicitamente para que los valores importados se vean de inmediato. */
+    try{ renderPortadaFields(); }catch(e){}
+    try{ renderCurriculoFields(); }catch(e){}
+    renderAll();
+    /* El editor se recarga con el contenido YA importado antes de permitir volcados. */
+    try{ loadSectionIntoEditor(); }catch(e){}
+  }finally{
+    _importing = false;
+  }
+  saveNow(false);
+}
 document.getElementById("importFile").addEventListener("change",function(e){
   const file=e.target.files[0]; if(!file) return;
   const r=new FileReader();
   r.onload=()=>{
+    let d=null;
+    try{ d=JSON.parse(r.result); }
+    catch(err){ toast("El archivo no es un JSON valido"); e.target.value=""; return; }
+    if(!d || !d.levels){ toast("El archivo no es una copia de Programadog"); e.target.value=""; return; }
+    /* Importar SUSTITUYE todo el documento actual. Sin confirmacion, un clic por error en
+       "Importar copia" borraba el trabajo en curso sin vuelta atras. */
+    if(!confirm("Al importar esta copia se REEMPLAZAR\u00c1 toda la programaci\u00f3n actual.\n\nSe guardar\u00e1 antes una copia de seguridad del estado actual, por si acaso.\n\n\u00bfContinuar?")){
+      e.target.value=""; return;
+    }
+    /* Copia de seguridad del estado actual antes de sustituirlo (permite deshacer). */
     try{
-      const d=JSON.parse(r.result); if(!d.levels) throw 0;
-      /* Importar SUSTITUYE todo el documento actual. Sin confirmacion, un clic por error en
-         "Importar copia" borraba el trabajo en curso sin vuelta atras. */
-      if(!confirm("Al importar esta copia se REEMPLAZARÁ toda la programación actual.\n\nSe guardará antes una copia de seguridad del estado actual, por si acaso.\n\n¿Continuar?")){
-        e.target.value=""; return;
-      }
-      /* Copia de seguridad del estado actual antes de sustituirlo (permite deshacer). */
-      try{
-        flushEditor();
-        localStorage.setItem(STORAGE_KEY+"_previo_"+Date.now(), JSON.stringify({uid, meta:state.meta, levels:state.levels, savedAt:Date.now()}));
-      }catch(e2){}
-      applyLoadedData(d);
-      renderAll(); saveNow(false); toast("Copia cargada correctamente");
-    }catch(err){ toast("Archivo no válido"); }
+      flushEditor();
+      localStorage.setItem(STORAGE_KEY+"_previo_"+Date.now(), JSON.stringify({uid, meta:state.meta, levels:state.levels, savedAt:Date.now()}));
+    }catch(e2){}
+    try{
+      importDataObject(d);
+      toast("Copia cargada correctamente");
+    }catch(err){
+      /* Antes cualquier fallo aqui se mostraba como "Archivo no valido", ocultando la causa
+         real y haciendo creer que la copia estaba mal. */
+      console.error("Error al importar la copia:", err);
+      toast("Error al restaurar la copia: "+((err&&err.message)||err));
+    }
     e.target.value="";
   };
   r.onerror=()=>{ toast("No se pudo leer el archivo"); e.target.value=""; };
