@@ -80,6 +80,10 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--fg);min-he
 .field input:focus{border-color:var(--accent);background:#fff;box-shadow:0 0 0 3px rgba(124,58,237,.12)}
 .field .hint{font-size:.7rem;color:var(--muted);margin-top:5px}
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
+/* Fila de 4 campos (portada): con auto-fit se van reacomodando de forma FLUIDA al ancho del
+   navegador -sin saltos bruscos de breakpoint- y solo bajan de columna cuando de verdad no
+   entran 150px, evitando el scroll de la portada en pantallas medias. */
+.form-grid-4{grid-template-columns:repeat(auto-fit, minmax(150px, 1fr))}
 
 .select-ghost{font-family:'Outfit',sans-serif;font-weight:600;font-size:.82rem;padding:9px 10px;border-radius:11px;border:1px solid var(--glass-border);background:rgba(255,255,255,.82);color:var(--fg);cursor:pointer;outline:none;transition:all .2s}
 .select-ghost:hover{background:#fff}
@@ -355,6 +359,20 @@ body.focus-mode .units-config-band{display:none}
 .anexo-inline-warn i{flex-shrink:0}
 .unit-overflow-warn{display:flex;gap:8px;align-items:flex-start;margin:0 0 12px;padding:9px 13px;border-radius:11px;background:rgba(217,119,6,.10);border:1px solid rgba(217,119,6,.28);color:#92400e;font-size:.82rem;line-height:1.4}
 .unit-overflow-warn i{flex-shrink:0;margin-top:2px;color:#d97706}
+.act-dev-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:6px}
+.act-dev-dot.done{background:#16a34a}
+.act-dev-dot.partial{background:#d97706}
+.act-dev-dot.todo{background:#cbd5e1}
+.act-intro-field{margin-bottom:12px}
+.uf-select-opt-custom{position:relative}
+.uf-select-opt-del{margin-left:auto;flex-shrink:0;width:20px;height:20px;border:0;background:transparent;color:var(--muted);border-radius:5px;cursor:pointer;font-size:.72rem;display:flex;align-items:center;justify-content:center}
+.uf-select-opt-del:hover{background:rgba(225,29,72,.12);color:var(--danger)}
+.act-edit-desarrollo{display:flex;flex-direction:column;gap:8px;margin-top:2px}
+.act-edit-desarrollo .uf-editable{min-height:70px}
+.act-dev-apartado{display:flex;flex-direction:column;gap:6px}
+.act-dev-apartado-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.act-dev-apartado-label{font-size:.74rem;font-weight:600;color:var(--muted)}
+.act-dev-apartado-head .method-picker{flex:1;min-width:150px;max-width:260px;margin-left:auto}
 .idx-item.idx-anexo{padding-left:24px}
 .idx-item.idx-anexo .idx-label{font-style:italic;color:#1a1a2e}
 .idx-item.idx-anexo .idx-num{color:#1a1a2e}
@@ -465,7 +483,10 @@ body.focus-mode .units-config-band{display:none}
 .act-add-btn{align-self:flex-start;display:flex;align-items:center;gap:6px;border:1.5px dashed var(--accent-light,#a78bfa);background:transparent;color:var(--accent);font-family:'Outfit',sans-serif;font-weight:700;font-size:.8rem;padding:7px 12px;border-radius:9px;cursor:pointer}
 .act-add-btn:hover{background:rgba(124,58,237,.08)}
 .act-edit-modal{max-width:620px;width:100%;border-radius:16px!important;padding:28px 30px!important}
-.act-edit-body{display:flex;flex-direction:column;gap:5px;max-height:60vh;overflow-y:auto;padding:2px 2px 4px}
+.act-edit-body{display:flex;flex-direction:column;gap:5px;max-height:70vh;overflow-y:auto;padding:2px 2px 4px}
+/* Sin esto, los hijos (flex items) se encogen al crecer el contenido del modal y cajas
+   como "Contenidos vinculados" se aplastan hasta desaparecer. */
+.act-edit-body > *{flex-shrink:0}
 .act-edit-label{font-family:'Outfit',sans-serif;font-size:.74rem;font-weight:700;color:var(--muted);margin-top:10px}
 .act-edit-input{width:100%;box-sizing:border-box;padding:9px 12px;border-radius:9px;border:1.5px solid var(--glass-border);font-family:'Outfit',sans-serif;font-size:.9rem}
 .act-edit-contenidos{display:flex;flex-direction:column;gap:4px;max-height:150px;overflow-y:auto;padding:6px;border:1px solid var(--glass-border);border-radius:8px;background:#fbfaff}
@@ -532,7 +553,7 @@ body.focus-mode .units-config-band{display:none}
 @media (max-width:900px){
   .workspace{grid-template-columns:1fr}
   .index-panel{position:relative;top:0;max-height:360px}
-  .form-grid{grid-template-columns:1fr}
+  .form-grid:not(.form-grid-4){grid-template-columns:1fr}
   .edit-panel{padding:20px 18px}
   #normalPanel{position:relative;top:0;height:auto;max-height:none}
   .edit-panel-bare{position:relative;top:0;height:auto;max-height:none;overflow:visible}
@@ -879,11 +900,9 @@ try{window.__cjBootEmpty=!localStorage.getItem("programadog_v3");}catch(e){windo
           <div class="field"><label>Cuerpo</label><input id="p_cuerpo" type="text" placeholder="ej. Profesores de Enseñanza Secundaria" autocomplete="off"></div>
           <div class="field"><label>Especialidad</label><input id="p_especialidad" type="text" placeholder="ej. Tecnología" autocomplete="off"></div>
         </div>
-        <div class="form-grid">
+        <div class="form-grid form-grid-4">
           <div class="field"><label>Asignatura/Módulo</label><input id="p_asignatura" type="text" placeholder="ej. Lenguaje y Tecnología Audiovisual" autocomplete="off"></div>
           <div class="field"><label>Curso y formación</label><input id="p_formacion" type="text" placeholder="ej. 2º Fotografía, Bachillerato…" autocomplete="off"></div>
-        </div>
-        <div class="form-grid">
           <div class="field">
             <label>Curso al que va dirigida</label>
             <input id="p_curso" type="text" placeholder="ej. 2026" autocomplete="off">
@@ -1122,6 +1141,7 @@ try{window.__cjBootEmpty=!localStorage.getItem("programadog_v3");}catch(e){windo
               <label><input type="radio" name="actModalidad" value="I"> Individual (I)</label>
               <label><input type="radio" name="actModalidad" value="P"> Parejas (P)</label>
               <label><input type="radio" name="actModalidad" value="G"> Grupo (G)</label>
+              <label><input type="radio" name="actModalidad" value="GC"> Grupo-clase (GC)</label>
             </div>
 
             <label class="act-edit-label">Contenido transversal</label>
@@ -1148,6 +1168,9 @@ try{window.__cjBootEmpty=!localStorage.getItem("programadog_v3");}catch(e){windo
                 </div>
               </div>
             </div>
+
+            <label class="act-edit-label">Desarrollo de la actividad</label>
+            <div id="actEditDesarrollo" class="act-edit-desarrollo"></div>
           </div>
           <div class="modal-actions act-edit-actions">
             <button type="button" class="btn btn-primary" onclick="saveActivityEditor()"><i class="fa-solid fa-check"></i> Guardar</button>
@@ -1802,6 +1825,13 @@ function renderList(onlySection){
         const fit = getUnitFit(u,i,tpl);
         list.push({ id:"UNIT_"+u.id, level:s.level, isAnexo:false, isUnitsBlock:true, content:unitHTML(u,i,tpl,fit), fit, breakBefore:i>0 });
         prevWasUnit = true;
+        /* Desarrollo de las actividades: fluye DESPUÉS de la tabla (en su propia página, con
+           márgenes normales), ocupando las páginas que necesite. Solo si hay actividades. */
+        const devHtml = unitActivitiesDevHTML(u,i,tpl);
+        if(devHtml){
+          list.push({ id:"UNITDEV_"+u.id, level:s.level, isAnexo:false, isUnitDev:true, content:devHtml, breakBefore:true });
+          prevWasUnit = true;
+        }
       });
     }
   });
@@ -1960,6 +1990,108 @@ function buildUnitRichCell(u, tpl, f, index){
   return cell;
 }
 
+/* ===== Desarrollo de las actividades (después de la tabla de la unidad) =====
+   Cada actividad se DESARROLLA tras la tabla, con dos apartados: a) De enseñanza y
+   b) De aprendizaje. El desarrollo se guarda DENTRO del propio objeto de la actividad
+   (a.desE / a.desA), así se mueve/borra con ella sin nada que sincronizar; el resumen
+   de la unidad va en u.fields.actividadesIntro. */
+function actDevText(act, which){ const v = act && act[which]; return (typeof v==="string") ? v : ""; }
+/* Texto plano de un HTML enriquecido, para saber si un campo esta REALMENTE relleno (un
+   "<p><br></p>" vacio del editor no cuenta como escrito). */
+function stripHtmlToText(html){
+  const d=document.createElement("div"); d.innerHTML=html||"";
+  return (d.textContent||"").replace(/\u00a0/g," ");
+}
+function unitActivitiesIntroText(u){ const v=u.fields.actividadesIntro; return (typeof v==="string") ? v : ""; }
+function activitiesDevHeadline(u, index, tpl){
+  const title=(u.fields.titulo||"").trim();
+  /* Como en el modelo: "Actividades Unidad 3 Los códigos del lenguaje audiovisual." -sin
+     dos puntos, con punto final- para que la justificación siga pegada en el mismo párrafo. */
+  return "Actividades "+tpl.noun+" "+(index+1)+(title?" "+title:"")+".";
+}
+/* Modalidad en PALABRA COMPLETA para el desarrollo (en la tabla se usa la abreviatura). */
+const MODALIDAD_FULL = {I:"individual", P:"parejas", G:"grupo", GC:"grupo-clase"};
+/* Título de la actividad en el desarrollo: nombre + modalidad (palabra) + etiquetas por su
+   nombre, cada una entre paréntesis. Sin los números de contenidos (eso es solo de la tabla).
+   Ej.: "Actividad 1. La imagen como lenguaje (individual) (interdisciplinar)". */
+function activityDevTitle(act, i){
+  let s = "Actividad "+(i+1)+". "+(act.nombre||"(sin nombre)");
+  const mod = MODALIDAD_FULL[act.modalidad];
+  if(mod) s += " ("+mod+")";
+  const transArr = Array.isArray(act.transversal) ? act.transversal : (act.transversal ? [act.transversal] : []);
+  transArr.forEach(t=>{ if(t && t.trim()) s += " ("+t.trim().toLowerCase()+")"; });
+  if(act.andaluza) s += " (cultura andaluza)";
+  if(act.interdisciplinar) s += " (interdisciplinar)";
+  return s;
+}
+/* Une una etiqueta en NEGRITA con el texto que la sigue en el MISMO párrafo (como en el
+   modelo: "a. De enseñanza. Exposición/debate. Clase magistral…"). Si el contenido tiene
+   varios párrafos, la etiqueta encabeza el primero y el resto fluye debajo. */
+/* Une un "lead" (HTML ya formateado, con espacio final) al texto que lo sigue en el MISMO
+   párrafo. Si el contenido tiene varios párrafos, el lead encabeza el primero. */
+function devLeadIn(leadHTML, contentHtml){
+  const lead = leadHTML;
+  const c = (contentHtml||"").trim();
+  if(!c) return '<p>'+lead+'</p>';
+  const tmp = document.createElement("div"); tmp.innerHTML = c;
+  let firstEl=null;
+  for(const n of tmp.childNodes){
+    if(n.nodeType===1){ firstEl=n; break; }
+    if(n.nodeType===3 && n.textContent.trim()){ break; } // empieza por texto suelto
+  }
+  if(firstEl && /^(P|DIV|H[1-6])$/.test(firstEl.tagName)){
+    firstEl.insertAdjacentHTML("afterbegin", lead); // lead dentro del primer bloque (misma línea)
+    return tmp.innerHTML;
+  }
+  if(firstEl && /^(UL|OL)$/.test(firstEl.tagName)){
+    return '<p>'+lead+'</p>'+c; // el contenido empieza por una lista: lead encima
+  }
+  return '<p>'+lead+c+'</p>'; // contenido inline o texto suelto: todo en el mismo párrafo
+}
+function actMethods(act, which){ const v=act && act[which]; return Array.isArray(v) ? v : []; }
+/* HTML que se inserta DESPUÉS de la tabla en la exportación (vista previa/PDF/Word). Fluye
+   con normalidad por las páginas que haga falta. Las actividades sin desarrollo escrito NO
+   se omiten: siempre salen su encabezado y sus apartados a)/b) (deben rellenarse). */
+function unitActivitiesDevHTML(u, index, tpl){
+  const acts = activitiesOf(u);
+  if(!acts.length) return "";
+  /* Encabezado + justificación juntos en un mismo párrafo (encabezado en negrita). */
+  let html = devLeadIn('<strong>'+escapeHtml(activitiesDevHeadline(u,index,tpl))+' </strong>', unitActivitiesIntroText(u));
+  acts.forEach((a,i)=>{
+    /* Línea en blanco antes de cada actividad (separa resumen y actividades entre sí). */
+    html += '<p data-space-before="1"><strong>'+escapeHtml(activityDevTitle(a,i))+'</strong></p>';
+    /* SOLO "a. De enseñanza." / "b. De aprendizaje." van SUBRAYADOS; la metodología y el
+       texto, normales. La metodología va pegada tras la etiqueta, unida por "/". Sin sangría. */
+    const metE = actMethods(a,"metE"), metA = actMethods(a,"metA");
+    const leadE = '<u>a. De enseñanza.</u>'+(metE.length? " "+escapeHtml(metE.join("/"))+"." : "")+" ";
+    const leadA = '<u>b. De aprendizaje.</u>'+(metA.length? " "+escapeHtml(metA.join("/"))+"." : "")+" ";
+    html += devLeadIn(leadE, actDevText(a,"desE"));
+    html += devLeadIn(leadA, actDevText(a,"desA"));
+  });
+  return html;
+}
+/* Editor de texto enriquecido enlazado a un getter/setter arbitrario (no a u.fields[key]),
+   para guardar en propiedades sueltas como el desarrollo de cada actividad. */
+function buildRichEditorBound(labelText, getVal, setVal, opts){
+  opts = opts||{};
+  const holder = document.createElement("div");
+  holder.className = "uf-rich-inner";
+  if(labelText){
+    const label = document.createElement("label");
+    label.className = "unit-field-label"; label.textContent = labelText;
+    holder.appendChild(label);
+  }
+  const editable = document.createElement("div");
+  editable.className = "uf-editable"+(opts.large?" uf-lg":"");
+  editable.contentEditable = "true";
+  editable.setAttribute("data-placeholder", opts.placeholder||"Escribe aquí…");
+  editable.innerHTML = (typeof getVal()==="string" ? getVal() : "");
+  editable.addEventListener("input", ()=>{ setVal(editable.innerHTML); scheduleSave(); });
+  if(!opts.noToolbar) holder.appendChild(buildRichToolbar(()=>editable));
+  holder.appendChild(editable);
+  holder._editable = editable;
+  return holder;
+}
 /* ===== Desplegable de selección múltiple ("pick") ===== */
 /* Solo un desplegable puede estar abierto a la vez; un clic fuera lo cierra (mismo
    patrón que el menú "⋮" del título). */
@@ -2143,6 +2275,7 @@ function buildFieldAny(u, tpl, f, index, onTitleChange){
    en el propio editor, no se pierde el dato: sigue en el archivo hasta que se guarda de
    nuevo, pero ya no aparece en el documento). */
 let _actEditCtx = null; // {unitId, actId} - actId null = actividad nueva
+let _actDevDraft = {desE:"", desA:"", metE:[], metA:[]}; // desarrollo a)/b) + metodologías en edición
 
 function activitiesOf(u){
   const v = u.fields.actividades;
@@ -2190,6 +2323,18 @@ function formatActList(u){
 function buildActivityListBuilder(u){
   const wrap = document.createElement("div");
   wrap.className = "act-list-builder";
+
+  /* Justificación: es de la UNIDAD (no de una actividad). Va ANTES de la lista, igual que
+     en el documento, donde encabeza el desarrollo que se imprime tras la tabla. */
+  const intro = buildRichEditorBound(
+    "Justificación de las actividades de la unidad",
+    ()=>u.fields.actividadesIntro,
+    v=>{ u.fields.actividadesIntro = v; },
+    {noToolbar:true, placeholder:"En qué se centra esta unidad y sus actividades…"}
+  );
+  intro.classList.add("act-intro-field");
+  wrap.appendChild(intro);
+
   const titleLbl = document.createElement("label");
   titleLbl.className = "unit-field-label"; titleLbl.textContent = "Actividades";
   wrap.appendChild(titleLbl);
@@ -2212,6 +2357,13 @@ function buildActivityListBuilder(u){
       const row = document.createElement("div");
       row.className = "act-row";
       const num = document.createElement("span"); num.className = "act-row-num"; num.textContent = (i+1)+".";
+      /* Punto de estado del desarrollo a)/b): verde si los dos están escritos, ámbar si
+         falta uno, gris si está sin desarrollar. Así se ve qué queda pendiente. */
+      const hasE = !!stripHtmlToText(actDevText(act,"desE")).trim();
+      const hasA = !!stripHtmlToText(actDevText(act,"desA")).trim();
+      const dot = document.createElement("span");
+      dot.className = "act-dev-dot "+((hasE&&hasA)?"done":(hasE||hasA?"partial":"todo"));
+      dot.title = (hasE&&hasA) ? "Desarrollo completo" : (hasE||hasA ? "Desarrollo a medias" : "Sin desarrollar");
       const label = document.createElement("span"); label.className = "act-row-label";
       label.innerHTML = formatActivityLabel(u, act);
       const ctrls = document.createElement("span"); ctrls.className = "act-row-ctrls";
@@ -2230,7 +2382,7 @@ function buildActivityListBuilder(u){
         setActivitiesArray(u, activitiesOf(u).filter(a=>a.id!==act.id));
         scheduleSave(); renderAll();
       }, true));
-      row.appendChild(num); row.appendChild(label); row.appendChild(ctrls);
+      row.appendChild(dot); row.appendChild(num); row.appendChild(label); row.appendChild(ctrls);
       list.appendChild(row);
     });
   }
@@ -2254,19 +2406,79 @@ const ACT_TRANSVERSAL_FIJOS = [
 ];
 let _actTransCustomList = []; /* personalizados añadidos EN ESTA apertura del editor */
 
+/* Metodologías genéricas (provisional; se ampliará con la lista definitiva). Cada apartado
+   a)/b) puede llevar varias; se imprimen unidas por "/" tras "a. De enseñanza.". */
+const METODOLOGIAS = ["ABP","Expositiva","Demostrativa","TIC","Pensamiento","Creativa","Investigadora"];
+let _methodPickerSeq = 0;
+/* Desplegable de selección múltiple de metodologías, autónomo (sin IDs fijos), que se puede
+   crear varias veces en el modal (uno por apartado). Reutiliza el mismo mecanismo flotante
+   que los demás desplegables del modal (_ufOpenPanel + positionActDropdownPanel). */
+function buildMethodPicker(getArr, setArr){
+  const wrap = document.createElement("div");
+  wrap.className = "uf-select-wrap act-edit-dropdown method-picker";
+  const btn = document.createElement("button");
+  btn.type = "button"; btn.className = "uf-select-btn";
+  const summary = document.createElement("span"); summary.className = "uf-select-summary";
+  const chev = document.createElement("i"); chev.className = "fa-solid fa-chevron-down";
+  btn.appendChild(summary); btn.appendChild(chev);
+  const panel = document.createElement("div"); panel.className = "uf-select-panel";
+  const opts = document.createElement("div"); panel.appendChild(opts);
+  wrap.appendChild(btn); wrap.appendChild(panel);
+
+  const refresh = ()=>{
+    const arr = getArr()||[];
+    summary.textContent = arr.length ? arr.join(" / ") : "Metodología";
+    summary.classList.toggle("uf-select-placeholder", !arr.length);
+  };
+  METODOLOGIAS.forEach(m=>{
+    const row = document.createElement("label"); row.className = "uf-select-opt";
+    const cb = document.createElement("input"); cb.type = "checkbox"; cb.value = m;
+    cb.checked = (getArr()||[]).includes(m);
+    cb.addEventListener("change", ()=>{
+      let a = (getArr()||[]).slice();
+      if(cb.checked){ if(!a.includes(m)) a.push(m); } else { a = a.filter(x=>x!==m); }
+      setArr(a); refresh();
+    });
+    row.appendChild(cb); row.appendChild(document.createTextNode(" "+m));
+    opts.appendChild(row);
+  });
+  btn.addEventListener("click", ()=>{
+    const isOpen = panel.classList.contains("open");
+    closeAllUfSelectPanels();
+    if(!isOpen){ panel.classList.add("open"); btn.classList.add("open"); _ufOpenPanel={wrap,panel,btn}; positionActDropdownPanel(btn,panel); }
+  });
+  refresh();
+  return wrap;
+}
+
 function renderActTransOptions(selected){
   const box = document.getElementById("actTransOptions");
   box.innerHTML = "";
   const all = ACT_TRANSVERSAL_FIJOS.concat(_actTransCustomList);
   all.forEach(v=>{
+    const isCustom = !ACT_TRANSVERSAL_FIJOS.includes(v);
     const row = document.createElement("label");
-    row.className = "uf-select-opt";
+    row.className = "uf-select-opt"+(isCustom?" uf-select-opt-custom":"");
     const cb = document.createElement("input");
     cb.type = "checkbox"; cb.value = v;
     cb.checked = selected.includes(v);
     cb.addEventListener("change", updateActTransSummary);
     row.appendChild(cb);
     row.appendChild(document.createTextNode(" "+v));
+    /* Los personalizados se pueden BORRAR de la lista (los fijos no). */
+    if(isCustom){
+      const del = document.createElement("button");
+      del.type = "button"; del.className = "uf-select-opt-del"; del.title = "Quitar";
+      del.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+      del.addEventListener("click", (e)=>{
+        e.preventDefault(); e.stopPropagation();
+        _actTransCustomList = _actTransCustomList.filter(x=>x!==v);
+        const sel = [...document.querySelectorAll("#actTransOptions input:checked")].map(cb=>cb.value).filter(x=>x!==v);
+        renderActTransOptions(sel);
+        updateActTransSummary();
+      });
+      row.appendChild(del);
+    }
     box.appendChild(row);
   });
 }
@@ -2380,6 +2592,37 @@ function openActivityEditor(unitId, actId){
   updateActTagsSummary();
   closeAllUfSelectPanels();
 
+  /* Desarrollo a)/b): se edita aquí mismo. Se escribe sobre un borrador (la actividad
+     todavía no existe si es nueva) que saveActivityEditor vuelca al guardar. */
+  _actDevDraft = {
+    desE: act ? actDevText(act,"desE") : "", desA: act ? actDevText(act,"desA") : "",
+    metE: act ? actMethods(act,"metE").slice() : [], metA: act ? actMethods(act,"metA").slice() : []
+  };
+  const devBox = document.getElementById("actEditDesarrollo");
+  if(devBox){
+    devBox.innerHTML = "";
+    /* Una ÚNICA barra de herramientas para los dos apartados: actúa sobre el que se tenga
+       enfocado (mismo patrón que Refuerzo/Ampliación). */
+    const ed1 = buildRichEditorBound("", ()=>_actDevDraft.desE, v=>{ _actDevDraft.desE = v; }, {noToolbar:true, placeholder:"Qué hace el profesorado…"});
+    const ed2 = buildRichEditorBound("", ()=>_actDevDraft.desA, v=>{ _actDevDraft.desA = v; }, {noToolbar:true, placeholder:"Qué hace el alumnado…"});
+    let lastFocused = ed1._editable;
+    [ed1,ed2].forEach(h=>{ h._editable.addEventListener("focus", ()=>{ lastFocused = h._editable; }); });
+    devBox.appendChild(buildRichToolbar(()=>lastFocused));
+
+    const mkApartado = (labelText, picker, ed)=>{
+      const block = document.createElement("div"); block.className = "act-dev-apartado";
+      const head = document.createElement("div"); head.className = "act-dev-apartado-head";
+      const lbl = document.createElement("span"); lbl.className = "act-dev-apartado-label"; lbl.textContent = labelText;
+      head.appendChild(lbl); head.appendChild(picker);
+      block.appendChild(head); block.appendChild(ed);
+      return block;
+    };
+    devBox.appendChild(mkApartado("a) De enseñanza",
+      buildMethodPicker(()=>_actDevDraft.metE, a=>{ _actDevDraft.metE = a; }), ed1));
+    devBox.appendChild(mkApartado("b) De aprendizaje",
+      buildMethodPicker(()=>_actDevDraft.metA, a=>{ _actDevDraft.metA = a; }), ed2));
+  }
+
   document.getElementById("actEditModal").classList.add("open");
   setTimeout(()=>{ const n=document.getElementById("actEditNombre"); if(n) n.focus(); }, 50);
 }
@@ -2406,11 +2649,15 @@ function saveActivityEditor(){
      estructurada de verdad: hay que guardar ese texto ANTES de sobrescribirlo, o se
      perdería sin avisar en cuanto se guarde la primera actividad nueva. */
   const legacyText = (typeof u.fields.actividades==="string") ? u.fields.actividades : null;
+  const desE = _actDevDraft.desE || "";
+  const desA = _actDevDraft.desA || "";
+  const metE = Array.isArray(_actDevDraft.metE) ? _actDevDraft.metE.slice() : [];
+  const metA = Array.isArray(_actDevDraft.metA) ? _actDevDraft.metA.slice() : [];
   if(_actEditCtx.actId){
     const idx = acts.findIndex(a=>a.id===_actEditCtx.actId);
-    if(idx>=0) acts[idx] = Object.assign({}, acts[idx], {nombre, contenidos, modalidad, transversal, andaluza, interdisciplinar});
+    if(idx>=0) acts[idx] = Object.assign({}, acts[idx], {nombre, contenidos, modalidad, transversal, andaluza, interdisciplinar, desE, desA, metE, metA});
   }else{
-    acts.push({id:"act_"+(uid++), nombre, contenidos, modalidad, transversal, andaluza, interdisciplinar});
+    acts.push({id:"act_"+(uid++), nombre, contenidos, modalidad, transversal, andaluza, interdisciplinar, desE, desA, metE, metA});
   }
   setActivitiesArray(u, acts);
   if(legacyText && legacyText.trim()) u.fields.actividades_legado = legacyText;
@@ -3158,7 +3405,7 @@ document.addEventListener("visibilitychange", function(){
    con las mismas clases doc-section-lvl1/lvl2, para que la altura del título cuente igual
    que en la vista previa y el PDF (antes no se medía, y el contador salía descompensado). */
 function sectionMeasureHtml(s){
-  if(s.isUnitsBlock) return '<section class="doc-section">'+s.content+'</section>';
+  if(s.isUnitsBlock || s.isUnitDev) return '<section class="doc-section">'+s.content+'</section>';
   let cls="doc-section";
   cls += s.level===1 ? " doc-section-lvl1" : " doc-section-lvl2";
   if(s.isAnexo) cls+=" doc-section-anexo";
@@ -3994,20 +4241,27 @@ function htmlToBlocks(html){
         const un=under||isUnder(ch);
         const isBlk=blocks.includes(tag);
         const hasAlign = ch.style && ch.style.textAlign;
+        const indentN = parseInt(ch.dataset && ch.dataset.indent,10);
+        const hasIndent = !isNaN(indentN) && indentN>0;
+        const spaceBeforeN = parseInt(ch.dataset && ch.dataset.spaceBefore,10);
+        const hasSpaceBefore = !isNaN(spaceBeforeN) && spaceBeforeN>0;
         if(isBlk) stream.push({br:true});
+        if(hasSpaceBefore) stream.push({spaceBefore:spaceBeforeN});
         if(hasAlign) stream.push({align:mapAlign(ch.style.textAlign)});
+        if(hasIndent) stream.push({indent:indentN});
         walk(ch,b,it,un,depth);
         if(isBlk) stream.push({br:true});
         if(hasAlign) stream.push({align:"justify"});
+        if(hasIndent) stream.push({indent:0});
       }
     });
   })(box,false,false,false,0);
-  const out=[]; let cur=[]; let currentAlign="justify"; let curIsList=false; let curIndent=0;
+  const out=[]; let cur=[]; let currentAlign="justify"; let curIsList=false; let curIndent=0; let currentIndent=0; let pendingSpaceBefore=0;
   const flushP=()=>{
     if(cur.length){
       const m=[];
       cur.forEach(r=>{ const l=m[m.length-1]; if(l&&l.bold===r.bold&&l.italic===r.italic&&l.under===r.under) l.text+=r.text; else m.push({text:r.text,bold:r.bold,italic:r.italic,under:r.under}); });
-      if(m.some(r=>r.text.trim()!=="")) out.push({type:"p",runs:m,align:currentAlign,indent:curIsList?curIndent:0});
+      if(m.some(r=>r.text.trim()!=="")){ out.push({type:"p",runs:m,align:currentAlign,indent:(curIsList?curIndent:0)+currentIndent,spaceBefore:pendingSpaceBefore}); pendingSpaceBefore=0; }
       cur=[];
     }
     curIsList=false; curIndent=0;
@@ -4015,6 +4269,8 @@ function htmlToBlocks(html){
   stream.forEach(tok=>{
     if(tok.br){ flushP(); }
     else if(tok.align){ currentAlign=tok.align; }
+    else if(tok.indent!==undefined){ currentIndent=tok.indent; }
+    else if(tok.spaceBefore!==undefined){ pendingSpaceBefore=tok.spaceBefore; }
     else if(tok.listMarker!==undefined){ flushP(); curIsList=true; curIndent=tok.depth; cur.push({text:tok.listMarker,bold:false,italic:false}); }
     else if(tok.img){ flushP(); if(tok.img.src) out.push({type:"img",src:tok.img.src,pct:tok.img.pct,align:tok.img.align,radiusRatio:tok.img.radiusRatio||0}); }
     else if(tok.table){ flushP(); out.push({type:"table", cols:tok.table.cols, rows:tok.table.rows}); }
@@ -4111,7 +4367,8 @@ function extractTableBlock(tableEl){
   const lineHeight = parseFloat(tableEl.style.getPropertyValue("--ut-lh")) || 1.2;
   const padPt = parseFloat(tableEl.style.getPropertyValue("--ut-pad")) || 5;
   const gapPt = parseFloat(tableEl.style.getPropertyValue("--ut-gap")) || 4;
-  return { cols: gridCols, rows, fontPt, lineHeight, padPt, gapPt };
+  const isUnitTable = tableEl.classList && tableEl.classList.contains("unit-table");
+  return { cols: gridCols, rows, fontPt, lineHeight, padPt, gapPt, isUnitTable };
 }
 function loadImageMeta(src){ return new Promise(res=>{ const im=new Image(); im.onload=()=>res({w:im.naturalWidth||300,h:im.naturalHeight||200}); im.onerror=()=>res(null); im.src=src; }); }
 function dataURLtoBytes(dataURL){ const b=atob(dataURL.split(",")[1]); const arr=new Uint8Array(b.length); for(let i=0;i<b.length;i++) arr[i]=b.charCodeAt(i); return arr; }
@@ -4199,7 +4456,7 @@ async function generateDOCX(){
   try{
     const {Document,Packer,Paragraph,TextRun,ImageRun,AlignmentType,PageBreak,Footer,PageNumber,LineRuleType,
            HorizontalPositionRelativeFrom,HorizontalPositionAlign,VerticalPositionRelativeFrom,TextWrappingType,TextWrappingSide,
-           Table,TableRow,TableCell,WidthType,BorderStyle}=docx;
+           Table,TableRow,TableCell,WidthType,BorderStyle,TableLayoutType}=docx;
     const FONT="Times New Roman";
     const PORTADA_FONT="Roboto";
     const S12=24, S16=32, LINE={line:240,lineRule:LineRuleType.AUTO};
@@ -4209,7 +4466,18 @@ async function generateDOCX(){
     const dtype=mime=>{ if(/png/i.test(mime))return"png"; if(/jpe?g/i.test(mime))return"jpg"; if(/gif/i.test(mime))return"gif"; if(/bmp/i.test(mime))return"bmp"; return"png"; };
     const rgbArrToHex=arr=>arr.map(x=>Math.max(0,Math.min(255,x)).toString(16).padStart(2,"0")).join("");
     function buildDocxTable(block){
-      const gridW = block.cols.map(w=> Math.max(1, Math.round(w/100*USABLE_PX*15))); /* rejilla en DXA */
+      /* La tabla de unidad se dibuja en el PDF con margen 14 mm (182 mm de ancho). Word usa
+         25 mm en todo el documento, así que al 100% del área saldría más estrecha (160 mm),
+         el texto envolvería distinto y se desbordaría. Para que Word CUADRE con el PDF, a la
+         tabla de unidad le damos ancho fijo de 182 mm y una sangría izquierda NEGATIVA que la
+         saca hasta el margen de 14 mm. Las demás tablas siguen al 100% del área normal. */
+      const MMDXA = 56.6929; // twips por mm
+      const isUT = !!block.isUnitTable;
+      const utWidth = Math.round((210 - 2*14) * MMDXA);  // 182 mm
+      const utIndent = Math.round(14*MMDXA) - 1418;       // del margen de 25 mm al de 14 mm (negativo)
+      const gridW = isUT
+        ? block.cols.map(w=> Math.max(1, Math.round(w/100*utWidth)))
+        : block.cols.map(w=> Math.max(1, Math.round(w/100*USABLE_PX*15)));
       const alignOf = a => a==="center"?AlignmentType.CENTER:(a==="right"?AlignmentType.RIGHT:(a==="justify"?AlignmentType.JUSTIFIED:undefined));
       /* Mismo ajuste (tamaño de letra/interlineado/relleno) que calcula el motor de una
          página para la vista previa y el PDF, aplicado aquí con las unidades de docx:
@@ -4217,13 +4485,21 @@ async function generateDOCX(){
       const cellSizeHalfPt = block.fontPt!=null ? Math.round(block.fontPt*2) : S12;
       const cellLine = block.lineHeight!=null ? { line:Math.round(block.lineHeight*240), lineRule:LineRuleType.AUTO } : LINE;
       const cellMarginV = block.padPt!=null ? Math.round(block.padPt*20) : 60;
+      const cellMarginH = block.padPt!=null ? Math.round(block.padPt*20) : 80; // relleno horizontal = al del PDF
       const cellGapAfter = block.gapPt!=null ? Math.round(block.gapPt*20) : 0;
+      /* Borde gris uniforme (como el PDF: 150,150,150). Sin bordes explícitos, Word deja una
+         fina línea blanca en el borde de muchas celdas -sobre todo las sombreadas-. Se define
+         el mismo borde en la tabla Y en cada celda para que no queden microhuecos. */
+      const BC = "969696";
+      const bside = { style: BorderStyle.SINGLE, size: 4, color: BC };
+      const cellBorders = { top:bside, bottom:bside, left:bside, right:bside };
       const rows = block.rows.map(row=> new TableRow({
         children: row.map((cell)=> new TableCell({
           width:{ size: cell.w||(100/row.length), type: WidthType.PERCENTAGE },
           columnSpan: cell.span||1,
           shading: cell.bg ? { fill: rgbArrToHex(cell.bg) } : undefined,
-          margins:{ top:cellMarginV, bottom:cellMarginV, left:80, right:80 },
+          borders: cellBorders,
+          margins:{ top:cellMarginV, bottom:cellMarginV, left:cellMarginH, right:cellMarginH },
           children: (cell.paragraphs&&cell.paragraphs.length ? cell.paragraphs : [[{text:"",bold:false}]]).map((runs,pi,arr)=> new Paragraph({
             spacing: pi<arr.length-1 ? {...cellLine, after:cellGapAfter} : cellLine,
             alignment: alignOf(cell.align),
@@ -4231,7 +4507,16 @@ async function generateDOCX(){
           }))
         }))
       }));
-      return new Table({ width:{ size:100, type:WidthType.PERCENTAGE }, columnWidths: gridW, rows });
+      const tableOpts = { columnWidths: gridW, rows,
+        borders: { top:bside, bottom:bside, left:bside, right:bside, insideHorizontal:bside, insideVertical:bside } };
+      if(isUT){
+        tableOpts.width = { size: utWidth, type: WidthType.DXA };
+        tableOpts.indent = { size: utIndent, type: WidthType.DXA };
+        tableOpts.layout = TableLayoutType.FIXED; // respeta columnWidths (sin autoajuste de Word)
+      }else{
+        tableOpts.width = { size:100, type:WidthType.PERCENTAGE };
+      }
+      return new Table(tableOpts);
     }
 
     const secData = renderList().map(item=>({s:item, blocks:htmlToBlocks(item.content||"")}));
@@ -4306,8 +4591,8 @@ async function generateDOCX(){
       const enteringAnexo = s.isAnexo && targetChildren!==anexoChildren;
       if(enteringAnexo) targetChildren=anexoChildren;
       const isContainerHeading = isUnitsContainer(s.id);
-      let unitBreakPending = !!(s.isUnitsBlock && s.breakBefore); /* la 1ª unidad no rompe; de la 2ª en adelante, salto en su primer párrafo */
-      if(!s.isUnitsBlock){
+      let unitBreakPending = !!((s.isUnitsBlock||s.isUnitDev) && s.breakBefore); /* la 1ª unidad no rompe; de la 2ª en adelante y el desarrollo, salto en su primer párrafo */
+      if(!s.isUnitsBlock && !s.isUnitDev){
         /* El apartado al que se vinculan las unidades no lleva espacio de más debajo del
            título: la tabla de la 1ª unidad tiene que empezar justo debajo, sin hueco. */
         targetChildren.push(new Paragraph({pageBreakBefore: enteringAnexo ? false : (idx>0 && s.breakBefore), spacing:{...LINE, before: idx===0?0:240, after: isContainerHeading?0:120}, children:[new TextRun({text:sectionHeadingText(s), bold:(s.level===1), font:FONT, size:(s.level===1?S16:S12)})]}));
@@ -4319,8 +4604,12 @@ async function generateDOCX(){
           const kids = pendingFloats.length ? pendingFloats.concat(runs) : runs;
           pendingFloats=[];
           const ALIGN_MAP={left:AlignmentType.LEFT, center:AlignmentType.CENTER, right:AlignmentType.RIGHT, justify:AlignmentType.JUSTIFIED};
-          const pIndent = b.indent ? {left: 400+(b.indent*400)} : undefined;
-          targetChildren.push(new Paragraph({pageBreakBefore: unitBreakPending||undefined, spacing:LINE, indent:pIndent, alignment: ALIGN_MAP[b.align]||AlignmentType.JUSTIFIED, children:kids}));
+          const pIndent = b.indent ? {left: Math.round(b.indent*453)} : undefined; // 0,8 cm/nivel, igual que el PDF (8 mm)
+          /* Hueco de separación entre párrafos = al del PDF (0,4 líneas ≈ 96 dxa), para que
+             los saltos entre párrafos/líneas se vean también en Word. */
+          const pSpacing = { line:240, lineRule:LineRuleType.EXACT, after:96 };
+          if(b.spaceBefore) pSpacing.before = 240*b.spaceBefore;
+          targetChildren.push(new Paragraph({pageBreakBefore: unitBreakPending||undefined, spacing:pSpacing, indent:pIndent, alignment: ALIGN_MAP[b.align]||AlignmentType.JUSTIFIED, children:kids}));
           unitBreakPending = false;
         }else if(b.type==="img"){
           const wide = b.pct>70;
@@ -4333,6 +4622,13 @@ async function generateDOCX(){
           }
         }else if(b.type==="table"){
           flushFloatsAlone();
+          /* La tabla de una unidad debe empezar en página nueva. Un docx Table no admite
+             pageBreakBefore, así que se antepone un párrafo vacío casi invisible que sí lo
+             lleva (antes el salto se perdía y la tabla salía tras el desarrollo anterior). */
+          if(unitBreakPending){
+            targetChildren.push(new Paragraph({pageBreakBefore:true, spacing:{before:0,after:0,line:1,lineRule:LineRuleType.EXACT}, children:[]}));
+            unitBreakPending = false;
+          }
           targetChildren.push(buildDocxTable(b));
           targetChildren.push(empty());
         }
@@ -4595,12 +4891,12 @@ async function buildPdfDoc(opts){
         else { y+=4; lastTrailingGap=4; }
       }
       if(s.isAnexo && firstAnexoPage===null){ firstAnexoPage=doc.internal.getNumberOfPages(); }
-      if(!s.isUnitsBlock){
+      if(!s.isUnitsBlock && !s.isUnitDev){
         addPageIfNeeded(lh(16)*2);
         writeParagraph([{text:sectionHeadingText(s),bold:(s.level===1)}],(s.level===1?16:12),false);
       }
       sd.blocks.forEach(b=>{
-        if(b.type==="p") writeParagraph(b.runs,12,b.align||"justify",b.indent?(8*b.indent):0);
+        if(b.type==="p"){ if(b.spaceBefore){ addPageIfNeeded(lh(12)); y += lh(12)*b.spaceBefore; } writeParagraph(b.runs,12,b.align||"justify",b.indent?(8*b.indent):0); }
         else if(b.type==="img") placeImage(b);
         else if(b.type==="table") placeTable(b);
       });
