@@ -1220,6 +1220,13 @@
   color:#9aa0a6;padding:7px 12px 2px}
 .cj-more-menu select{width:100%;font-family:'Outfit',sans-serif;font-size:.8rem;padding:7px 8px;
   border-radius:8px;border:1px solid #d8dae0;margin:0 0 4px;box-sizing:border-box}
+/* Elementos que no caben en la pildora (boton de Google primero, y si aun falta sitio,
+   alguna pestaña) se ocultan aqui y su acceso se traslada al menu de "3 puntos", que
+   siempre permanece visible. Ver cjFitPill(). */
+.cj-pill-hidden{display:none !important}
+.cj-more-overflow-icon{display:flex;align-items:center;justify-content:center;width:18px;
+  height:18px;flex-shrink:0;color:#5f6368}
+.cj-more-overflow-icon svg{width:16px;height:16px}
 @media(max-width:1080px){ .nav-tab span{display:none} .nav-tab{padding:0 12px} }</style>
 <script>/* Se ejecuta ANTES que la app: anota si este navegador tenia datos.
    Si no los tenia, al sincronizar se puede cargar Drive sin preguntar. */
@@ -1258,28 +1265,28 @@ try{window.__cjBootEmpty=!localStorage.getItem("rubrica-app-data");}catch(e){win
         <!-- Cuenta de Google: sesion compartida con CONEJO y las demas apps. -->
         <div id="cjAuthSlot"></div>
         <nav class="nav-tabs">
-        <button class="nav-tab active" id="nt-setup" onclick="showSection('setup')">
+        <button class="nav-tab active" id="nt-setup" data-section="setup" onclick="showSection('setup')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/><path d="M9 7h7M9 11h7"/></svg>
           <span>Contenidos</span>
         </button>
-        <button class="nav-tab" id="nt-rubricas" onclick="showSection('rubricas')">
+        <button class="nav-tab" id="nt-rubricas" data-section="rubricas" onclick="showSection('rubricas')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h6M9 12h6M9 15h4"/></svg>
           <span>Actividades</span>
         </button>
-        <button class="nav-tab" id="nt-cumplimentar" onclick="showSection('cumplimentar')">
+        <button class="nav-tab" id="nt-cumplimentar" data-section="cumplimentar" onclick="showSection('cumplimentar')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
           <span>Evaluar</span>
         </button>
-        <button class="nav-tab" id="nt-notas" onclick="showSection('notas')">
+        <button class="nav-tab" id="nt-notas" data-section="notas" onclick="showSection('notas')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 8h10M7 12h10M7 16h6"/><rect x="3" y="3" width="18" height="18" rx="3"/></svg>
           <span>Notas</span>
         </button>
-        <button class="nav-tab" id="nt-recuperacion" onclick="showSection('recuperacion')">
+        <button class="nav-tab" id="nt-recuperacion" data-section="recuperacion" onclick="showSection('recuperacion')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12a9 9 0 109-9 9.75 9.75 0 00-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
           <span>Recuperación</span>
         </button>
       </nav>
-        <div class="cj-more-wrap"><button type="button" class="cj-more-btn" title="Mas opciones" aria-label="Mas opciones" onclick="cjToggleMore()"><svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="3" r="1.5"/><circle cx="8" cy="8" r="1.5"/><circle cx="8" cy="13" r="1.5"/></svg></button><div class="cj-more-menu" id="cjMoreMenu"><button type="button" onclick="exportData(); cjCloseMore()">Exportar copia (JSON)</button><label>Importar copia (JSON)<input type="file" accept=".json" style="display:none" onchange="importData(event); cjCloseMore()"></label><div class="cj-more-sep"></div><div class="cj-more-lbl">Hoja de calculo (Excel)</div><select id="sel-export-subject"><option value="">Todas...</option></select><button type="button" onclick="exportExcel(); cjCloseMore()">Exportar Excel</button></div></div>
+        <div class="cj-more-wrap"><button type="button" class="cj-more-btn" title="Mas opciones" aria-label="Mas opciones" onclick="cjToggleMore()"><svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="3" r="1.5"/><circle cx="8" cy="8" r="1.5"/><circle cx="8" cy="13" r="1.5"/></svg></button><div class="cj-more-menu" id="cjMoreMenu"><div id="cjMoreOverflow"></div><div class="cj-more-lbl">Hoja de calculo (Excel)</div><select id="sel-export-subject"><option value="">Todas...</option></select><button type="button" onclick="exportExcel(); cjCloseMore()">Exportar Excel</button><div class="cj-more-sep"></div><button type="button" onclick="exportData(); cjCloseMore()">Exportar copia</button><label>Importar copia<input type="file" accept=".json" style="display:none" onchange="importData(event); cjCloseMore()"></label></div></div>
       </div>
     </div>
   </header>
@@ -2040,6 +2047,8 @@ function showSection(name){
   if(name==='setup') renderStats();
   if(name==='notas') loadNotas();
   if(name==='recuperacion') loadRecuperacion();
+
+  try{ cjFitPill(); }catch(e){}
 }
 
 // ============================================================
@@ -4967,6 +4976,101 @@ document.addEventListener('click', function(e){
 window.addEventListener('resize', function(){ var m=document.getElementById('cjMoreMenu'); if(m&&m.classList.contains('open')) cjPositionMore(); });
 window.addEventListener('scroll', function(){ cjCloseMore(); }, true);
 
+/* ===== Ajuste de la pildora a lo ancho disponible =====
+   El boton de "3 puntos" debe verse siempre. Si no cabe todo el contenido (logo + cuenta
+   de Google + pestañas + 3 puntos), se van ocultando elementos y su acceso se traslada al
+   propio menu de 3 puntos, empezando por el boton de Google (el menos importante). Si aun
+   asi no cupiera, como ultimo recurso se ocultarian pestañas (de derecha a izquierda,
+   protegiendo la que este activa mientras se pueda), aunque el objetivo es que las 5
+   pestañas se vean siempre. */
+function cjPillFits(pill, left, group){
+  var cs = getComputedStyle(pill);
+  var gap = parseFloat(cs.columnGap || cs.gap) || 10;
+  var padL = parseFloat(cs.paddingLeft) || 0;
+  var padR = parseFloat(cs.paddingRight) || 0;
+  var avail = pill.clientWidth - padL - padR - gap - left.offsetWidth;
+  return group.offsetWidth <= avail;
+}
+function cjFitPill(){
+  var pill = document.querySelector('.app-pill');
+  var left = document.querySelector('.app-pill-left');
+  var group = document.querySelector('.cj-pill-group');
+  var google = document.getElementById('cjAuthSlot');
+  var logoText = document.querySelector('.app-logo h1');
+  if(!pill || !left || !group) return;
+  var tabs = Array.prototype.slice.call(document.querySelectorAll('.nav-tabs .nav-tab'));
+
+  /* Se muestra todo primero, para medir el ancho real que necesitaria sin recortes. */
+  if(google) google.classList.remove('cj-pill-hidden');
+  if(logoText) logoText.classList.remove('cj-pill-hidden');
+  tabs.forEach(function(t){ t.classList.remove('cj-pill-hidden'); });
+
+  var hiddenGoogle = false, hiddenTabs = [];
+
+  /* 1) Primero se esconde el boton de Google (el menos importante). */
+  if(google && !cjPillFits(pill, left, group)){
+    google.classList.add('cj-pill-hidden');
+    hiddenGoogle = true;
+  }
+  /* 2) Si aun falta sitio, se esconde el texto "RUBRICAT" del logo, dejando el icono SVG
+        siempre visible, para intentar que las 5 pestañas principales quepan siempre. */
+  if(logoText && !cjPillFits(pill, left, group)){
+    logoText.classList.add('cj-pill-hidden');
+  }
+  /* 3) Como ultimo recurso, se esconden pestañas (de la ultima a la primera). */
+  for(var i = tabs.length - 1; i >= 0 && !cjPillFits(pill, left, group); i--){
+    var t = tabs[i];
+    if(t.classList.contains('active') && hiddenTabs.length < tabs.length - 1) continue;
+    t.classList.add('cj-pill-hidden');
+    hiddenTabs.push(t);
+  }
+  cjRenderMoreOverflow(hiddenGoogle ? google : null, hiddenTabs);
+}
+function cjRenderMoreOverflow(hiddenGoogle, hiddenTabs){
+  var box = document.getElementById('cjMoreOverflow');
+  if(!box) return;
+  var html = '';
+  if(hiddenGoogle){
+    var gbtn = hiddenGoogle.querySelector('button');
+    var glabel = 'Cuenta de Google';
+    var gicon = '';
+    if(gbtn){
+      var textSpan = gbtn.querySelector('.cj-gsi-text, .cj-gbtn-text');
+      if(textSpan && textSpan.textContent.trim()) glabel = textSpan.textContent.trim();
+      var iconSpan = gbtn.querySelector('.cj-gsi-icon');
+      if(iconSpan) gicon = iconSpan.innerHTML;
+    }
+    html += '<button type="button" onclick="cjMoreClickGoogle()">' +
+            '<span class="cj-more-overflow-icon">' + gicon + '</span>' +
+            '<span>' + glabel.replace(/</g,'&lt;') + '</span></button>';
+  }
+  /* Se recorren en orden inverso para que, dentro del menu, queden en el mismo orden
+     de izquierda a derecha que tenian en la pildora. */
+  hiddenTabs.slice().reverse().forEach(function(t){
+    var section = t.getAttribute('data-section');
+    var label = t.querySelector('span');
+    var icon = t.querySelector('svg');
+    html += '<button type="button" onclick="showSection(\'' + section + '\'); cjCloseMore()">' +
+            '<span class="cj-more-overflow-icon">' + (icon ? icon.outerHTML : '') + '</span>' +
+            '<span>' + (label ? label.textContent.replace(/</g,'&lt;') : '') + '</span></button>';
+  });
+  if(html) html += '<div class="cj-more-sep"></div>';
+  box.innerHTML = html;
+}
+function cjMoreClickGoogle(){
+  var slot = document.getElementById('cjAuthSlot');
+  var btn = slot && slot.querySelector('button');
+  cjCloseMore();
+  if(btn) btn.click();
+}
+/* Recalculo con "debounce" en resize (incluye cambios de orientacion en movil). */
+var cjFitPillTimer = null;
+window.addEventListener('resize', function(){
+  clearTimeout(cjFitPillTimer);
+  cjFitPillTimer = setTimeout(cjFitPill, 120);
+});
+document.addEventListener('DOMContentLoaded', function(){ try{ cjFitPill(); }catch(e){} });
+
 
 /* ============================================================================
    CUENTA DE GOOGLE COMPARTIDA (lanzador CONEJO)
@@ -6030,6 +6134,7 @@ function cjStatusText(){
 function cjPaintAuth(){
   CJAuth.renderPill("cjAuthSlot", {state: CJDrive.state(), status: CJDrive.status(),
                                    text: cjStatusText(), onManage: cjOpenDrivePanel});
+  try{ cjFitPill(); }catch(e){}
 }
 /* Refresco periodico del "hace X min" aunque no haya cambios, y ante conexion/desconexion. */
 setInterval(function(){ try{ cjPaintAuth(); }catch(e){} }, 20000);
