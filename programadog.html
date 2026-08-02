@@ -48,7 +48,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--fg);min-he
 .brand .brand-dog{width:4.4rem;height:4.4rem;flex-shrink:0}
 .brand span{font-weight:800;font-size:1.7rem;letter-spacing:.01em}
 .topbar .brand{gap:8px}
-.topbar .brand .brand-dog{width:2.7rem;height:2.7rem;margin:-9px 0}
+.topbar .brand .brand-dog{width:3.75rem;height:3.75rem;margin:-12px 0}
 .topbar .brand span{font-size:.88rem;letter-spacing:.06em;text-transform:uppercase;color:var(--fg)}
 
 /* ===== Botones ===== */
@@ -274,6 +274,10 @@ body.focus-mode .units-config-band{display:none}
   padding:13px 16px;border-radius:13px;background:#7f1d1d;color:#fff;
   font-family:'Outfit',sans-serif;font-size:.85rem;line-height:1.45;box-shadow:0 8px 28px rgba(0,0,0,.3)}
 .save-fail-banner i{flex:0 0 auto;margin-top:2px;font-size:1rem}
+.save-fail-banner{flex-wrap:wrap}
+.save-fail-banner button{flex:0 0 auto;border:1px solid rgba(255,255,255,.55);background:rgba(255,255,255,.14);color:#fff;
+  font-family:'Outfit',sans-serif;font-size:.8rem;font-weight:600;padding:7px 13px;border-radius:9px;cursor:pointer}
+.save-fail-banner button:hover{background:rgba(255,255,255,.26)}
 /* Aviso previo a exportar: repasa las penalizaciones antes de generar el documento. */
 .preflight-back{position:fixed;inset:0;z-index:10000;background:rgba(26,26,46,.55);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:20px}
 .preflight-card{background:#fff;border-radius:18px;padding:24px;max-width:560px;width:100%;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3);font-family:'Outfit',sans-serif}
@@ -808,7 +812,7 @@ try{window.__cjBootEmpty=!localStorage.getItem("programadog_v3");}catch(e){windo
         <path d="M132.242 181.22C129.728 194.908 90.9731 288.143 131.095 296.086C205.608 306.73 196.665 221.971 196.665 169" stroke="url(#dogGrad)" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
         <path d="M234 168V173" stroke="url(#dogGrad)" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
-      <span>Programadog</span>
+      <span id="brandText">Programadog</span>
     </div>
     <div class="topbar-spacer"></div>
     <!-- Hueco de la cuenta de Google: sin sesion muestra la pastilla de "Iniciar sesion
@@ -826,8 +830,8 @@ try{window.__cjBootEmpty=!localStorage.getItem("programadog_v3");}catch(e){windo
     <div class="more-menu-wrap">
       <button class="icon-plain-btn" onclick="toggleMoreMenu()" title="Más opciones" id="moreMenuBtn"><i class="fa-solid fa-ellipsis-vertical"></i></button>
       <div class="more-menu" id="moreMenu">
+        <button id="mm_google_mirror" style="display:none" onclick="var b=document.querySelector('#cjAuthSlot button'); if(b) b.click(); closeMoreMenu()"><i class="fa-brands fa-google"></i> Cuenta de Google</button>
         <button id="mm_normativa_mirror" style="display:none" onclick="openNormativa(); closeMoreMenu()"><i class="fa-solid fa-scale-balanced"></i> Normativa</button>
-        <button id="mm_preview_mirror" style="display:none" onclick="previewPDF(); closeMoreMenu()"><i class="fa-solid fa-eye"></i> Vista previa</button>
         <button id="mm_word_mirror" style="display:none" onclick="generateDOCX(); closeMoreMenu()"><i class="fa-solid fa-file-word"></i> Word</button>
         <button id="mm_pdf_mirror" style="display:none" onclick="generatePDF(); closeMoreMenu()"><i class="fa-solid fa-file-pdf"></i> PDF</button>
         <div class="more-menu-sep" id="mmSep" style="display:none"></div>
@@ -3135,8 +3139,14 @@ function toggleUnitsMinDetail(){
 let saveTimer = null;
 function scheduleSave(){ setStatus("Guardando…","circle-notch"); clearTimeout(saveTimer); saveTimer=setTimeout(()=>saveNow(false),500); if(typeof CJDrive!=="undefined") CJDrive.schedule(); }
 let _saveFailed = false;
+/* Cuando los datos guardados no se pudieron leer, se BLOQUEA todo guardado automatico para
+   no sobrescribir el original (ver loadSaved). */
+let _blockAutoSave = false;
 function saveNow(showToast){
-  flushEditor();
+  /* flushEditor va en su propio try: si el editor fallara, NO debe impedir que se guarde
+     todo lo demas (antes una excepcion aqui abortaba el guardado entero en silencio). */
+  try{ flushEditor(); }catch(e){}
+  if(_blockAutoSave){ if(showToast) toast("Guardado bloqueado: revisa el aviso en pantalla."); return; }
   try{
     localStorage.setItem(STORAGE_KEY, JSON.stringify({uid, meta:state.meta, levels:state.levels, savedAt:Date.now()}));
     if(showToast) toast("Progreso guardado");
@@ -3218,14 +3228,80 @@ function applyLoadedData(data){
   uid = (data.uid && data.uid>maxId) ? data.uid : maxId+1;
 }
 function loadSaved(){
+  let raw=null;
+  try{ raw = localStorage.getItem(STORAGE_KEY); }catch(e){ return false; }
+  if(!raw) return false;               // primer arranque legitimo: no hay nada que perder
   try{
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if(!raw) return false;
     const data = JSON.parse(raw);
-    if(!data || !data.levels) return false;
+    if(!data || !data.levels) throw new Error("estructura no valida");
     applyLoadedData(data);
     return true;
-  }catch(e){ return false; }
+  }catch(e){
+    /* CRITICO: habia datos guardados pero no se pudieron leer (JSON corrupto, versión rara,
+       etc.). Si siguieramos adelante, el arranque crearia un documento vacio y el primer
+       guardado MACHACARIA el original de forma irreversible. En su lugar: se conserva una
+       copia de seguridad intacta, se bloquea el guardado automatico y se avisa. */
+    _loadFailedRaw = raw;
+    try{ localStorage.setItem(STORAGE_KEY+"_corrupto_"+Date.now(), raw); }catch(e2){}
+    _blockAutoSave = true;
+    /* Bandera global: bloquea TAMBIEN las subidas a Google Drive (ver push() en CJDrive).
+       Sin esto, el documento vacio que se abre al fallar la lectura se subia encima de
+       Drive y se perdia tambien la copia de la nube. */
+    try{ window.__cjLocalLoadFailed = true; }catch(e3){}
+    setTimeout(showLoadFailBanner, 0);
+    return false;
+  }
+}
+let _loadFailedRaw = null;
+/* Aviso fijo: los datos existian pero no se pudieron leer. Se ofrece descargar la copia en
+   bruto para no perder nada, ya que el guardado queda bloqueado hasta que el usuario decida. */
+function showLoadFailBanner(){
+  if(document.getElementById("loadFailBanner")) return;
+  const signed = (function(){ try{ return typeof CJAuth!=="undefined" && CJAuth.signedIn(); }catch(e){ return false; } })();
+  const el=document.createElement("div");
+  el.id="loadFailBanner";
+  el.className="save-fail-banner";
+  el.innerHTML='<i class="fa-solid fa-triangle-exclamation"></i><span>No se han podido leer los datos guardados en este equipo y se ha abierto un documento vacío. '+
+    (signed
+      ? '<b>No se guardará nada ni se subirá a Google Drive</b>, para no sobrescribir tu copia de la nube. Recarga la página para recuperar tu trabajo desde Drive.'
+      : '<b>No se guardará nada</b> para no sobrescribir tu trabajo. Descarga la copia de seguridad y luego impórtala.')+
+    '</span>';
+  if(signed){
+    const btnD=document.createElement("button");
+    btnD.textContent="Recargar y cargar desde Drive";
+    btnD.onclick=function(){
+      /* Se retira el guardado corrupto para que, al recargar, el arranque sea "sin datos
+         locales" y Drive -el sistema principal- se cargue con normalidad. La copia
+         "_corrupto_" que se hizo antes sigue conservada por si acaso. */
+      try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
+      location.reload();
+    };
+    el.appendChild(btnD);
+  }
+  const btn=document.createElement("button");
+  btn.textContent="Descargar copia de seguridad";
+  btn.onclick=function(){
+    try{
+      const blob=new Blob([_loadFailedRaw||""],{type:"application/json"});
+      const a=document.createElement("a");
+      a.href=URL.createObjectURL(blob);
+      a.download="programadog-copia-recuperada.json";
+      a.click();
+      setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+    }catch(e){ alert("No se pudo descargar la copia."); }
+  };
+  el.appendChild(btn);
+  const btn2=document.createElement("button");
+  btn2.textContent="Empezar de cero (borra lo anterior)";
+  btn2.onclick=function(){
+    const extra = signed ? "\n\nATENCIÓN: tienes sesión en Google Drive. Al continuar, este documento VACÍO sustituirá también tu copia de Drive." : "";
+    if(!confirm("Se descartarán los datos que no se pudieron leer."+extra+"\n\n¿Continuar?")) return;
+    _blockAutoSave=false;
+    try{ window.__cjLocalLoadFailed = false; }catch(e){}
+    el.remove(); saveNow(true);
+  };
+  el.appendChild(btn2);
+  document.body.appendChild(el);
 }
 function setStatus(text,icon){ /* el indicador visual de "Guardado" se ha retirado de la interfaz */ }
 
@@ -3918,7 +3994,33 @@ window.addEventListener("resize", scheduleGuides);
 });
 document.getElementById("nivelSelect").addEventListener("change", function(){ switchLevel(this.value); });
 
-function resetAll(){ if(!confirm("Esto borrará TODA la programación y volverá al inicio. ¿Continuar?")) return; try{ localStorage.removeItem(STORAGE_KEY); }catch(e){} location.reload(); }
+function resetAll(){
+  if(!confirm("Esto borrará TODA la programación y volverá al inicio. ¿Continuar?")) return;
+  /* Antes de borrar se guarda una copia de seguridad: si se pulsa por error, el trabajo
+     sigue recuperable (ver recoverBackups() desde la consola o el aviso de recuperacion). */
+  try{
+    flushEditor();
+    localStorage.setItem(STORAGE_KEY+"_previo_"+Date.now(), JSON.stringify({uid, meta:state.meta, levels:state.levels, savedAt:Date.now()}));
+  }catch(e){}
+  try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
+  location.reload();
+}
+/* Las copias de seguridad automaticas (_previo_/_corrupto_) se acumularian sin limite y
+   podrian llenar el almacenamiento -que es justo lo que provoca que falle el guardado-.
+   Se conservan solo las 3 mas recientes de cada tipo. */
+function pruneBackups(){
+  try{
+    ["_previo_","_corrupto_"].forEach(pref=>{
+      const keys=[];
+      for(let i=0;i<localStorage.length;i++){
+        const k=localStorage.key(i);
+        if(k && k.indexOf(STORAGE_KEY+pref)===0) keys.push(k);
+      }
+      keys.sort(); // el sufijo es una marca de tiempo, asi que el orden alfabetico es cronologico
+      while(keys.length>3){ try{ localStorage.removeItem(keys.shift()); }catch(e){} }
+    });
+  }catch(e){}
+}
 
 /* ============= PORTADA: color de fondo, color de texto e imagen a sangre ============= */
 document.getElementById("p_bg").addEventListener("input", function(){ state.meta.portadaBg=this.value; scheduleSave(); });
@@ -4080,32 +4182,41 @@ document.getElementById("focusModeBtn").addEventListener("click", toggleFocusMod
 
 /* ============= PÍLDORA: colapso progresivo hacia el menú ⋮ ============= */
 /* En vez de romper en varias líneas cuando falta espacio, los elementos se ocultan de la
-   barra (empezando por el más cercano al menú) y aparece su "espejo" dentro del desplegable,
-   conservando siempre el mismo orden. Al haber más espacio, se restauran. */
+   barra EN EL MISMO ORDEN en que aparecen colocados de izquierda a derecha cuando todo es
+   visible, y aparece su "espejo" dentro del desplegable ⋮ -que permanece SIEMPRE visible-:
+     1. Cuenta de Google
+     2. Botón de Normativa
+     3. Los dos botones de exportar (Word y PDF), juntos -se colocan en el menú justo
+        encima de "Exportar copia"/"Importar copia"-
+     4. El texto "Programadog" (el último; el SVG del logo nunca se oculta)
+   Al haber más espacio, se restauran en el orden inverso. El botón de vista previa (ojo)
+   y el propio menú ⋮ quedan siempre visibles, fuera de este colapso. */
 function updatePillOverflow(){
   const topbar=document.querySelector(".topbar");
   if(!topbar) return;
+  document.getElementById("cjAuthSlot").style.display="";
+  document.getElementById("brandText").style.display="";
   document.getElementById("normativaBtn").style.display="";
-  document.getElementById("previewBtnTop").style.display="";
   document.getElementById("exportGroupTop").style.display="";
+  document.getElementById("mm_google_mirror").style.display="none";
   document.getElementById("mm_normativa_mirror").style.display="none";
-  document.getElementById("mm_preview_mirror").style.display="none";
   document.getElementById("mm_word_mirror").style.display="none";
   document.getElementById("mm_pdf_mirror").style.display="none";
 
-  const order=["normativaBtn","previewBtnTop","exportGroupTop"];
+  const order=["cjAuthSlot","normativaBtn","exportGroupTop","brandText"];
   let guard=0;
   while(topbar.scrollWidth > topbar.clientWidth + 1 && guard<10){
     const remaining = order.filter(id=>document.getElementById(id).style.display!=="none");
     if(!remaining.length) break;
-    const lastId = remaining[remaining.length-1];
-    document.getElementById(lastId).style.display="none";
-    if(lastId==="previewBtnTop") document.getElementById("mm_preview_mirror").style.display="flex";
-    if(lastId==="exportGroupTop"){ document.getElementById("mm_word_mirror").style.display="flex"; document.getElementById("mm_pdf_mirror").style.display="flex"; }
-    if(lastId==="normativaBtn") document.getElementById("mm_normativa_mirror").style.display="flex";
+    const nextId = remaining[0]; // el primero de la lista es siempre el siguiente en ocultarse
+    document.getElementById(nextId).style.display="none";
+    if(nextId==="cjAuthSlot") document.getElementById("mm_google_mirror").style.display="flex";
+    if(nextId==="normativaBtn") document.getElementById("mm_normativa_mirror").style.display="flex";
+    if(nextId==="exportGroupTop"){ document.getElementById("mm_word_mirror").style.display="flex"; document.getElementById("mm_pdf_mirror").style.display="flex"; }
+    // "brandText" no tiene espejo: es solo texto decorativo, no una acción.
     guard++;
   }
-  const anyMirror = ["mm_normativa_mirror","mm_preview_mirror","mm_word_mirror","mm_pdf_mirror"].some(id=>document.getElementById(id).style.display!=="none");
+  const anyMirror = ["mm_google_mirror","mm_normativa_mirror","mm_word_mirror","mm_pdf_mirror"].some(id=>document.getElementById(id).style.display!=="none");
   document.getElementById("mmSep").style.display = anyMirror ? "block" : "none";
 }
 window.addEventListener("resize", updatePillOverflow);
@@ -4131,11 +4242,22 @@ document.getElementById("importFile").addEventListener("change",function(e){
   r.onload=()=>{
     try{
       const d=JSON.parse(r.result); if(!d.levels) throw 0;
+      /* Importar SUSTITUYE todo el documento actual. Sin confirmacion, un clic por error en
+         "Importar copia" borraba el trabajo en curso sin vuelta atras. */
+      if(!confirm("Al importar esta copia se REEMPLAZARÁ toda la programación actual.\n\nSe guardará antes una copia de seguridad del estado actual, por si acaso.\n\n¿Continuar?")){
+        e.target.value=""; return;
+      }
+      /* Copia de seguridad del estado actual antes de sustituirlo (permite deshacer). */
+      try{
+        flushEditor();
+        localStorage.setItem(STORAGE_KEY+"_previo_"+Date.now(), JSON.stringify({uid, meta:state.meta, levels:state.levels, savedAt:Date.now()}));
+      }catch(e2){}
       applyLoadedData(d);
       renderAll(); saveNow(false); toast("Copia cargada correctamente");
     }catch(err){ toast("Archivo no válido"); }
     e.target.value="";
   };
+  r.onerror=()=>{ toast("No se pudo leer el archivo"); e.target.value=""; };
   r.readAsText(file);
 });
 
@@ -5749,7 +5871,24 @@ var CJDrive = (function(){
   /* Envoltorios con reintento: si un id en cache ya no vale, la primera pasada falla,
      se olvidan los ids y la segunda reconstruye lo que falte. */
   function scan(){ return retry1(scanOnce); }
-  function push(keepalive){ return retry1(function(){ return pushOnce(keepalive); }); }
+  /* CERROJO DE SEGURIDAD ANTE DATOS LOCALES ILEGIBLES.
+     Si al arrancar no se pudieron leer los datos guardados, la app abre un documento VACIO.
+     Estando logueado, ese vacio llegaba aqui como "cambios locales" y se subia encima de
+     Drive (rama B4), destruyendo tambien la copia de la nube -que es el sistema principal-.
+     Este guarda intercepta TODAS las subidas (automatica, al cerrar, manual y las del
+     arranque), porque todas pasan por push(). */
+  function uploadsBlocked(){
+    return !!(typeof window !== "undefined" && window.__cjLocalLoadFailed);
+  }
+  function push(keepalive){
+    if(uploadsBlocked()){
+      _state = "error";
+      _status = "Subida bloqueada: no se pudieron leer los datos de este equipo. Drive INTACTO.";
+      CJHooks.repaint();
+      return Promise.resolve(null);
+    }
+    return retry1(function(){ return pushOnce(keepalive); });
+  }
 
   /* Para el desplegable: archivo vivo, luego las diarias, y al final las del formato
      antiguo si quedara alguna. */
@@ -6321,6 +6460,7 @@ setTimeout(function(){
 
 /* ============= INICIO ============= */
 (function init(){
+  pruneBackups();
   if(!loadSaved()){ initLevels(); }
   document.getElementById("editorView").style.display="flex";
   showPortadaHub("portada");
