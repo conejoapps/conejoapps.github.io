@@ -360,7 +360,16 @@ body.focus-mode .units-config-band{display:none}
 .uf-eval-cat:last-child{margin-bottom:0}
 .uf-eval-cat-label{display:block;font-size:.72rem;font-weight:700;color:var(--muted);margin-bottom:3px}
 .curr-insert-wrap{position:relative;display:inline-flex}
-.curr-insert-hit{color:var(--accent)}
+/* Mismo diseño (color/degradado/sombra) que el boton de Normativa, aplicado aqui SIN
+   cambiar el tamaño ni el layout del boton original (sigue siendo un icono de 32x32 dentro
+   de la fila del titulo): así se ve con el mismo estilo pero no rompe la fila. */
+.curr-insert-btn,.curr-insert-btn:hover,.curr-insert-btn:focus,.curr-insert-btn.curr-insert-hit{
+  background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:#fff;border-radius:100px;box-shadow:none}
+.curr-insert-btn:hover{filter:brightness(1.08)}
+/* Antes servia para pintar el icono en morado sobre boton transparente; ahora el boton ya
+   es morado relleno (estilo Normativa), asi que el "detectado" se marca con un anillo claro
+   en vez de cambiar el color de fondo. */
+.curr-insert-hit{box-shadow:none}
 .curr-insert-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;z-index:70;min-width:250px;
   background:#fff;border:1px solid var(--glass-border);border-radius:12px;padding:6px;
   box-shadow:0 12px 34px rgba(0,0,0,.16)}
@@ -414,6 +423,14 @@ body.focus-mode .units-config-band{display:none}
   background:transparent; border:none; box-shadow:none;
 }
 .guide-icon-btn{flex-shrink:0;width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-family:'Outfit',sans-serif;font-weight:700;font-size:.76rem;font-style:normal;line-height:1;border:none;cursor:pointer;transition:all .18s}
+/* Aviso de "guia sin leer": el boton parpadea (color + un leve latido) para llamar la
+   atencion. Se quita en cuanto el apartado se marca como leido (ver markGuideRead). */
+.guide-icon-btn.guide-unread{ animation: guideBlink 1.3s ease-in-out infinite; }
+@keyframes guideBlink{
+  0%,100%{ background:var(--accent); box-shadow:0 0 0 0 rgba(124,58,237,.55); transform:scale(1); }
+  50%{ background:#f59e0b; box-shadow:0 0 0 5px rgba(245,158,11,0); transform:scale(1.12); }
+}
+@media (prefers-reduced-motion: reduce){ .guide-icon-btn.guide-unread{ animation:none; } }
 .guide-icon-btn:hover{background:var(--accent-dark)}
 .guide-icon-btn.active{background:var(--accent-dark);box-shadow:0 0 0 3px rgba(124,58,237,.25)}
 .tool-btn{font-family:'Outfit',sans-serif;cursor:pointer;border:none;background:transparent;border-radius:9px;padding:8px 11px;font-size:.83rem;font-weight:600;color:var(--muted);display:inline-flex;align-items:center;gap:7px;transition:all .18s}
@@ -1205,7 +1222,7 @@ try{window.__cjBootEmpty=!localStorage.getItem("programadog_v3");}catch(e){windo
               <input class="title-input" id="titleInput" type="text" placeholder="Título del apartado">
               <div class="tmce-title-actions" id="tmceTitleActions">
                 <div class="curr-insert-wrap">
-                  <button class="tool-btn tool-btn-icon" id="curriculoInsertBtn" onclick="curriculoInsertClick()" title="Traer datos del currículo a este apartado"><i class="fa-solid fa-file-import"></i></button>
+                  <button class="tool-btn tool-btn-icon curr-insert-btn" id="curriculoInsertBtn" onclick="curriculoInsertClick()" title="Autocompletar este apartado"><i class="fa-solid fa-wand-magic-sparkles"></i></button>
                   <div class="curr-insert-menu" id="curriculoInsertMenu"></div>
                 </div>
                 <button class="tool-btn tool-btn-icon" id="previewSectionBtn" onclick="previewSection()" title="Vista previa de este apartado"><i class="fa-solid fa-eye"></i></button>
@@ -1271,9 +1288,9 @@ const INITIAL_REGIMEN = [
 
 /* Orientación provisional por apartado (Régimen especial; se sustituirá más adelante) */
 const GUIDES_REGIMEN = [
-  "Presenta brevemente qué es la programación, su finalidad y una visión general de su estructura.",
-  "Identifica el módulo, el ciclo formativo, la familia profesional, el nivel, la duración y el curso.",
-  "Enumera la normativa estatal y autonómica (LOE/LOMLOE, RD del título, decreto de currículo, órdenes…) en que se fundamenta.",
+  "Aquí se debe mencionar primero la orden de la convocatoria para la que se realiza la programación didáctica, para qué centro está elaborada y cual es la localización geográfica de este. Hay que especificar el cuerpo, la especialidad y dónde está recogida, generalmente en un Anexo de un Real Decreto. Hay que indicar para qué asignatura o módulo se realiza la programación, dentro de qué nivel educativo (ESO, Bachillerato, Ciclo formativo, etc) y a qué familia pertenece dicho nivel. Por ejemplo: Lenguaje y tecnología audiovisual, dentro del ciclo superior de Fotografía, que pertenece a la familia profesional artística de Comunicación Gráfica y Audiovisual. También se indicará cual es la finalidad de la programación didáctica, cual es tu intención con ella y cual es el objetivo de la asignatura o módulo que vas a impartir.",
+  "Aquí indentificaremos nuestra asignatura o módulo de la forma que consideremos (texto, tabla o ambas cosas), pero debemos incluir al menos el nombre de la asignatura o módulo, a que nivel pertenece, familia, el curso al que va dirigida la programación (1º, 2º, etc), los creditos ECTS (en el caso de que los tenga), horas semanales y horas totales. Podemos incluir también la página web del centro para donde se encuentra el programa formativo. Posteriormente, debemos de hablar sobre el nivel educativo en si: el aforo de alumnado, el total de horas, cuantas de esas horas corresponden a nuestra asignatura o módulo. Debemos especificar a qué grupo va dirigida nuestra progamacion (1ºA, 1ºB, 2ºA, etc), y en qué centro y comunidad autónoma lo vamos a impartir. Es también de vital importancia justificar la finalidad de la asignatura o módulo, por qué lo hemos elegido para elaborar nuestra programación y el objetivo, de una forma un poco más precisa a como indicamos en el epígrafe 1.",
+  "Aquí debemos incluir toda la normativa en la que se sustenta nuestra programación didáctica, es la base de todo y es importante que esté definida correctamente y sobre todo actualizada. Debemos incluir cuatro niveles: el nivel estatal (Ministerio de Educación y Ciencia), el nivel autonómico (por ejemplo Junta de Andalucía), el nivel centro docente (CEIP, IES, EASD, etc.) y el nivel programación didáctica (Dpto. de coordinación didáctica). Cada nivel tiene sus leyes, reales decretos, decretos e instrucciones, siendo recomendables ordenarlos jerárquicamente. El nivel estatal debe contener, al menos, la Ley de Educación estatal actual, el Real Decreto donde se establece la ordenación de las enseñanzas que rigen tu nivel educativo, y el Real Decreto del título. El nivel autonómico deberá tener la Ley de Educación autonómica, el Decreto de las enseñanzas que rigen tu nivel educativo, el Decreto que aprueba el Reglamento Orgánico del centro (CEIP, IES, EASD, etc.), la Orden que establece la evaluación de las enseñanzas, y la Orden que desarrolla el currículo del título. En el nivel Centro docente se indicará de nuevo el Decreto Orgánico del centro, especificando los artículos en los que se encuentra el proyecto educativo del centro, el reglamento de organización y funcionamiento, el proyecto de gestión, y el plan de centro. Lo mismo sucede en el nivel programación didáctica, debiendo nombrarse el artículo donde se recoge la programación didáctica. Dependiendo de tu nivel educativo y asignatura o módulo, puede que no haya normativas para algunos ámbitos o que, en su defecto, tengas que añadir alguna específica. Revísalo bien. En el botón Autocompletar puedes añadir un ejemplo de normativa para el módulo Lenguaje y Tecnología Audiovisual, dentro del ciclo superior de Fotografía.",
   "Sitúa la programación en su contexto real: entorno, centro y alumnado.",
   "Describe la localidad, el tejido productivo y las características socioculturales que influyen en la enseñanza.",
   "Detalla las características del centro, sus instalaciones, recursos y documentos (PEC, PCC).",
@@ -2043,6 +2060,21 @@ function actDevText(act, which){ const v = act && act[which]; return (typeof v==
 function stripHtmlToText(html){
   const d=document.createElement("div"); d.innerHTML=html||"";
   return (d.textContent||"").replace(/\u00a0/g," ");
+}
+/* ============= GUÍA DE APARTADO: aviso de "sin leer" =============
+   Cada apartado guarda su propio guideRead (viaja con el, sobrevive a renombrar/mover, y se
+   guarda/sincroniza como cualquier otro dato). Los apartados que YA tenian texto escrito
+   antes de existir esta funcion se consideran leidos desde el principio (si no, se pondrian
+   todos a parpadear de golpe en una programacion ya empezada); los vacios empiezan sin leer. */
+function isGuideRead(s){
+  if(!s) return true;
+  return !!s.guideRead || !!stripHtmlToText(s.content).trim();
+}
+function markGuideRead(s){
+  if(!s || s.guideRead) return;
+  s.guideRead = true;
+  const b=document.getElementById("guideToggleBtn");
+  if(b) b.classList.remove("guide-unread");
 }
 function unitActivitiesIntroText(u){ const v=u.fields.actividadesIntro; return (typeof v==="string") ? v : ""; }
 function activitiesDevHeadline(u, index, tpl){
@@ -3671,18 +3703,36 @@ function renderEditor(){
   document.getElementById("titleInput").value = s.title;
   document.getElementById("titleNum").classList.toggle("sub-level", s.level===2 && !s.isAnexo);
   document.getElementById("titleInput").classList.toggle("sub-level", s.level===2 && !s.isAnexo);
-  document.getElementById("guideText").textContent = s.guide || guideFor(s.title);
+  /* IMPORTANTE: si el titulo coincide con una entrada curada (GUIDE_MAP), esa gana SIEMPRE,
+     aunque el apartado tenga un "s.guide" ya guardado de antes (se congelaba al crear el
+     apartado y, si luego se actualizaba el texto en el codigo, un apartado ya existente
+     seguia mostrando el texto viejo para siempre). Solo se usa s.guide como respaldo para
+     apartados sin coincidencia (anexos, apartados creados a mano por el usuario). */
+  document.getElementById("guideText").textContent = GUIDE_MAP[s.title] || s.guide || GENERIC_GUIDE;
+  /* Aviso de "sin leer": si este apartado nunca se ha marcado como leido, la guia se abre
+     sola al entrar (sin tener que pulsar la "i") y el boton parpadea para llamar la
+     atencion. Al escribir en el editor, o al abrir la "i" a mano, se marca como leido (ver
+     markGuideRead) y deja de parpadear para siempre en este apartado. */
+  const guideBtn = document.getElementById("guideToggleBtn");
+  const unread = !isGuideRead(s);
+  guideBtn.classList.toggle("guide-unread", unread);
+  if(unread){
+    document.getElementById("guideDropdown").style.display = "flex";
+    guideBtn.classList.add("active");
+  }
 
   // Los anexos solo se nombran "Anexo I": se oculta el campo de título editable y se
   // muestra un aviso rojo fijo recordando que algunas convocatorias los prohíben.
   document.getElementById("titleInput").style.display = s.isAnexo ? "none" : "";
   document.getElementById("anexoInlineWarn").style.display = s.isAnexo ? "flex" : "none";
-  /* El boton de traer datos avisa en su tooltip QUE dato ha detectado para este apartado. */
+  /* El boton "Autocompletar" avisa en su tooltip QUE dato ha detectado para este apartado
+     (primero mira los textos por defecto de la app, luego el curriculo). */
   (function(){
     const b=document.getElementById("curriculoInsertBtn"); if(!b) return;
-    const m=curriculoMatchForSection();
-    b.title = m ? ("Traer «"+m.label+"» de Datos del currículo") : "Traer datos del currículo a este apartado";
-    b.classList.toggle("curr-insert-hit", !!m);
+    const am=appDefaultMatchForSection();
+    const m=am ? null : curriculoMatchForSection();
+    b.title = am ? ("Insertar «"+am.label+"»") : (m ? ("Traer «"+m.label+"» de Datos del currículo") : "Autocompletar este apartado");
+    b.classList.toggle("curr-insert-hit", !!(am||m));
   })();
   updateTitleActionsOverflow();
 }
@@ -3705,6 +3755,7 @@ function toggleGuideDropdown(){
   const show = !d.style.display || d.style.display==="none";
   d.style.display = show ? "flex" : "none";
   document.getElementById("guideToggleBtn").classList.toggle("active", show);
+  if(show){ markGuideRead(current()); scheduleSave(); }
   scheduleGuides();
 }
 function closeGuideDropdown(){
@@ -3907,6 +3958,65 @@ function flushEditor(){
    general" de Datos del curriculo. Si no lo detecta, ofrece elegir el campo a mano, asi
    que un apartado creado por el usuario tampoco se queda sin poder usarlo.
    El texto se PEGA en el documento (no es un espejo): despues se puede editar libremente. */
+/* ============= TEXTOS POR DEFECTO DE LA APP =============
+   Segunda fuente del boton "Autocompletar", ademas de Datos del curriculo: contenido de
+   EJEMPLO que trae la propia app (no depende de nada que el usuario haya rellenado antes).
+   Se detecta por el TITULO del apartado igual que el curriculo, y al insertarse se PEGA en
+   el documento (no es un espejo): a partir de ahi se edita y adapta libremente. Cada entrada
+   sirve de plantilla para un caso concreto (aqui, un ciclo/modulo real de ejemplo); el
+   usuario debe revisar y ajustar los datos a su propio caso (centro, articulos concretos...). */
+const APP_DEFAULT_TEXTS = [
+  {
+    key: "base_normativa",
+    matchWords: ["normativa","base normativa","marco normativo","marco legal","legislacion"],
+    label: "Base normativa",
+    html:
+      "<p><strong>Nivel Estatal | Ministerio de Educación y Ciencia</strong></p>"+
+      '<ul data-list-type="none">'+
+        "<li>Constitución Española. Derecho a la educación (art. 27).</li>"+
+        "<li>Ley Orgánica 2/2006, de 3 de mayo de Educación.</li>"+
+        "<li>Ley Orgánica 3/2007, de 22 de marzo, para la igualdad efectiva de mujeres y hombres.</li>"+
+        "<li>Ley Orgánica 8/2013, de 9 de diciembre, para la mejora de la calidad educativa.</li>"+
+        "<li>Real Decreto 596/2007, de 4 de mayo, por el que se establece la ordenación general de las enseñanzas profesionales de Artes Plásticas y Diseño.</li>"+
+        "<li>Real Decreto 1432/2012, de 11 de octubre, por el que se establece el título de Técnico Superior de Artes Plásticas y Diseño en Fotografía perteneciente a la familia profesional artística de Comunicación Gráfica y Audiovisual y se aprueban las correspondientes enseñanzas mínimas.</li>"+
+      "</ul>"+
+      "<p><strong>Nivel Autonómico | Junta de Andalucía</strong></p>"+
+      '<ul data-list-type="none">'+
+        "<li>Ley 17/2007, de 10 de diciembre, de Educación de Andalucía.</li>"+
+        "<li>Decreto 326/2009, de 15 de septiembre, por el que se establece la ordenación general de las enseñanzas profesionales de artes plásticas y diseño en Andalucía.</li>"+
+        "<li>Decreto 360/2011, de 7 de diciembre, por el que se aprueba el Reglamento Orgánico de las Escuelas de Arte.</li>"+
+        "<li>Orden de 14 de octubre de 2010, por la que se establece la ordenación de la evaluación del proceso de aprendizaje del alumnado de las Enseñanzas Profesionales de Artes Plásticas y Diseño en Andalucía.</li>"+
+        "<li>Orden de 23 de junio de 2014, por la que se desarrolla el currículo correspondiente a los títulos de Técnico Superior de Artes Plásticas y Diseño en Animación, en Gráfica Interactiva, en Gráfica Impresa, en Gráfica Audiovisual, en Gráfica Publicitaria, en Fotografía, en Ilustración y en Cómic, pertenecientes a la familia profesional artística de la Comunicación Gráfica y Audiovisual.</li>"+
+        "<li>Instrucciones de 8 de marzo de 2017, de la Dirección General de Participación y Equidad, por las que se actualiza el protocolo de detección, identificación del alumnado con necesidades específicas de apoyo educativo y organización de la respuesta educativa.</li>"+
+      "</ul>"+
+      "<p><strong>Nivel Centro docente | Escuela de arte</strong></p>"+
+      '<ul data-list-type="none">'+
+        "<li>Decreto 360/2011, de 7 de diciembre, por el que se aprueba el Reglamento Orgánico de las Escuelas de Arte. Proyecto educativo (art. 23). Reglamento de organización y funcionamiento (art. 25). Proyecto de gestión (art. 26). Plan de Centro (art. 22).</li>"+
+      "</ul>"+
+      "<p><strong>Nivel Programación Didáctica | Dpto. de coordinación didáctica</strong></p>"+
+      '<ul data-list-type="none">'+
+        "<li>Decreto 360/2011, de 7 de diciembre, por el que se aprueba el Reglamento Orgánico de las Escuelas de Arte. Programación didáctica (art 28).</li>"+
+      "</ul>"
+  }
+];
+/* Detecta, por el titulo del apartado, si hay un texto por defecto de la app que corresponda
+   (misma logica de comparacion que curriculoMatchForSection, pero contra matchWords). */
+function appDefaultMatchForSection(){
+  const s = current(); if(!s) return null;
+  const t = normalizeTxt(s.title);
+  if(!t) return null;
+  return APP_DEFAULT_TEXTS.find(entry=> entry.matchWords.some(w=>{ const nw=normalizeTxt(w); return nw && (t.indexOf(nw)>=0 || nw.indexOf(t)>=0); })) || null;
+}
+function insertAppDefaultEntry(key){
+  const e = APP_DEFAULT_TEXTS.find(x=>x.key===key);
+  if(!e) return;
+  const ed = getEditorInstance();
+  if(!ed){ toast("El editor no está listo"); return; }
+  ed.insertContent(e.html);
+  flushEditor();
+  scheduleSave();
+  toast("Añadido: "+e.label);
+}
 function normalizeTxt(s){
   return String(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g," ").trim();
 }
@@ -3961,28 +4071,50 @@ document.addEventListener("click", function(ev){
   const w=ev.target.closest && ev.target.closest(".curr-insert-wrap");
   if(!w) closeCurriculoMenu();
 });
-/* Un solo boton: si detecta el dato, lo pega directamente; si no, despliega la lista para
-   que elijas cual traer. */
+/* "Autocompletar": si el titulo del apartado coincide claramente con una categoria (de los
+   textos por defecto de la app o del curriculo), se pega directo, como acceso rapido. Si no,
+   se despliega el menu con TODAS las categorias disponibles para elegir a mano: primero las
+   de la app (p.ej. "Base normativa"), luego los campos de Datos del curriculo. */
 function curriculoInsertClick(){
-  const entries = curriculoEntries();
-  if(!entries.length){ toast("No hay campos en Datos del currículo"); return; }
-  const match = curriculoMatchForSection();
-  if(match){ closeCurriculoMenu(); insertCurriculoEntry(match.key); return; }
+  const appMatch = appDefaultMatchForSection();
+  if(appMatch){ closeCurriculoMenu(); insertAppDefaultEntry(appMatch.key); return; }
+  const curMatch = curriculoMatchForSection();
+  if(curMatch){ closeCurriculoMenu(); insertCurriculoEntry(curMatch.key); return; }
+
   const menu=document.getElementById("curriculoInsertMenu");
   if(!menu) return;
   menu.innerHTML="";
-  const head=document.createElement("div");
-  head.className="curr-insert-head";
-  head.textContent="Traer del currículo";
-  menu.appendChild(head);
-  entries.forEach(e=>{
-    const b=document.createElement("button");
-    const n=curriculoLines(e.text).length;
-    b.innerHTML='<span>'+escapeHtml(e.label)+'</span><span class="curr-insert-count">'+(n?n:"vacío")+'</span>';
-    b.disabled = !n;
-    b.onclick=()=>{ closeCurriculoMenu(); insertCurriculoEntry(e.key); };
-    menu.appendChild(b);
-  });
+
+  if(APP_DEFAULT_TEXTS.length){
+    const head=document.createElement("div");
+    head.className="curr-insert-head";
+    head.textContent="Plantillas";
+    menu.appendChild(head);
+    APP_DEFAULT_TEXTS.forEach(e=>{
+      const b=document.createElement("button");
+      b.innerHTML='<span>'+escapeHtml(e.label)+'</span>';
+      b.onclick=()=>{ closeCurriculoMenu(); insertAppDefaultEntry(e.key); };
+      menu.appendChild(b);
+    });
+  }
+
+  const entries = curriculoEntries();
+  if(entries.length){
+    const head2=document.createElement("div");
+    head2.className="curr-insert-head";
+    head2.textContent="Datos del currículo";
+    menu.appendChild(head2);
+    entries.forEach(e=>{
+      const b=document.createElement("button");
+      const n=curriculoLines(e.text).length;
+      b.innerHTML='<span>'+escapeHtml(e.label)+'</span><span class="curr-insert-count">'+(n?n:"vacío")+'</span>';
+      b.disabled = !n;
+      b.onclick=()=>{ closeCurriculoMenu(); insertCurriculoEntry(e.key); };
+      menu.appendChild(b);
+    });
+  }
+
+  if(!APP_DEFAULT_TEXTS.length && !entries.length){ toast("No hay plantillas ni campos del currículo disponibles"); return; }
   menu.classList.toggle("open");
 }
 function addAnexo(){
@@ -5413,6 +5545,7 @@ tinymce.init({
     });
     ed.on("input Change Undo Redo",function(){
       if(_suppressFlush) return;
+      markGuideRead(current());
       flushEditor(); scheduleSave(); scheduleRecount();
     });
   }
