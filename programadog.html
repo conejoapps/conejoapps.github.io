@@ -359,6 +359,19 @@ body.focus-mode .units-config-band{display:none}
 .uf-eval-cat{margin-bottom:8px}
 .uf-eval-cat:last-child{margin-bottom:0}
 .uf-eval-cat-label{display:block;font-size:.72rem;font-weight:700;color:var(--muted);margin-bottom:3px}
+.curr-insert-wrap{position:relative;display:inline-flex}
+.curr-insert-hit{color:var(--accent)}
+.curr-insert-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;z-index:70;min-width:250px;
+  background:#fff;border:1px solid var(--glass-border);border-radius:12px;padding:6px;
+  box-shadow:0 12px 34px rgba(0,0,0,.16)}
+.curr-insert-menu.open{display:block}
+.curr-insert-head{font-size:.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;padding:6px 9px 7px}
+.curr-insert-menu button{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;
+  border:0;background:transparent;text-align:left;font:inherit;font-size:.83rem;color:var(--fg);
+  padding:8px 9px;border-radius:8px;cursor:pointer}
+.curr-insert-menu button:hover:not(:disabled){background:rgba(124,58,237,.09)}
+.curr-insert-menu button:disabled{opacity:.45;cursor:default}
+.curr-insert-count{font-size:.7rem;color:var(--muted);flex-shrink:0}
 .anexo-inline-warn{display:flex;gap:8px;align-items:center;margin-top:8px;padding:8px 12px;border-radius:10px;background:rgba(225,29,72,.08);border:1px solid rgba(225,29,72,.24);color:var(--danger);font-size:.8rem;line-height:1.35}
 .anexo-inline-warn i{flex-shrink:0}
 .unit-overflow-warn{display:flex;gap:8px;align-items:flex-start;margin:0 0 12px;padding:9px 13px;border-radius:11px;background:rgba(217,119,6,.10);border:1px solid rgba(217,119,6,.28);color:#92400e;font-size:.82rem;line-height:1.4}
@@ -1191,6 +1204,10 @@ try{window.__cjBootEmpty=!localStorage.getItem("programadog_v3");}catch(e){windo
               <span class="title-num" id="titleNum">1</span>
               <input class="title-input" id="titleInput" type="text" placeholder="Título del apartado">
               <div class="tmce-title-actions" id="tmceTitleActions">
+                <div class="curr-insert-wrap">
+                  <button class="tool-btn tool-btn-icon" id="curriculoInsertBtn" onclick="curriculoInsertClick()" title="Traer datos del currículo a este apartado"><i class="fa-solid fa-file-import"></i></button>
+                  <div class="curr-insert-menu" id="curriculoInsertMenu"></div>
+                </div>
                 <button class="tool-btn tool-btn-icon" id="previewSectionBtn" onclick="previewSection()" title="Vista previa de este apartado"><i class="fa-solid fa-eye"></i></button>
                 <button class="tool-btn tool-btn-icon focus-toggle-btn" id="focusModeBtn" title="Ocultar barra e índice para más espacio"><i class="fa-solid fa-compress"></i></button>
               </div>
@@ -1397,8 +1414,29 @@ const DEFAULT_CURRICULO_FIELDS = [
 ];
 function defaultCurriculoFields(){ return DEFAULT_CURRICULO_FIELDS.map(f=>({...f})); }
 function emptyCurriculo(){ const o={}; DEFAULT_CURRICULO_FIELDS.forEach(f=>{ o[f.key]=""; }); return o; }
-/* Líneas no vacías, sin espacios sueltos al principio/final: son los "elementos". */
-function curriculoLines(text){ return (text||"").split("\n").map(l=>l.trim()).filter(Boolean); }
+/* Cada LÍNEA es un "elemento" (una competencia, un objetivo...). Problema real: al pegar
+   texto desde Word/PDF, una frase larga ya viene partida por SALTOS DE LÍNEA internos del
+   documento de origen (el ajuste de línea de allí), y cada trozo se contaba como un
+   elemento distinto. Se detecta y se reune: una línea se considera CONTINUACIÓN de la
+   anterior (no un elemento nuevo) si la anterior no termina en punto/cierre de frase Y la
+   línea actual empieza en minúscula (typico de una frase cortada a media palabra) y no
+   parece el inicio de una lista ("a)", "1.", "-"...). */
+const _CL_SENTENCE_END = /[.!?:;][»"'”)\]]*$/;
+const _CL_LOWER_START = /^[a-zàáéíóúüñ]/;
+const _CL_LIST_MARKER = /^(?:[a-záéíóúñ]\)|\d+[.)]|[-•*])\s/i;
+function curriculoLines(text){
+  const raw = (text||"").split("\n").map(l=>l.trim()).filter(Boolean);
+  const out=[];
+  raw.forEach(line=>{
+    if(out.length){
+      const prev = out[out.length-1];
+      const looksLikeContinuation = !_CL_SENTENCE_END.test(prev) && _CL_LOWER_START.test(line) && !_CL_LIST_MARKER.test(line);
+      if(looksLikeContinuation){ out[out.length-1] = prev+" "+line; return; }
+    }
+    out.push(line);
+  });
+  return out;
+}
 
 function initLevels(){
   state.levels = {};
@@ -3639,6 +3677,13 @@ function renderEditor(){
   // muestra un aviso rojo fijo recordando que algunas convocatorias los prohíben.
   document.getElementById("titleInput").style.display = s.isAnexo ? "none" : "";
   document.getElementById("anexoInlineWarn").style.display = s.isAnexo ? "flex" : "none";
+  /* El boton de traer datos avisa en su tooltip QUE dato ha detectado para este apartado. */
+  (function(){
+    const b=document.getElementById("curriculoInsertBtn"); if(!b) return;
+    const m=curriculoMatchForSection();
+    b.title = m ? ("Traer «"+m.label+"» de Datos del currículo") : "Traer datos del currículo a este apartado";
+    b.classList.toggle("curr-insert-hit", !!m);
+  })();
   updateTitleActionsOverflow();
 }
 function openNormativa(){
@@ -3855,7 +3900,91 @@ function flushEditor(){
   s.content=ed.getContent();
 }
 
-/* ============= OPERACIONES ESTRUCTURALES ============= */
+/* ============= TRAER DATOS DEL CURRÍCULO A UN APARTADO =============
+   Los apartados NO son fijos (se crean y se borran), asi que no hay ninguna configuracion
+   por apartado: el mismo boton esta en todos e intenta DETECTAR, por el titulo, que dato
+   del curriculo corresponde. Ej.: apartado "Competencia general" -> campo "Competencia
+   general" de Datos del curriculo. Si no lo detecta, ofrece elegir el campo a mano, asi
+   que un apartado creado por el usuario tampoco se queda sin poder usarlo.
+   El texto se PEGA en el documento (no es un espejo): despues se puede editar libremente. */
+function normalizeTxt(s){
+  return String(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g," ").trim();
+}
+/* Campos del curriculo del nivel activo, con su texto actual. */
+function curriculoEntries(){
+  const lv = state.levels[state.meta.nivel] || {};
+  const fields = lv.curriculoFields || [];
+  const data = lv.curriculo || {};
+  return fields.map(f=>({key:f.key, label:f.label, text:(data[f.key]||"")}));
+}
+/* Detecta el campo que corresponde al apartado actual comparando su titulo con la etiqueta
+   del campo (sin tildes ni mayusculas). Coincidencia exacta primero; si no, que uno
+   contenga al otro (p.ej. "3.1 Competencia general" contiene "competencia general"). */
+function curriculoMatchForSection(){
+  const s = current(); if(!s) return null;
+  const t = normalizeTxt(s.title);
+  if(!t) return null;
+  const entries = curriculoEntries();
+  let hit = entries.find(e=>normalizeTxt(e.label)===t);
+  if(hit) return hit;
+  hit = entries.find(e=>{ const l=normalizeTxt(e.label); return l && (t.indexOf(l)>=0 || l.indexOf(t)>=0); });
+  return hit || null;
+}
+/* Convierte el texto del curriculo (una linea = un elemento) en una lista SIN marcador
+   (data-list-type="none"): mismo comportamiento de lista (cada elemento en su linea, con
+   el espaciado ajustado de lista -2pt entre elementos- en vez de los 6pt de un parrafo
+   suelto), pero sin punto, letra ni viñeta delante de cada elemento. */
+function curriculoTextToHTML(text){
+  const lines = curriculoLines(text);
+  if(!lines.length) return "";
+  return '<ul data-list-type="none">'+lines.map(l=>"<li>"+escapeHtml(l)+"</li>").join("")+"</ul>";
+}
+function insertCurriculoEntry(key){
+  const e = curriculoEntries().find(x=>x.key===key);
+  if(!e) return;
+  if(!curriculoLines(e.text).length){
+    toast("«"+e.label+"» está vacío en Datos del currículo");
+    return;
+  }
+  const ed = getEditorInstance();
+  if(!ed){ toast("El editor no está listo"); return; }
+  ed.insertContent(curriculoTextToHTML(e.text));
+  flushEditor();
+  scheduleSave();
+  toast("Añadido: "+e.label);
+}
+function closeCurriculoMenu(){
+  const m=document.getElementById("curriculoInsertMenu");
+  if(m) m.classList.remove("open");
+}
+document.addEventListener("click", function(ev){
+  const w=ev.target.closest && ev.target.closest(".curr-insert-wrap");
+  if(!w) closeCurriculoMenu();
+});
+/* Un solo boton: si detecta el dato, lo pega directamente; si no, despliega la lista para
+   que elijas cual traer. */
+function curriculoInsertClick(){
+  const entries = curriculoEntries();
+  if(!entries.length){ toast("No hay campos en Datos del currículo"); return; }
+  const match = curriculoMatchForSection();
+  if(match){ closeCurriculoMenu(); insertCurriculoEntry(match.key); return; }
+  const menu=document.getElementById("curriculoInsertMenu");
+  if(!menu) return;
+  menu.innerHTML="";
+  const head=document.createElement("div");
+  head.className="curr-insert-head";
+  head.textContent="Traer del currículo";
+  menu.appendChild(head);
+  entries.forEach(e=>{
+    const b=document.createElement("button");
+    const n=curriculoLines(e.text).length;
+    b.innerHTML='<span>'+escapeHtml(e.label)+'</span><span class="curr-insert-count">'+(n?n:"vacío")+'</span>';
+    b.disabled = !n;
+    b.onclick=()=>{ closeCurriculoMenu(); insertCurriculoEntry(e.key); };
+    menu.appendChild(b);
+  });
+  menu.classList.toggle("open");
+}
 function addAnexo(){
   flushEditor();
   const newSec={id:uid++, level:1, isAnexo:true, title:"Nuevo anexo", content:"", guide:"Añade aquí el contenido de este anexo."};
@@ -4324,6 +4453,7 @@ function markerFor(listType, idx){
   if(listType==="ol") return (idx+1)+". ";
   if(listType==="letter") return toAlphaMarker(idx)+". ";
   if(listType==="dash") return "- ";
+  if(listType==="none") return "";
   return "• ";
 }
 function toAlphaMarker(idx){
@@ -5102,6 +5232,7 @@ const DOC_SECTION_CSS = `
     .doc-section ol[data-list-type="letter"]{ list-style:lower-alpha; counter-reset:none; }
     .doc-section ol[data-list-type="letter"]>li{ counter-increment:none; }
     .doc-section ol[data-list-type="letter"]>li::before{ content:none; }
+    .doc-section ul[data-list-type="none"]{ list-style:none; padding-left:0; }
     .doc-section b,.doc-section strong{ font-weight:700; }
     .doc-section table{ border-collapse:collapse; width:100%; margin:8pt 0; font-size:11pt; }
     .doc-section table td{ border:1px solid #999; padding:4pt 6pt; vertical-align:top; }
@@ -5266,6 +5397,7 @@ tinymce.init({
     " font-family:'Times New Roman',Times,serif; font-size:16px; line-height:1;"+
     " color:#1a1a2e; text-align:justify; }"+
     "img{ max-width:100%; height:auto; }"+
+    "ul[data-list-type='none']{ list-style:none; padding-left:0; }"+
     "table{ max-width:100%; border-collapse:collapse; }"+
     "table td,table th{ border:1px solid #999; padding:4px 7px; }",
   setup:function(ed){
