@@ -366,6 +366,7 @@ body.focus-mode .units-config-band{display:none}
 .curr-insert-btn,.curr-insert-btn:hover,.curr-insert-btn:focus,.curr-insert-btn.curr-insert-hit{
   background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:#fff;border-radius:100px;box-shadow:none}
 .curr-insert-btn:hover{filter:brightness(1.08)}
+.curr-insert-btn{height:32px;padding:0 14px;gap:7px;font-size:.8rem;font-weight:600;white-space:nowrap}
 /* Antes servia para pintar el icono en morado sobre boton transparente; ahora el boton ya
    es morado relleno (estilo Normativa), asi que el "detectado" se marca con un anillo claro
    en vez de cambiar el color de fondo. */
@@ -589,6 +590,9 @@ body.focus-mode .units-config-band{display:none}
   .index-panel{position:relative;top:0;max-height:360px}
   .form-grid:not(.form-grid-4){grid-template-columns:1fr}
   .edit-panel{padding:20px 18px}
+  /* Boton Autocompletar: en movil se queda solo el icono (cuadrado), sin el texto. */
+  .curr-insert-btn-text{display:none}
+  .curr-insert-btn{width:32px;padding:0;justify-content:center;gap:0}
   #normalPanel{position:relative;top:0;height:auto;max-height:none}
   .edit-panel-bare{position:relative;top:0;height:auto;max-height:none;overflow:visible}
   #portadaPanel{position:relative;top:0;height:auto;overflow:visible}
@@ -1222,7 +1226,7 @@ try{window.__cjBootEmpty=!localStorage.getItem("programadog_v3");}catch(e){windo
               <input class="title-input" id="titleInput" type="text" placeholder="Título del apartado">
               <div class="tmce-title-actions" id="tmceTitleActions">
                 <div class="curr-insert-wrap">
-                  <button class="tool-btn tool-btn-icon curr-insert-btn" id="curriculoInsertBtn" onclick="curriculoInsertClick()" title="Autocompletar este apartado"><i class="fa-solid fa-wand-magic-sparkles"></i></button>
+                  <button class="tool-btn curr-insert-btn" id="curriculoInsertBtn" onclick="curriculoInsertClick()" title="Autocompletar este apartado"><i class="fa-solid fa-wand-magic-sparkles"></i><span class="curr-insert-btn-text">Autocompletar</span></button>
                   <div class="curr-insert-menu" id="curriculoInsertMenu"></div>
                 </div>
                 <button class="tool-btn tool-btn-icon" id="previewSectionBtn" onclick="previewSection()" title="Vista previa de este apartado"><i class="fa-solid fa-eye"></i></button>
