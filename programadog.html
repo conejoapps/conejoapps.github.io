@@ -494,6 +494,35 @@ body.focus-mode .units-config-band{display:none}
 .curriculo-field-label:hover{background:rgba(124,58,237,.06)}
 .curriculo-field-label:focus{outline:none;background:#fff;box-shadow:0 0 0 2px rgba(124,58,237,.18)}
 .curriculo-field-count{flex-shrink:0;font-size:.74rem;color:var(--muted);font-weight:600}
+button.curriculo-field-count{border:0;background:transparent;font-family:inherit;cursor:default}
+.curriculo-field-count.cov-clickable{cursor:pointer;border-radius:999px;padding:3px 10px}
+.curriculo-field-count.cov-gap{color:#b91c1c;background:rgba(220,38,38,.08)}
+.curriculo-field-count.cov-gap.cov-clickable:hover{background:rgba(220,38,38,.16)}
+.curriculo-field-count.cov-ok{color:#15803d;background:rgba(22,163,74,.10)}
+.curriculo-field-count.cov-ok.cov-clickable:hover{background:rgba(22,163,74,.18)}
+/* Popup de cobertura */
+.cov-pop-back{position:fixed;inset:0;z-index:10000;background:rgba(26,26,46,.55);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:20px}
+.cov-pop{background:#fff;border-radius:18px;width:min(560px,94vw);max-height:85vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.3);font-family:'Outfit',sans-serif;overflow:hidden}
+.cov-pop-head{display:flex;align-items:flex-start;gap:12px;padding:20px 22px 14px;border-bottom:1px solid var(--glass-border)}
+.cov-pop-head h3{margin:0;font-size:1.05rem;font-weight:800;color:var(--fg)}
+.cov-pop-sub{margin:4px 0 0;font-size:.8rem;color:var(--muted)}
+.cov-pop-sub .cov-gap{color:#b91c1c;font-weight:700}
+.cov-pop-x{margin-left:auto;flex-shrink:0;width:32px;height:32px;border:0;background:transparent;color:var(--muted);border-radius:9px;cursor:pointer;font-size:1rem}
+.cov-pop-x:hover{background:rgba(0,0,0,.06);color:var(--fg)}
+.cov-pop-body{padding:12px 16px 18px;overflow-y:auto;display:flex;flex-direction:column;gap:4px}
+.cov-pop-empty{color:var(--muted);font-size:.85rem;padding:8px}
+.cov-item{display:flex;align-items:flex-start;gap:9px;font-size:.82rem;line-height:1.4;padding:7px 10px;border-radius:9px}
+.cov-item .cov-dot{flex:0 0 auto;width:8px;height:8px;border-radius:50%;margin-top:5px}
+.cov-item .cov-text{flex:1}
+.cov-item .cov-badge{flex:0 0 auto;font-size:.7rem;white-space:nowrap;margin-top:1px}
+.cov-item-ok{background:rgba(22,163,74,.07)}
+.cov-item-ok .cov-dot{background:#16a34a}
+.cov-item-ok .cov-text{color:#14532d}
+.cov-item-ok .cov-badge{color:#15803d}
+.cov-item-gap{background:rgba(220,38,38,.07)}
+.cov-item-gap .cov-dot{background:#dc2626}
+.cov-item-gap .cov-text{color:#7f1d1d}
+.cov-item-gap .cov-badge{color:#b91c1c;font-weight:700}
 .curriculo-field-del{flex-shrink:0;width:22px;height:22px;border:none;background:transparent;color:var(--muted);border-radius:6px;cursor:pointer;font-size:.72rem;display:flex;align-items:center;justify-content:center}
 .curriculo-field-del:hover{color:var(--danger);background:rgba(225,29,72,.1)}
 .curriculo-field-type{flex-shrink:0;font-family:'Outfit',sans-serif;font-size:.72rem;padding:2px 4px;border-radius:6px;border:1px solid var(--glass-border);background:#fff;color:var(--muted);cursor:pointer}
@@ -1426,11 +1455,13 @@ function buildLevelSections(nivel){
    el texto -el nombre se puede cambiar sin perder lo escrito, porque el texto se
    guarda bajo un id interno estable, no bajo el nombre visible-. */
 const DEFAULT_CURRICULO_FIELDS = [
-  {key:"competencia_general", label:"Competencia general", unitInput:"pick"},
+  {key:"competencia_general", label:"Competencia general", unitInput:"text"},
+  {key:"competencias_clave", label:"Competencias clave", unitInput:"pick"},
   {key:"competencias_profesionales", label:"Competencias profesionales", unitInput:"pick"},
   {key:"objetivos_generales", label:"Objetivos generales", unitInput:"pick"},
   {key:"objetivos_especificos", label:"Objetivos específicos", unitInput:"pick"},
   {key:"contenidos", label:"Contenidos", unitInput:"pick"},
+  {key:"contenidos_transversales", label:"Contenidos transversales", unitInput:"pick"},
   {key:"criterios_evaluacion", label:"Criterios de evaluación", unitInput:"pick"}
 ];
 function defaultCurriculoFields(){ return DEFAULT_CURRICULO_FIELDS.map(f=>({...f})); }
@@ -1451,7 +1482,12 @@ function curriculoLines(text){
   raw.forEach(line=>{
     if(out.length){
       const prev = out[out.length-1];
-      const looksLikeContinuation = !_CL_SENTENCE_END.test(prev) && _CL_LOWER_START.test(line) && !_CL_LIST_MARKER.test(line);
+      /* Solo se une si la linea anterior parece cortada A MEDIA FRASE (no acaba en punto/
+         cierre, y ademas es "larga": una frase corta sin punto suele ser un elemento
+         completo -"Trabajo en equipo"-, no el principio de otra). Y la actual empieza en
+         minuscula y no es un marcador de lista. Asi se evita unir elementos cortos legitimos. */
+      const prevLooksCut = !_CL_SENTENCE_END.test(prev) && prev.length>=40;
+      const looksLikeContinuation = prevLooksCut && _CL_LOWER_START.test(line) && !_CL_LIST_MARKER.test(line);
       if(looksLikeContinuation){ out[out.length-1] = prev+" "+line; return; }
     }
     out.push(line);
@@ -1578,6 +1614,75 @@ function availableBuiltinModules(){
 }
 function unitsArr(){ const sys=currentSystem(); return sys.units || (sys.units=[]); }
 function unitsContainerId(){ return currentSystem().containerId; }
+
+/* ============= COBERTURA CURRICULAR =============
+   Comprueba, para cada campo del curriculo que se rellena por seleccion (desplegable),
+   cuantas unidades trabajan cada uno de sus elementos. Sirve para (A) los contadores en
+   "Datos del curriculo" y (C) el aviso del preflight. Un elemento "sin cubrir" es uno que
+   no ha seleccionado NINGUNA unidad: a efectos del tribunal, contenido/criterio no trabajado.
+   Se cuenta sobre TODOS los sistemas de unidades del nivel (UD, SA, UT), no solo el activo,
+   porque el curriculo del nivel es comun a los tres. */
+function coverageForField(fieldKey){
+  const lv = state.levels[state.meta.nivel] || {};
+  const text = (lv.curriculo||{})[fieldKey] || "";
+  const elements = curriculoLines(text);
+  const counts = elements.map(()=>0);
+  const norm = s => String(s||"").replace(/\s+/g," ").trim();
+  const elemNorm = elements.map(norm);
+  const systems = (lv.systems && typeof lv.systems==="object") ? Object.values(lv.systems) : [];
+  systems.forEach(sys=>{
+    (sys.units||[]).forEach(u=>{
+      const val = u.fields ? u.fields[fieldKey] : null;
+      const sel = Array.isArray(val) ? val : (typeof val==="string" && val.trim() ? [val] : []);
+      const selNorm = sel.map(norm);
+      elemNorm.forEach((e,i)=>{ if(e && selNorm.includes(e)) counts[i]++; });
+    });
+  });
+  const covered = counts.filter(c=>c>0).length;
+  const uncovered = counts.filter(c=>c===0).length;
+  return { elements, counts, covered, uncovered, total: elements.length };
+}
+/* Popup de cobertura de un campo: lista cada elemento en verde (trabajado, con nº de
+   unidades) o rojo (sin trabajar). Sustituye al desglose inline, que alargaba mucho el cuadro. */
+function openCoveragePopup(f){
+  const cov = coverageForField(f.key);
+  const back = document.createElement("div");
+  back.className = "cov-pop-back";
+  const rows = cov.elements.map((el,i)=>{
+    const gap = cov.counts[i]===0;
+    const badge = gap ? "sin trabajar" : (cov.counts[i]+(cov.counts[i]===1?" unidad":" unidades"));
+    return '<div class="cov-item'+(gap?" cov-item-gap":" cov-item-ok")+'">'+
+             '<span class="cov-dot"></span>'+
+             '<span class="cov-text">'+escapeHtml(el)+'</span>'+
+             '<span class="cov-badge">'+badge+'</span>'+
+           '</div>';
+  }).join("");
+  back.innerHTML =
+    '<div class="cov-pop">'+
+      '<div class="cov-pop-head">'+
+        '<div><h3>'+escapeHtml(f.label)+'</h3>'+
+        '<p class="cov-pop-sub">'+cov.covered+' de '+cov.total+' trabajados · <span class="cov-gap">'+cov.uncovered+' sin trabajar</span></p></div>'+
+        '<button class="cov-pop-x" title="Cerrar"><i class="fa-solid fa-xmark"></i></button>'+
+      '</div>'+
+      '<div class="cov-pop-body">'+(rows||'<p class="cov-pop-empty">Este campo no tiene elementos.</p>')+'</div>'+
+    '</div>';
+  const close=()=>{ back.remove(); document.removeEventListener("keydown",onKey); };
+  const onKey=e=>{ if(e.key==="Escape") close(); };
+  back.addEventListener("click",e=>{ if(e.target===back || e.target.closest(".cov-pop-x")) close(); });
+  document.addEventListener("keydown",onKey);
+  document.body.appendChild(back);
+}
+/* Resumen de todos los campos "de seleccion" con elementos sin cubrir (para el preflight). */
+function coverageGaps(){
+  const lv = state.levels[state.meta.nivel] || {};
+  const fields = (lv.curriculoFields||[]).filter(f=>f.unitInput!=="text");
+  const gaps = [];
+  fields.forEach(f=>{
+    const cov = coverageForField(f.key);
+    if(cov.total>0 && cov.uncovered>0) gaps.push({label:f.label, uncovered:cov.uncovered, total:cov.total});
+  });
+  return gaps;
+}
 function setUnitsContainerId(id){ currentSystem().containerId = id; }
 function unitsTemplateKey(){ return ensureSystems().activeSystem; }
 function setUnitsTemplateKey(k){ if(UNIT_TEMPLATES[k]) ensureSystems().activeSystem=k; }
@@ -3289,7 +3394,23 @@ function applyLoadedData(data){
         /* Metodología, Recursos didácticos y Evaluación se añadieron aquí sin que se
            pidiera; se retiran si un documento guardado los tuviera de una sesión
            anterior (sin tocar los módulos de la TABLA de la unidad, que son aparte). */
-        return saved.filter(f=>!["metodologia","recursos_didacticos","evaluacion"].includes(f.key));
+        const filtered = saved.filter(f=>!["metodologia","recursos_didacticos","evaluacion"].includes(f.key));
+        /* "Competencia general" es texto libre (solo va en un epígrafe, nunca se selecciona
+           en las unidades): se fuerza a texto para que NO cuente para la cobertura curricular
+           -antes salia como 100% sin trabajar, lo cual es enganoso-. */
+        filtered.forEach(f=>{ if(f.key==="competencia_general") f.unitInput="text"; });
+        /* Campos añadidos despues (Competencias clave, Contenidos transversales): si un
+           documento guardado no los tiene, se insertan en su posicion (tras Competencia
+           general y tras Contenidos, respectivamente) para que aparezcan como en los nuevos. */
+        const insertAfter=(key, newField)=>{
+          if(filtered.some(f=>f.key===newField.key)) return;
+          const i = filtered.findIndex(f=>f.key===key);
+          if(i>=0) filtered.splice(i+1, 0, {...newField});
+          else filtered.push({...newField});
+        };
+        insertAfter("competencia_general", {key:"competencias_clave", label:"Competencias clave", unitInput:"pick"});
+        insertAfter("contenidos", {key:"contenidos_transversales", label:"Contenidos transversales", unitInput:"pick"});
+        return filtered;
       })()
     };
   });
@@ -3840,7 +3961,8 @@ function renderCurriculoFields(){
     typeSel.innerHTML = '<option value="pick">Desplegable</option><option value="text">Texto</option>';
     typeSel.value = (f.unitInput==="text") ? "text" : "pick";
     typeSel.addEventListener("change", ()=>{ f.unitInput = typeSel.value; scheduleSave(); });
-    const count = document.createElement("span");
+    const count = document.createElement("button");
+    count.type = "button";
     count.className = "curriculo-field-count";
     const delBtn = document.createElement("button");
     delBtn.className = "curriculo-field-del"; delBtn.title = "Eliminar este campo";
@@ -3852,8 +3974,25 @@ function renderCurriculoFields(){
     ta.placeholder = (f.unitInput==="text") ? "" : "Una línea por elemento…";
     ta.value = curriculo[f.key]||"";
     const updateCount = ()=>{
+      const isPick = (f.unitInput!=="text");
       const n = curriculoLines(ta.value).length;
-      count.textContent = n ? (n+(n===1?" elemento":" elementos")) : "";
+      count.onclick = null;
+      count.classList.remove("cov-clickable");
+      if(!n){ count.textContent=""; count.className="curriculo-field-count"; count.title=""; count.style.display="none"; return; }
+      count.style.display="";
+      if(!isPick){
+        /* Campo de texto libre: no se selecciona en las unidades, asi que no hay cobertura. */
+        count.textContent = n+(n===1?" elemento":" elementos");
+        count.className = "curriculo-field-count"; count.title="";
+        return;
+      }
+      /* Campo de seleccion: boton que abre el popup de cobertura por elemento. */
+      const cov = coverageForField(f.key);
+      const unc = cov.uncovered;
+      count.textContent = unc>0 ? (unc+" sin trabajar de "+n) : (n+" ✓");
+      count.className = "curriculo-field-count cov-clickable"+(unc>0 ? " cov-gap" : " cov-ok");
+      count.title = "Ver cobertura por elemento";
+      count.onclick = ()=>openCoveragePopup(f);
     };
     ta.addEventListener("input", ()=>{ curriculo[f.key] = ta.value; scheduleSave(); updateCount(); });
     updateCount();
@@ -4003,13 +4142,19 @@ const APP_DEFAULT_TEXTS = [
       "</ul>"
   }
 ];
-/* Detecta, por el titulo del apartado, si hay un texto por defecto de la app que corresponda
-   (misma logica de comparacion que curriculoMatchForSection, pero contra matchWords). */
+/* Detecta, por el titulo del apartado, si hay un texto por defecto de la app que corresponda.
+   Coincidencia EXACTA con alguna de sus matchWords (ignorando la numeracion inicial): una
+   coincidencia parcial haria que, por ejemplo, "Normativa de evaluacion" pegara toda la base
+   normativa sin preguntar. Si no es exacta, se abre el menu para elegir a mano. */
 function appDefaultMatchForSection(){
   const s = current(); if(!s) return null;
   const t = normalizeTxt(s.title);
   if(!t) return null;
-  return APP_DEFAULT_TEXTS.find(entry=> entry.matchWords.some(w=>{ const nw=normalizeTxt(w); return nw && (t.indexOf(nw)>=0 || nw.indexOf(t)>=0); })) || null;
+  const tSinNum = t.replace(/^[\d.\s]+/,"").trim();
+  return APP_DEFAULT_TEXTS.find(entry=> entry.matchWords.some(w=>{
+    const nw = normalizeTxt(w);
+    return nw && (nw===t || nw===tSinNum);
+  })) || null;
 }
 function insertAppDefaultEntry(key){
   const e = APP_DEFAULT_TEXTS.find(x=>x.key===key);
@@ -4039,10 +4184,18 @@ function curriculoMatchForSection(){
   const t = normalizeTxt(s.title);
   if(!t) return null;
   const entries = curriculoEntries();
-  let hit = entries.find(e=>normalizeTxt(e.label)===t);
-  if(hit) return hit;
-  hit = entries.find(e=>{ const l=normalizeTxt(e.label); return l && (t.indexOf(l)>=0 || l.indexOf(t)>=0); });
-  return hit || null;
+  /* Coincidencia EXACTA con la etiqueta del campo, ignorando una numeracion inicial
+     ("3.1 Competencia general" -> "competencia general").
+     ANTES se aceptaba cualquier coincidencia parcial, y eso provocaba detecciones falsas
+     graves: "Contenidos transversales" o "Secuenciacion de contenidos" traian Contenidos,
+     y "Evaluacion" traia los Criterios de evaluacion. Al insertarse directamente sin
+     preguntar, metia contenido equivocado en el apartado. Ahora, si no es exacto, no se
+     autodetecta: se abre el menu para elegir a mano. */
+  const tSinNum = t.replace(/^[\d.\s]+/,"").trim();
+  return entries.find(e=>{
+    const l = normalizeTxt(e.label);
+    return l && (l===t || l===tSinNum);
+  }) || null;
 }
 /* Convierte el texto del curriculo (una linea = un elemento) en una lista SIN marcador
    (data-list-type="none"): mismo comportamiento de lista (cada elemento en su linea, con
@@ -4834,6 +4987,12 @@ function preflightIssues(){
   if(noCaben.length){
     out.push({sev:"aviso",text:(noCaben.length===1?"Una unidad no cabe":"Hay unidades que no caben")+" en una sola hoja ni al tamano mas compacto (n.º "+noCaben.join(", ")+"): al exportar se recortaran o desbordaran. Recorta texto o quita algun campo."});
   }
+  /* Cobertura curricular: elementos del curriculo (contenidos, criterios, objetivos...) que
+     no trabaja NINGUNA unidad. Es lo que revisa el tribunal y no se puede comprobar a mano
+     con 12 unidades. Aviso, no bloqueo. */
+  coverageGaps().forEach(g=>{
+    out.push({sev:"aviso", text:"«"+g.label+"»: "+g.uncovered+" de "+g.total+" "+(g.total===1?"elemento no se trabaja":"elementos no se trabajan")+" en ninguna unidad. Revisa la cobertura en Datos del currículo."});
+  });
   /* -1 por dato que falte en la portada (DNI, nombre y apellidos, especialidad). */
   const faltan=[];
   if(!String(state.meta.dni||"").trim()) faltan.push("DNI");
@@ -5432,7 +5591,14 @@ function hideGen(){ document.getElementById("genOverlay").classList.remove("acti
 
 /* ============= EVENTOS DE UI ============= */
 document.getElementById("titleInput").addEventListener("input",function(){
-  const s=current(); if(s){ s.title=this.value; renderIndex(); document.getElementById("titleNum").textContent=s.number+(s.level===1?".":""); scheduleSave(); }
+  const s=current();
+  if(s){
+    /* Antes de cambiar el titulo, si el apartado tenia una guia curada asociada a su titulo
+       actual y aun no la tiene "congelada", se le guarda en s.guide. Asi, al renombrarlo,
+       conserva su texto de ayuda en vez de perderlo (la deteccion es por titulo). */
+    if(!s.guide && GUIDE_MAP[s.title]) s.guide = GUIDE_MAP[s.title];
+    s.title=this.value; renderIndex(); document.getElementById("titleNum").textContent=s.number+(s.level===1?".":""); scheduleSave();
+  }
 });
 
 /* ============= EDITOR TinyMCE ============= */
