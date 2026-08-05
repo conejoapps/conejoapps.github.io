@@ -1465,7 +1465,19 @@ const DEFAULT_CURRICULO_FIELDS = [
   {key:"criterios_evaluacion", label:"Criterios de evaluación", unitInput:"pick"}
 ];
 function defaultCurriculoFields(){ return DEFAULT_CURRICULO_FIELDS.map(f=>({...f})); }
-function emptyCurriculo(){ const o={}; DEFAULT_CURRICULO_FIELDS.forEach(f=>{ o[f.key]=""; }); return o; }
+/* Lista transversal clasica: ahora es el VALOR POR DEFECTO del campo del curriculo
+   "Contenidos transversales" (editable), del que se nutre el desplegable "Contenido
+   transversal" del editor de actividad. */
+const DEFAULT_CONTENIDOS_TRANSVERSALES = [
+  "Educación moral y cívica","Educación para la salud","Educación vial","Coeducación",
+  "Educación para la paz y la concienciación","Educación ambiental","Educación del consumidor",
+  "Educación intercultural y fomento en el uso de las TIC"
+].join("\n");
+function emptyCurriculo(){
+  const o={};
+  DEFAULT_CURRICULO_FIELDS.forEach(f=>{ o[f.key] = (f.key==="contenidos_transversales") ? DEFAULT_CONTENIDOS_TRANSVERSALES : ""; });
+  return o;
+}
 /* Cada LÍNEA es un "elemento" (una competencia, un objetivo...). Problema real: al pegar
    texto desde Word/PDF, una frase larga ya viene partida por SALTOS DE LÍNEA internos del
    documento de origen (el ajuste de línea de allí), y cada trozo se contaba como un
@@ -1840,6 +1852,33 @@ function formatPickValue(fieldDef, val){
   const ordered = fieldDef.options.filter(o=>arr.includes(o)); // orden canónico, no el de clic
   return ordered.join(", ");
 }
+/* Campos que en la TABLA de la unidad se imprimen como referencia (número de posición en
+   Datos del currículo: "1, 3, 5"), no con el texto completo -para ahorrar espacio-. El
+   desplegable del editor sigue mostrando el texto completo (formatSelectionLabel): esto solo
+   afecta a lo que se pinta/exporta en la tabla. */
+const PICK_FIELDS_AS_REFS = ["competencias_profesionales","objetivos_generales","criterios_evaluacion"];
+function formatPickValueAsRefs(fieldDef, val){
+  /* Mismo respaldo que formatPickValue para texto antiguo: no se puede numerar un texto
+     suelto, así que se muestra igual que antes en vez de perderlo. */
+  if(typeof val==="string") return val.trim();
+  const arr = Array.isArray(val) ? val : [];
+  if(!arr.length || !fieldDef || !Array.isArray(fieldDef.options)) return "";
+  const nums = fieldDef.options
+    .map((o,i)=> arr.includes(o) ? (i+1) : null)
+    .filter(n=>n!==null);
+  return nums.join(", ");
+}
+/* "Objetivos específicos": cada uno en su propia línea (a modo lista), en vez de todos
+   seguidos separados por comas -mas facil de leer cuando hay varios-. Sin marcador (sin
+   numero/letra/viñeta), igual que las listas que ya se insertan desde el curriculo. */
+function formatPickValueAsList(fieldDef, val){
+  if(typeof val==="string"){ const t=val.trim(); return t?escapeHtml(t):""; }
+  const arr = Array.isArray(val) ? val : [];
+  if(!arr.length || !fieldDef || !Array.isArray(fieldDef.options)) return "";
+  const ordered = fieldDef.options.filter(o=>arr.includes(o));
+  if(!ordered.length) return "";
+  return '<ul data-list-type="none">'+ordered.map(o=>"<li>"+escapeHtml(o)+"</li>").join("")+"</ul>";
+}
 function formatEval3Value(val){
   /* Igual que arriba: un texto/HTML antiguo de Evaluación se conserva tal cual. */
   if(typeof val==="string") return val.trim();
@@ -1870,7 +1909,13 @@ function unitHTML(u, index, tpl, fit){
   /* Valor ya formateado de un módulo, según cómo se rellene. */
   const valueOf = (mod)=>{
     if(mod.input==="eval3") return formatEval3Value(f[mod.key]);
-    if(mod.input==="pick"){ const v = formatPickValue(unitFieldDef(mod), f[mod.key]); return v?escapeHtml(v):""; }
+    if(mod.input==="pick"){
+      const def = unitFieldDef(mod);
+      if(PICK_FIELDS_AS_REFS.includes(mod.key)){ const v = formatPickValueAsRefs(def, f[mod.key]); return v?escapeHtml(v):""; }
+      if(mod.key==="objetivos_especificos") return formatPickValueAsList(def, f[mod.key]); /* ya devuelve HTML seguro (texto interno escapado) */
+      const v = formatPickValue(def, f[mod.key]);
+      return v?escapeHtml(v):"";
+    }
     if(mod.input==="actlist") return formatActList(u);
     return g(mod.key); /* text/rich: ya es HTML o texto plano escrito por el usuario */
   };
@@ -2582,11 +2627,13 @@ function buildActivityListBuilder(u){
 /* Modal de añadir/editar actividad. */
 /* Valores fijos de "Contenido transversal" (se pueden marcar varios a la vez, y se
    puede añadir uno personalizado desde el propio desplegable). */
-const ACT_TRANSVERSAL_FIJOS = [
-  "Educación moral y cívica","Educación para la salud","Educación vial","Coeducación",
-  "Educación para la paz y la concienciación","Educación ambiental","Educación del consumidor",
-  "Educación intercultural y fomento en el uso de las TIC"
-];
+/* Opciones del desplegable "Contenido transversal" del editor de actividad: se toman AHORA
+   del campo del curriculo "Contenidos transversales" (un elemento por linea), en vez de una
+   lista fija en el codigo. Asi se editan desde Datos del curriculo. */
+function actTransversalOptions(){
+  const lv = state.levels[state.meta.nivel] || {};
+  return curriculoLines((lv.curriculo||{}).contenidos_transversales || "");
+}
 let _actTransCustomList = []; /* personalizados añadidos EN ESTA apertura del editor */
 
 /* Metodologías genéricas (provisional; se ampliará con la lista definitiva). Cada apartado
@@ -2637,9 +2684,15 @@ function buildMethodPicker(getArr, setArr){
 function renderActTransOptions(selected){
   const box = document.getElementById("actTransOptions");
   box.innerHTML = "";
-  const all = ACT_TRANSVERSAL_FIJOS.concat(_actTransCustomList);
+  const base = actTransversalOptions();
+  /* Se muestran: las opciones del curriculo + los personalizados de esta sesion + cualquier
+     valor YA SELECCIONADO que no este en la lista (para no ocultar/perder lo marcado si el
+     campo del curriculo cambio). Todo lo que no sea del curriculo se marca como "custom"
+     (con boton de quitar). */
+  const extras = _actTransCustomList.concat((selected||[]).filter(v=>!base.includes(v) && !_actTransCustomList.includes(v)));
+  const all = base.concat(extras.filter((v,i)=>extras.indexOf(v)===i && !base.includes(v)));
   all.forEach(v=>{
-    const isCustom = !ACT_TRANSVERSAL_FIJOS.includes(v);
+    const isCustom = !base.includes(v);
     const row = document.createElement("label");
     row.className = "uf-select-opt"+(isCustom?" uf-select-opt-custom":"");
     const cb = document.createElement("input");
@@ -2648,7 +2701,8 @@ function renderActTransOptions(selected){
     cb.addEventListener("change", updateActTransSummary);
     row.appendChild(cb);
     row.appendChild(document.createTextNode(" "+v));
-    /* Los personalizados se pueden BORRAR de la lista (los fijos no). */
+    /* Los que no vienen del curriculo (personalizados o seleccionados huerfanos) se pueden
+       quitar de la lista; los del curriculo se editan en Datos del curriculo. */
     if(isCustom){
       const del = document.createElement("button");
       del.type = "button"; del.className = "uf-select-opt-del"; del.title = "Quitar";
@@ -2669,7 +2723,7 @@ function addActTransversalCustom(){
   const input = document.getElementById("actTransCustomInput");
   const v = input.value.trim();
   if(!v) return;
-  const all = ACT_TRANSVERSAL_FIJOS.concat(_actTransCustomList);
+  const all = actTransversalOptions().concat(_actTransCustomList);
   if(!all.includes(v)) _actTransCustomList.push(v);
   const selected = [...document.querySelectorAll("#actTransOptions input:checked")].map(cb=>cb.value);
   selected.push(v);
@@ -2761,11 +2815,13 @@ function openActivityEditor(unitId, actId){
   const modVal = act ? (act.modalidad||"I") : "I";
   document.querySelectorAll('input[name="actModalidad"]').forEach(r=>{ r.checked = (r.value===modVal); });
 
-  /* Contenido transversal: ahora es un ARRAY (se pueden marcar varios). Los valores
-     guardados que no estén entre los fijos (personalizados de antes) se re-crean como
-     casillas propias, para que se vean marcadas al editar. */
+  /* Contenido transversal: es un ARRAY (se pueden marcar varios). Los valores guardados
+     que no estén entre las opciones del currículo actual (personalizados, o huérfanos de un
+     currículo que ha cambiado) se re-crean como casillas propias, para que se vean marcadas
+     al editar. */
   const transArr = act ? (Array.isArray(act.transversal) ? act.transversal : (act.transversal ? [act.transversal] : [])) : [];
-  _actTransCustomList = transArr.filter(v=>!ACT_TRANSVERSAL_FIJOS.includes(v));
+  const transBase = actTransversalOptions();
+  _actTransCustomList = transArr.filter(v=>!transBase.includes(v));
   renderActTransOptions(transArr);
   updateActTransSummary();
   document.getElementById("actTransCustomInput").value = "";
@@ -3386,7 +3442,14 @@ function applyLoadedData(data){
       currentId: src.currentId||"PORTADA",
       systems,
       activeSystem,
-      curriculo: Object.assign(emptyCurriculo(), src.curriculo||{}),
+      curriculo: (function(){
+        const c = Object.assign(emptyCurriculo(), src.curriculo||{});
+        /* Si el campo de contenidos transversales viene vacio (p.ej. un documento guardado
+           justo cuando el campo se creo, aun sin contenido), se siembra con la lista clasica
+           para que el desplegable del editor de actividad no aparezca vacio. */
+        if(!String(c.contenidos_transversales||"").trim()) c.contenidos_transversales = DEFAULT_CONTENIDOS_TRANSVERSALES;
+        return c;
+      })(),
       curriculoFields: (function(){
         const saved = Array.isArray(src.curriculoFields) && src.curriculoFields.length
           ? src.curriculoFields.map(f=>({key:String(f.key), label:String(f.label||f.key), unitInput:(f.unitInput==="text"?"text":"pick")}))
